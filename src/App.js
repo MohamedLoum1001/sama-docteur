@@ -3,6 +3,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import "./App.css";
 import Register from "./auth/register/Register";
 import Login from "./auth/login/Login";
+import ResetPassword from "./auth/resetPassword/ResetPassword";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
         {/* Pages */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+
       </Routes>
     </div>
   );
