@@ -1,10 +1,12 @@
 // src/components/Login.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom"; // ✅ Import navigation
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
 const Login = () => {
+  const navigate = useNavigate(); // ✅ Hook pour navigation
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -44,6 +46,7 @@ const Login = () => {
         setErrorMessage("Veuillez remplir tous les champs.");
       } else {
         alert("Connexion réussie ✅");
+        navigate("/home-patient"); // ✅ Redirection vers HomePatient
       }
       setLoading(false);
     }, 1500);
@@ -51,9 +54,7 @@ const Login = () => {
 
   // Classe pour envelopper tout l'input-group avec la bordure rouge si erreur
   const groupClass = (field) =>
-    `input-group rounded-pill ${
-      errors[field] ? "border border-danger" : ""
-    }`;
+    `input-group rounded-pill ${errors[field] ? "border border-danger" : ""}`;
 
   const inputClass = "form-control border-0 rounded-end-pill px-3 py-2";
 
@@ -90,7 +91,9 @@ const Login = () => {
 
               {/* Mot de passe */}
               <div className="mb-3">
-                <label className="form-label text-start w-100">Mot de passe</label>
+                <label className="form-label text-start w-100">
+                  Mot de passe
+                </label>
                 <div className={groupClass("password")}>
                   <span className="input-group-text bg-white rounded-start-pill">
                     <i className="fa fa-lock"></i>
