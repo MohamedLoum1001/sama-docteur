@@ -15,6 +15,12 @@ import Notifications from "./components/Notifications/Notifications";
 import Ordonnances from "./patients/ordonnance/Ordonnances";
 import DossierMedical from "./patients/dossierMedical/DossierMedical";
 import Avis from "./patients/avis/Avis";
+import HomeMedecin from "./medecins/home/HomeMedecine";
+import ListeRendezVous from "./medecins/rendezVous/ListRendzVous";
+import ProfilMedecin from "./medecins/profil/ProfilMedecin";
+import Prescription from "./medecins/prescription/Prescription";
+// import Recommandation from "./medecins/recommendation/Recommendation";
+// import DossiersMedical from "./medecins/dossierMedical/DossierMedical";
 // import Layout from "./components/Layout";
 
 function App() {
@@ -31,7 +37,7 @@ function App() {
 
         {/* Pages avec navbar */}
         <Route element={<Layout />}>
-        {/* Routes Patients */}
+          {/* Routes Patients */}
           <Route path="/home-patient" element={<HomePatient />} />
           <Route path="/profil" element={<Profil />} />
           <Route path="/rendez-vous" element={<RendezVous />} />
@@ -41,6 +47,13 @@ function App() {
           <Route path="/ordonnances" element={<Ordonnances />} />
           <Route path="/dossier-medical" element={<DossierMedical />} />
           <Route path="/avis" element={<Avis />} />
+          {/* Routes pour l'interface médecin */}
+          <Route path="/home-medecin" element={<HomeMedecin />} />
+          <Route path="/liste-rendez-vous" element={<ListeRendezVous />} />
+          <Route path="/profil-medecin" element={<ProfilMedecin />} />
+          <Route path="/prescription" element={<Prescription />} />
+          {/* <Route path="/dossier-medical" element={<DossiersMedical />} />
+          <Route path="/recommandation" element={<Recommandation />} /> */}
 
 
           {/* tu peux ajouter d'autres pages ici */}

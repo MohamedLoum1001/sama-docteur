@@ -46,7 +46,12 @@ const Login = () => {
         setErrorMessage("Veuillez remplir tous les champs.");
       } else {
         alert("Connexion réussie ✅");
-        navigate("/home-patient"); // ✅ Redirection vers HomePatient
+         // ✅ Redirection vers HomePatient
+        navigate("/home-patient");
+        // ✅ Redirection vers HomeMédecin
+        // navigate("/home-medecin");
+         
+
       }
       setLoading(false);
     }, 1500);

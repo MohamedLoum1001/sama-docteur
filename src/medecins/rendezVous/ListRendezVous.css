@@ -1,0 +1,26 @@
+.btn-custom {
+    background-color: #00a5a8;
+    border: none;
+    color: white;
+    border-radius: 50px;
+    padding: 8px 20px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-custom:hover {
+    background-color: #0b89c4 !important;
+    color: white !important;
+}
+
+.card {
+    background-color: #ffffff;
+}
+
+.table th,
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-size: 0.9rem;
+}
