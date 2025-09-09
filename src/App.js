@@ -19,8 +19,8 @@ import HomeMedecin from "./medecins/home/HomeMedecine";
 import ListeRendezVous from "./medecins/rendezVous/ListRendzVous";
 import ProfilMedecin from "./medecins/profil/ProfilMedecin";
 import Prescription from "./medecins/prescription/Prescription";
-// import Recommandation from "./medecins/recommendation/Recommendation";
-// import DossiersMedical from "./medecins/dossierMedical/DossierMedical";
+import Recommandation from "./medecins/recommendation/Recommendation";
+import DossiersMedicaux from "./medecins/dossiersMedicaux/DossiersMedicaux";
 // import Layout from "./components/Layout";
 
 function App() {
@@ -52,8 +52,8 @@ function App() {
           <Route path="/liste-rendez-vous" element={<ListeRendezVous />} />
           <Route path="/profil-medecin" element={<ProfilMedecin />} />
           <Route path="/prescription" element={<Prescription />} />
-          {/* <Route path="/dossier-medical" element={<DossiersMedical />} />
-          <Route path="/recommandation" element={<Recommandation />} /> */}
+          <Route path="/dossiers-medicaux" element={<DossiersMedicaux />} />
+          <Route path="/recommandation" element={<Recommandation />} />
 
 
           {/* tu peux ajouter d'autres pages ici */}

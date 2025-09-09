@@ -1,5 +1,6 @@
-/* Personnalisation du conteneur */
-.container {
+
+/* Conteneur spécifique à Recommendation */
+.recommendation-container {
     max-width: 700px;
     background-color: #f9f9f9;
     padding: 3rem;
@@ -7,8 +8,7 @@
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-/* Personnalisation du titre */
-h4 {
+.recommendation-title {
     font-size: 1.75rem;
     font-weight: 600;
     color: #007bff;
@@ -16,41 +16,36 @@ h4 {
     text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
 }
 
-/* Personnalisation des champs de saisie */
-.form-control-lg {
+.recommendation-form-control-lg {
     border-radius: 8px;
     font-size: 1.1rem;
     padding: 1.1rem;
 }
 
-/* Personnalisation du bouton */
-.btn-custom {
+.recommendation-btn-custom {
     background-color: #00a5a8;
-    /* ✅ Couleur de fond par défaut */
     border: none;
     color: white;
     border-radius: 50px;
     transition: background-color 0.3s ease;
 }
 
-.btn-custom:hover {
+.recommendation-btn-custom:hover {
     background-color: #0b89c4 !important;
 }
 
-.btn-success i {
+.recommendation-btn-success i {
     margin-right: 8px;
 }
 
-/* Espacement entre les sections */
-.mt-3 {
+.recommendation-mt-3 {
     margin-top: 1.5rem;
 }
 
-.mt-4 {
+.recommendation-mt-4 {
     margin-top: 2rem;
 }
 
-/* Centrer le texte du bouton */
-.text-center {
+.recommendation-text-center {
     text-align: center;
 }

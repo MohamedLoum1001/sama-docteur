@@ -172,7 +172,7 @@ const HomePatient = () => {
       )}
 
       {/* Cartes */}
-      <div className="grid grid-cols-3 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {cards.map((card, index) => (
           <div
             key={index}
@@ -186,7 +186,7 @@ const HomePatient = () => {
                 <p className="text-gray-600 mt-2">{card.description}</p>
               </div>
               <button
-                className="mt-4 text-white py-2 px-4 rounded-xl transition btn-custom font-medium"
+                className="mt-4 text-white py-2 px-4 rounded-xl transition btn-custom"
                 style={{ backgroundColor: card.color }}
                 onClick={() =>
                   card.action ? card.action() : navigate(card.link)

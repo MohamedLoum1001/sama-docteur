@@ -13,11 +13,12 @@ const Register = () => {
     telephone: "",
     password: "",
     confirmPassword: "",
+    role: "patient",
+    specialite: "",
   });
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState({});
 
@@ -49,6 +50,10 @@ const Register = () => {
     ) {
       tempErrors.confirmPassword = "Les mots de passe ne correspondent pas";
     }
+    if (!formData.role) tempErrors.role = "Rôle requis";
+    if (formData.role === "medecin" && !formData.specialite) {
+      tempErrors.specialite = "Spécialité requise pour le médecin";
+    }
     setErrors(tempErrors);
     return Object.keys(tempErrors).length === 0;
   };
@@ -56,21 +61,19 @@ const Register = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     if (!validate()) return;
-    setLoading(true);
     setSuccessMessage("");
-    setTimeout(() => {
-      setLoading(false);
-      setSuccessMessage("Inscription réussie ✅");
-      setFormData({
-        prenom: "",
-        nom: "",
-        email: "",
-        adresse: "",
-        telephone: "",
-        password: "",
-        confirmPassword: "",
-      });
-    }, 1500);
+    setSuccessMessage("Inscription réussie ✅");
+    setFormData({
+      prenom: "",
+      nom: "",
+      email: "",
+      adresse: "",
+      telephone: "",
+      password: "",
+      confirmPassword: "",
+      role: "patient",
+      specialite: "",
+    });
   };
 
   const inputGroupClass = (field) =>
@@ -192,6 +195,42 @@ const Register = () => {
                 )}
               </div>
 
+              {/* Rôle */}
+              <div className="mb-2">
+                <label className="form-label text-start w-100">Rôle</label>
+                <select
+                  name="role"
+                  value={formData.role}
+                  onChange={handleChange}
+                  className={`form-select ${errors.role ? "border border-danger rounded-pill" : ""}`}
+                >
+                  <option value="admin">Admin</option>
+                  <option value="patient">Patient</option>
+                  <option value="medecin">Médecin</option>
+                </select>
+                {errors.role && (
+                  <small className="text-danger">{errors.role}</small>
+                )}
+              </div>
+
+              {/* Spécialité (affiché si rôle = médecin) */}
+              {formData.role === "medecin" && (
+                <div className="mb-2">
+                  <label className="form-label text-start w-100">Spécialité</label>
+                  <input
+                    type="text"
+                    name="specialite"
+                    value={formData.specialite}
+                    onChange={handleChange}
+                    placeholder="Entrez la spécialité"
+                    className={`form-control border-0 px-3 py-2 ${errors.specialite ? "border border-danger rounded-pill" : ""}`}
+                  />
+                  {errors.specialite && (
+                    <small className="text-danger">{errors.specialite}</small>
+                  )}
+                </div>
+              )}
+
               {/* Mot de passe et Confirmation */}
               <div className="row mb-3">
                 <div className="col-md-6">
@@ -274,9 +313,8 @@ const Register = () => {
                 type="submit"
                 className="btn w-100 mb-3 rounded-pill text-white"
                 style={{ backgroundColor: "#00a5a8" }}
-                disabled={loading}
               >
-                {loading ? "Inscription..." : "S'inscrire"}
+                S'inscrire
               </button>
 
               <a

@@ -5,16 +5,15 @@ import Navbar from "../Navbar/Nabar";
 
 const Layout = () => {
   return (
-    <div className="container-fluid min-vh-100 d-flex flex-column bg-white p-0">
+    <div className="min-h-screen flex flex-col bg-gray-100">
       {/* Navbar fixe en haut */}
       <Navbar />
 
       {/* Contenu principal */}
-      <main className="flex-grow-1 py-4 px-3 mx-auto w-100" style={{ maxWidth: '1140px' }}>
-        <div className="card shadow-sm border-0 mb-4">
-          <div className="card-body">
-            <Outlet />
-          </div>
+      <main className="flex-1 p-6 max-w-7xl mx-auto w-full">
+        {/* Cette div enveloppe le contenu pour garder la largeur constante */}
+        <div className="w-full">
+          <Outlet />
         </div>
       </main>
     </div>
