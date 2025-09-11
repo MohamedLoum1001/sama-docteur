@@ -1,5 +1,9 @@
 // src/components/Register.jsx
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../firebase";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
@@ -21,6 +25,7 @@ const Register = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [successMessage, setSuccessMessage] = useState("");
   const [errors, setErrors] = useState({});
+  const navigate = useNavigate();
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -58,22 +63,54 @@ const Register = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
     setSuccessMessage("");
-    setSuccessMessage("Inscription réussie ✅");
-    setFormData({
-      prenom: "",
-      nom: "",
-      email: "",
-      adresse: "",
-      telephone: "",
-      password: "",
-      confirmPassword: "",
-      role: "patient",
-      specialite: "",
-    });
+    try {
+      // Création de l'utilisateur avec Firebase Auth
+      const userCredential = await createUserWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
+
+      // Ajout des infos dans Firestore (collection 'users')
+      await setDoc(doc(db, "users", user.uid), {
+        prenom: formData.prenom,
+        nom: formData.nom,
+        email: formData.email,
+        adresse: formData.adresse,
+        telephone: formData.telephone,
+        role: formData.role,
+        specialite: formData.role === "medecin" ? formData.specialite : "",
+        createdAt: new Date().toISOString(),
+      });
+
+      setSuccessMessage("Inscription réussie ✅");
+      setFormData({
+        prenom: "",
+        nom: "",
+        email: "",
+        adresse: "",
+        telephone: "",
+        password: "",
+        confirmPassword: "",
+        role: "patient",
+        specialite: "",
+      });
+      setTimeout(() => {
+        navigate("/login");
+      }, 1200);
+    } catch (error) {
+      setSuccessMessage("");
+      if (error.code === "auth/email-already-in-use") {
+        setErrors({ ...errors, email: "Cet email est déjà utilisé." });
+      } else {
+        setErrors({ ...errors, email: error.message });
+      }
+    }
   };
 
   const inputGroupClass = (field) =>

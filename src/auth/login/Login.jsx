@@ -1,6 +1,9 @@
 // src/components/Login.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom"; // ✅ Import navigation
+import { useNavigate } from "react-router-dom";
+import { auth, db } from "../../firebase";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { doc, getDoc } from "firebase/firestore";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
@@ -34,27 +37,45 @@ const Login = () => {
     return Object.keys(tempErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-
     setLoading(true);
     setErrorMessage("");
+    try {
+      // Connexion avec Firebase Auth
+      const userCredential = await signInWithEmailAndPassword(
+        auth,
+        formData.email,
+        formData.password
+      );
+      const user = userCredential.user;
 
-    setTimeout(() => {
-      if (formData.email === "" || formData.password === "") {
-        setErrorMessage("Veuillez remplir tous les champs.");
-      } else {
+      // Récupérer le rôle depuis Firestore
+      const userDoc = await getDoc(doc(db, "users", user.uid));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
         alert("Connexion réussie ✅");
-         // ✅ Redirection vers HomePatient
-        navigate("/home-patient");
-        // ✅ Redirection vers HomeMédecin
-        // navigate("/home-medecin");
-         
-
+        if (userData.role === "patient") {
+          navigate("/home-patient");
+        } else if (userData.role === "medecin") {
+          navigate("/home-medecin");
+        } else if (userData.role === "admin") {
+          navigate("/home-admin");
+        } else {
+          setErrorMessage("Rôle inconnu, contactez l'administrateur.");
+        }
+      } else {
+        setErrorMessage("Utilisateur non trouvé dans la base de données.");
       }
-      setLoading(false);
-    }, 1500);
+    } catch (error) {
+      if (error.code === "auth/user-not-found" || error.code === "auth/wrong-password") {
+        setErrorMessage("Email ou mot de passe incorrect.");
+      } else {
+        setErrorMessage(error.message);
+      }
+    }
+    setLoading(false);
   };
 
   // Classe pour envelopper tout l'input-group avec la bordure rouge si erreur

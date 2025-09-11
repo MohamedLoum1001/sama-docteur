@@ -1,5 +1,6 @@
 // src/App.js
 import { Routes, Route, Navigate } from "react-router-dom";
+import ProtectedRoute from "./auth/ProtectedRoute";
 import "./App.css";
 import Register from "./auth/register/Register";
 import Login from "./auth/login/Login";
@@ -21,6 +22,8 @@ import ProfilMedecin from "./medecins/profil/ProfilMedecin";
 import Prescription from "./medecins/prescription/Prescription";
 import Recommandation from "./medecins/recommendation/Recommendation";
 import DossiersMedicaux from "./medecins/dossiersMedicaux/DossiersMedicaux";
+import Disponibilites from "./medecins/disponibilites/Disponibilites";
+// import Disponibilites from "./medecins/disponibilites/Disponibilites";
 // import Layout from "./components/Layout";
 
 function App() {
@@ -35,26 +38,32 @@ function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        {/* Pages avec navbar */}
+        {/* Pages avec navbar protégées */}
         <Route element={<Layout />}>
-          {/* Routes Patients */}
-          <Route path="/home-patient" element={<HomePatient />} />
-          <Route path="/profil" element={<Profil />} />
-          <Route path="/rendez-vous" element={<RendezVous />} />
-          <Route path="/paiement-ticket" element={<PaiementTicket />} />
-          <Route path="/ticket-acheter" element={<TicketAcheter />} />
-          <Route path="/notifications" element={<Notifications />} />
-          <Route path="/ordonnances" element={<Ordonnances />} />
-          <Route path="/dossier-medical" element={<DossierMedical />} />
-          <Route path="/avis" element={<Avis />} />
+          <Route
+            path="/home-patient"
+            element={
+              <ProtectedRoute>
+                <HomePatient />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
+          <Route path="/rendez-vous" element={<ProtectedRoute><RendezVous /></ProtectedRoute>} />
+          <Route path="/paiement-ticket" element={<ProtectedRoute><PaiementTicket /></ProtectedRoute>} />
+          <Route path="/ticket-acheter" element={<ProtectedRoute><TicketAcheter /></ProtectedRoute>} />
+          <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
+          <Route path="/ordonnances" element={<ProtectedRoute><Ordonnances /></ProtectedRoute>} />
+          <Route path="/dossier-medical" element={<ProtectedRoute><DossierMedical /></ProtectedRoute>} />
+          <Route path="/avis" element={<ProtectedRoute><Avis /></ProtectedRoute>} />
           {/* Routes pour l'interface médecin */}
-          <Route path="/home-medecin" element={<HomeMedecin />} />
-          <Route path="/liste-rendez-vous" element={<ListeRendezVous />} />
-          <Route path="/profil-medecin" element={<ProfilMedecin />} />
-          <Route path="/prescription" element={<Prescription />} />
-          <Route path="/dossiers-medicaux" element={<DossiersMedicaux />} />
-          <Route path="/recommandation" element={<Recommandation />} />
-
+          <Route path="/home-medecin" element={<ProtectedRoute><HomeMedecin /></ProtectedRoute>} />
+          <Route path="/liste-rendez-vous" element={<ProtectedRoute><ListeRendezVous /></ProtectedRoute>} />
+          <Route path="/profil-medecin" element={<ProtectedRoute><ProfilMedecin /></ProtectedRoute>} />
+          <Route path="/disponibilites" element={<ProtectedRoute><Disponibilites /></ProtectedRoute>} />
+          <Route path="/prescription" element={<ProtectedRoute><Prescription /></ProtectedRoute>} />
+          <Route path="/dossiers-medicaux" element={<ProtectedRoute><DossiersMedicaux /></ProtectedRoute>} />
+          <Route path="/recommandation" element={<ProtectedRoute><Recommandation /></ProtectedRoute>} />
 
           {/* tu peux ajouter d'autres pages ici */}
         </Route>

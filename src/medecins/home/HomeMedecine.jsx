@@ -28,9 +28,17 @@ const HomeMedecin = () => {
       emoji: "👤",
       title: "Gérer mon profil",
       description:
-        "Modifier vos informations personnelles et définir vos disponibilités.",
+        "Modifier vos informations personnelles.",
       button: "Accéder",
       link: "/profil-medecin",
+      color: "#00a5a8",
+    },
+    {
+      emoji: "🗓️",
+      title: "Disponibilités",
+      description: "Définir ou modifier vos horaires de consultation.",
+      button: "Mes disponibilités",
+      link: "/disponibilites",
       color: "#00a5a8",
     },
     {
