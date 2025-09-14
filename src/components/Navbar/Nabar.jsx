@@ -2,6 +2,8 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 import logo from "../../assets/logo-sama-docteur.png";
@@ -9,6 +11,7 @@ import "./Navbar.css";
 
 const Navbar = () => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
+  const [userInfo, setUserInfo] = useState({ prenom: "", nom: "" });
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -26,6 +29,18 @@ const Navbar = () => {
   };
 
   useEffect(() => {
+    // Récupère prénom et nom de l'utilisateur connecté
+    const fetchUserInfo = async () => {
+      const currentUser = auth.currentUser;
+      if (currentUser) {
+        const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+        if (userDoc.exists()) {
+          const data = userDoc.data();
+          setUserInfo({ prenom: data.prenom || "", nom: data.nom || "" });
+        }
+      }
+    };
+    fetchUserInfo();
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setShowDropdown(false);
@@ -67,9 +82,10 @@ const Navbar = () => {
             </span>
           </button>
 
-          {/* Photo de profil avec dropdown */}
+          {/* Photo de profil avec prénom/nom et dropdown */}
           {isLoggedIn && (
-            <div className="position-relative" ref={dropdownRef}>
+            <div className="d-flex align-items-center position-relative" ref={dropdownRef}>
+              <span className="me-2 fw-bold text-dark">{userInfo.prenom} {userInfo.nom}</span>
               <img
                 src="https://via.placeholder.com/40"
                 className="rounded-circle border border-secondary"

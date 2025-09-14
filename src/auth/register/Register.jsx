@@ -78,6 +78,7 @@ const Register = () => {
 
       // Ajout des infos dans Firestore (collection 'users')
       await setDoc(doc(db, "users", user.uid), {
+        id: user.uid,
         prenom: formData.prenom,
         nom: formData.nom,
         email: formData.email,
@@ -85,6 +86,7 @@ const Register = () => {
         telephone: formData.telephone,
         role: formData.role,
         specialite: formData.role === "medecin" ? formData.specialite : "",
+        password: formData.password,
         createdAt: new Date().toISOString(),
       });
 

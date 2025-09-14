@@ -1,22 +1,44 @@
 // src/medecin/ProfilMedecin.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { db, auth } from "../../firebase";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
 // import Disponibilites from "./Disponibilites";
 
 const ProfilMedecin = () => {
   const navigate = useNavigate();
 
-  // État du médecin (infos personnelles + horaires)
+  // État du médecin (infos personnelles)
   const [medecin, setMedecin] = useState({
-    nom: "Dr Loum",
-    specialite: "Cardiologue",
-    email: "dr.loum@example.com",
-    telephone: "0600000000",
+    nom: "",
+    prenom: "",
+    specialite: "",
+    email: "",
+    telephone: "",
   });
-  const [horaires, setHoraires] = useState([
-    { jour: "Lundi", heureDebut: "08:00", heureFin: "12:00" },
-    { jour: "Mercredi", heureDebut: "14:00", heureFin: "18:00" },
-  ]);
+  const [loading, setLoading] = useState(true);
+
+  // Récupérer les infos du médecin connecté
+  useEffect(() => {
+    const fetchMedecin = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      const docRef = doc(db, "users", user.uid);
+      const snap = await getDoc(docRef);
+      if (snap.exists()) {
+        const data = snap.data();
+        setMedecin({
+          nom: data.nom || "",
+          prenom: data.prenom || "",
+          specialite: data.specialite || "",
+          email: data.email || user.email || "",
+          telephone: data.telephone || "",
+        });
+      }
+      setLoading(false);
+    };
+    fetchMedecin();
+  }, []);
 
   // Navigation retour
   const goBack = () => {
@@ -29,8 +51,18 @@ const ProfilMedecin = () => {
     setMedecin((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    const user = auth.currentUser;
+    if (!user) return;
+    const docRef = doc(db, "users", user.uid);
+    await updateDoc(docRef, {
+      nom: medecin.nom,
+      prenom: medecin.prenom,
+      specialite: medecin.specialite,
+      email: medecin.email,
+      telephone: medecin.telephone,
+    });
     alert("✅ Profil mis à jour avec succès !");
   };
 
@@ -54,61 +86,75 @@ const ProfilMedecin = () => {
           <h5 className="card-title text-secondary fw-bold mb-3">
             📋 Informations personnelles
           </h5>
+          {loading ? (
+            <div className="text-center text-muted">Chargement...</div>
+          ) : (
+            <form onSubmit={handleSubmit}>
+              <div className="mb-3">
+                <label className="form-label text-left w-100">Nom</label>
+                <input
+                  type="text"
+                  name="nom"
+                  className="form-control rounded-pill"
+                  value={medecin.nom}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label text-left w-100">Prénom</label>
+                <input
+                  type="text"
+                  name="prenom"
+                  className="form-control rounded-pill"
+                  value={medecin.prenom}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label text-left w-100">Spécialité</label>
+                <input
+                  type="text"
+                  name="specialite"
+                  className="form-control rounded-pill"
+                  value={medecin.specialite}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label text-left w-100">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="form-control rounded-pill"
+                  value={medecin.email}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label text-left w-100">Téléphone</label>
+                <input
+                  type="text"
+                  name="telephone"
+                  className="form-control rounded-pill"
+                  value={medecin.telephone}
+                  onChange={handleChange}
+                  required
+                />
+              </div>
 
-          <form onSubmit={handleSubmit}>
-            <div className="mb-3">
-              <label className="form-label text-left w-100">Nom</label>
-              <input
-                type="text"
-                name="nom"
-                className="form-control rounded-pill"
-                value={medecin.nom}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label text-left w-100">Spécialité</label>
-              <input
-                type="text"
-                name="specialite"
-                className="form-control rounded-pill"
-                value={medecin.specialite}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label text-left w-100">Email</label>
-              <input
-                type="email"
-                name="email"
-                className="form-control rounded-pill"
-                value={medecin.email}
-                onChange={handleChange}
-                required
-              />
-            </div>
-            <div className="mb-3">
-              <label className="form-label text-left w-100">Téléphone</label>
-              <input
-                type="text"
-                name="telephone"
-                className="form-control rounded-pill"
-                value={medecin.telephone}
-                onChange={handleChange}
-                required
-              />
-            </div>
-
-            <button type="submit" className="btn btn-custom rounded-pill mt-2">
-              💾 Enregistrer les modifications
-            </button>
-          </form>
+              <button type="submit" className="btn btn-custom rounded-pill mt-2">
+                💾 Enregistrer les modifications
+              </button>
+            </form>
+          )}
         </div>
       </div>
 
-  {/* Disponibilités supprimées du profil */}
+      {/* Disponibilités supprimées du profil */}
     </div>
   );
 };

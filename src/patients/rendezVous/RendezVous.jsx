@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import { db } from "../../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom";
-// import { QRCodeCanvas } from "qrcode.react";
-import "./RendezVous.css";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
+import { parseISO, isSameDay } from "date-fns";
 
 const RendezVous = () => {
   const navigate = useNavigate();
@@ -15,17 +16,16 @@ const RendezVous = () => {
   const [appointment, setAppointment] = useState({
     specialty: "",
     doctor: "",
-    date: "",
+    date: null,
     time: "",
   });
-  const [availableSlots, setAvailableSlots] = useState([]); // [{date, time, doctorName}]
 
+  const [availableSlots, setAvailableSlots] = useState([]); 
+  const [availableDates, setAvailableDates] = useState([]); 
+  const [availableTimes, setAvailableTimes] = useState([]); 
   const [appointmentsHistory, setAppointmentsHistory] = useState([]);
-  const [doctorDisponibilites, setDoctorDisponibilites] = useState([]);
-  const [availableDates, setAvailableDates] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
 
-  // Charger les spécialités et les médecins depuis Firestore
+  // Charger les spécialités et médecins
   useEffect(() => {
     const fetchSpecialties = async () => {
       const q = query(collection(db, "users"), where("role", "==", "medecin"));
@@ -43,53 +43,66 @@ const RendezVous = () => {
     fetchSpecialties();
   }, []);
 
-  // Charger les disponibilités selon la spécialité sélectionnée
+  // Charger disponibilités
   useEffect(() => {
     const fetchDisponibilites = async () => {
       if (!appointment.specialty) {
-        setDoctorDisponibilites([]);
         setAvailableDates([]);
         setAvailableTimes([]);
         setAvailableSlots([]);
         return;
       }
       try {
-        const medecinsForSpecialty = medecins.filter(m => m.specialite === appointment.specialty);
-        let allDisponibilites = [];
+        const medecinsForSpecialty = medecins.filter(
+          (m) => m.specialite === appointment.specialty
+        );
         let slots = [];
         for (const med of medecinsForSpecialty) {
-          const q = query(collection(db, "disponibilites"), where("doctorName", "==", med.nom));
+          const q = query(
+            collection(db, "disponibilites"),
+            where("doctorName", "==", med.nom)
+          );
           const querySnapshot = await getDocs(q);
           querySnapshot.forEach((doc) => {
             const data = doc.data();
             if (Array.isArray(data.horaires)) {
-              data.horaires.forEach(h => {
-                slots.push({ date: h.date, time: h.time, doctorName: med.nom });
+              data.horaires.forEach((h) => {
+                slots.push({
+                  date: h.date,
+                  time: h.time,
+                  doctorName: med.nom,
+                });
               });
             }
-            allDisponibilites.push(data);
           });
         }
-        setDoctorDisponibilites(allDisponibilites);
         setAvailableSlots(slots);
-        // Extraire les dates disponibles
-        const dates = Array.from(new Set(slots.map(s => s.date)));
+
+        // Dates uniques
+        const dates = Array.from(
+          new Set(slots.map((s) => parseISO(s.date).toDateString()))
+        ).map((d) => new Date(d));
         setAvailableDates(dates);
-        // Si une date est sélectionnée, filtrer les heures pour cette date
+
+        // Heures filtrées
         if (appointment.date) {
-          // On propose chaque créneau (heure) avec le médecin associé
           const times = slots
-            .filter(s => s.date === appointment.date)
-            .map(s => ({ time: s.time, doctorName: s.doctorName, value: `${s.time}__${s.doctorName}` }));
+            .filter((s) =>
+              isSameDay(parseISO(s.date), appointment.date)
+            )
+            .map((s) => ({
+              time: s.time,
+              doctorName: s.doctorName,
+              value: `${s.time}__${s.doctorName}`,
+            }));
           setAvailableTimes(times);
         } else {
           setAvailableTimes([]);
         }
       } catch (error) {
-        setDoctorDisponibilites([]);
+        setAvailableSlots([]);
         setAvailableDates([]);
         setAvailableTimes([]);
-        setAvailableSlots([]);
       }
     };
     fetchDisponibilites();
@@ -97,31 +110,23 @@ const RendezVous = () => {
 
   const submitAppointment = (e) => {
     e.preventDefault();
-    if (
-      !appointment.specialty ||
-      !appointment.date ||
-      !appointment.time
-    ) {
+    if (!appointment.specialty || !appointment.date || !appointment.time) {
       alert("Veuillez remplir tous les champs.");
       return;
     }
-    // Découper la valeur composite pour retrouver l'heure et le médecin
     const [selectedTime, selectedDoctor] = appointment.time.split("__");
-    if (!selectedTime || !selectedDoctor) {
-      alert("Ce créneau n'est pas disponible pour cette spécialité.");
-      return;
-    }
-    const newAppointment = { ...appointment, time: selectedTime, doctor: selectedDoctor };
+    const newAppointment = {
+      ...appointment,
+      time: selectedTime,
+      doctor: selectedDoctor,
+    };
     setAppointmentsHistory((prev) => [...prev, newAppointment]);
-    // Redirection vers la page PaiementTicket avec les infos du rendez-vous
     navigate("/paiement-ticket", { state: { appointment: newAppointment } });
-    // Reset formulaire
-    setAppointment({ specialty: "", doctor: "", date: "", time: "" });
+    setAppointment({ specialty: "", doctor: "", date: null, time: "" });
   };
 
   return (
     <div className="container mt-5">
-      {/* Bouton retour */}
       <div className="mb-3 flex items-start">
         <button
           className="btn custom-btn rounded-pill"
@@ -131,22 +136,16 @@ const RendezVous = () => {
         </button>
       </div>
 
-      {/* Titre */}
       <div className="text-center mb-4">
-        <h3 className="fw-bold text-primary">
-          📅 Prendre un rendez-vous médical
-        </h3>
+        <h3 className="fw-bold text-primary">📅 Prendre un rendez-vous médical</h3>
       </div>
 
-      {/* Formulaire */}
       <div className="card shadow-lg p-4 border-0 rounded-4 mb-5">
         <form onSubmit={submitAppointment}>
+          {/* Spécialité */}
           <div className="mb-3">
-            <label htmlFor="specialty" className="form-label text-left w-100">
-              Choisir une spécialité
-            </label>
+            <label className="form-label w-100">Choisir une spécialité</label>
             <select
-              id="specialty"
               className="form-select rounded-pill py-2"
               value={appointment.specialty}
               onChange={(e) =>
@@ -154,6 +153,8 @@ const RendezVous = () => {
                   ...appointment,
                   specialty: e.target.value,
                   doctor: "",
+                  date: null,
+                  time: "",
                 })
               }
               required
@@ -167,38 +168,31 @@ const RendezVous = () => {
             </select>
           </div>
 
+          {/* DatePicker */}
           <div className="mb-3">
-            <label htmlFor="date" className="form-label text-left w-100">
-              Choisir une date
-            </label>
-            <select
-              id="date"
-              className="form-select rounded-pill py-2"
-              value={appointment.date}
-              onChange={(e) =>
-                setAppointment({ ...appointment, date: e.target.value, time: "" })
+            <label className="form-label w-100">Choisir une date</label>
+            <DatePicker
+              selected={appointment.date}
+              onChange={(date) =>
+                setAppointment({ ...appointment, date, time: "" })
               }
-              required
-              disabled={!appointment.specialty || availableDates.length === 0}
-            >
-              <option value="">Sélectionnez une date</option>
-              {availableDates.map((date, idx) => (
-                <option key={idx} value={date}>{date}</option>
-              ))}
-            </select>
+              includeDates={availableDates}
+              dateFormat="dd/MM/yyyy"
+              placeholderText="Cliquez pour choisir une date"
+              className="form-control rounded-pill py-2"
+              disabled={!appointment.specialty}
+            />
           </div>
 
+          {/* Heures disponibles */}
           <div className="mb-3">
-            <label htmlFor="time" className="form-label text-left w-100">
-              Choisir une heure
-            </label>
+            <label className="form-label w-100">Choisir une heure</label>
             <select
-              id="time"
               className="form-select rounded-pill py-2"
               value={appointment.time}
-              onChange={(e) => {
-                setAppointment({ ...appointment, time: e.target.value });
-              }}
+              onChange={(e) =>
+                setAppointment({ ...appointment, time: e.target.value })
+              }
               required
               disabled={!appointment.date || availableTimes.length === 0}
             >
@@ -209,13 +203,6 @@ const RendezVous = () => {
                 </option>
               ))}
             </select>
-            {/* Affiche le médecin associé au créneau sélectionné */}
-            {appointment.date && appointment.time && (() => {
-              const [selectedTime, selectedDoctor] = appointment.time.split("__");
-              return selectedTime && selectedDoctor ? (
-                <div className="mt-2 text-success">Médecin: {selectedDoctor}</div>
-              ) : null;
-            })()}
           </div>
 
           <button
@@ -226,33 +213,6 @@ const RendezVous = () => {
           </button>
         </form>
       </div>
-
-      {/* Tableau des rendez-vous */}
-      {appointmentsHistory.length > 0 && (
-        <div className="card shadow-lg p-4 border-0 rounded-4 mb-5">
-          <h4 className="text-primary mb-3">📋 Vos rendez-vous</h4>
-          <table className="table table-striped">
-            <thead>
-              <tr>
-                <th>Spécialité</th>
-                <th>Date</th>
-                <th>Heure</th>
-                <th>Médecin</th>
-              </tr>
-            </thead>
-            <tbody>
-              {appointmentsHistory.map((app, idx) => (
-                <tr key={idx}>
-                  <td>{app.specialty}</td>
-                  <td>{app.date}</td>
-                  <td>{app.time}</td>
-                  <td>{app.doctor}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      )}
     </div>
   );
 };

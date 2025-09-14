@@ -1,32 +1,28 @@
 // src/medecins/ListeRendezVous.jsx
-import React from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import "./ListRendezVous.css";
 
 const ListeRendezVous = () => {
-  const rendezVousList = [
-    {
-      id: 1,
-      patient: "Alice Dupuis",
-      date: new Date("2025-05-08T10:00:00"),
-      motif: "Suivi cardiaque",
-      statut: "Confirmé",
-    },
-    {
-      id: 2,
-      patient: "Marc Dubois",
-      date: new Date("2025-05-10T14:00:00"),
-      motif: "Bilan général",
-      statut: "En attente",
-    },
-    {
-      id: 3,
-      patient: "Sophie Bernard",
-      date: new Date("2025-05-12T09:30:00"),
-      motif: "Consultation post-opératoire",
-      statut: "Confirmé",
-    },
-  ];
+  const [rendezVousList, setRendezVousList] = useState([]);
+
+  // Action: Confirmer
+  const confirmerRdv = (id) => {
+    setRendezVousList((prev) =>
+      prev.map((rdv) =>
+        rdv.id === id ? { ...rdv, statut: "Confirmé" } : rdv
+      )
+    );
+  };
+
+  // Action: Annuler
+  const annulerRdv = (id) => {
+    setRendezVousList((prev) =>
+      prev.map((rdv) =>
+        rdv.id === id ? { ...rdv, statut: "Annulé" } : rdv
+      )
+    );
+  };
 
   // Format date en français
   const formatDate = (date) => {
@@ -62,37 +58,70 @@ const ListeRendezVous = () => {
         📅 Mes Rendez-vous Programmés
       </h2>
 
-      {/* Tableau */}
-      <div className="card shadow-lg border-0 rounded-4">
-        <div className="card-body p-4">
-          <div className="table-responsive">
-            <table className="table align-middle table-hover">
-              <thead className="table-light">
-                <tr>
-                  <th>👤 Patient</th>
-                  <th>🗓️ Date & Heure</th>
-                  <th>📝 Motif</th>
-                  <th>📌 Statut</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rendezVousList.map((rdv) => (
-                  <tr key={rdv.id}>
-                    <td>{rdv.patient}</td>
-                    <td>{formatDate(rdv.date)}</td>
-                    <td>{rdv.motif}</td>
-                    <td>
-                      <span className={getStatusClass(rdv.statut)}>
-                        {rdv.statut}
-                      </span>
-                    </td>
+      {/* Message ou tableau selon la liste */}
+      {rendezVousList.length === 0 ? (
+        <div className="alert alert-info text-center mt-5">
+          Vous n'avez pas de rendez-vous avec aucun patient.
+        </div>
+      ) : (
+        <div className="card shadow-lg border-0 rounded-4">
+          <div className="card-body p-4">
+            <div className="table-responsive">
+              <table className="table align-middle table-hover">
+                <thead className="table-light">
+                  <tr>
+                    <th>👤 Patient</th>
+                    <th>🗓️ Date & Heure</th>
+                    <th>📝 Motif</th>
+                    <th>📌 Statut</th>
+                    <th>Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {rendezVousList.map((rdv) => (
+                    <tr key={rdv.id}>
+                      <td>{rdv.patient}</td>
+                      <td>{formatDate(rdv.date)}</td>
+                      <td>{rdv.motif}</td>
+                      <td>
+                        <span className={getStatusClass(rdv.statut)}>
+                          {rdv.statut}
+                        </span>
+                      </td>
+                      <td>
+                        {rdv.statut === "En attente" && (
+                          <>
+                            <button
+                              className="btn btn-sm btn-success me-2"
+                              onClick={() => confirmerRdv(rdv.id)}
+                            >
+                              Confirmer
+                            </button>
+                            <button
+                              className="btn btn-sm btn-danger"
+                              onClick={() => annulerRdv(rdv.id)}
+                            >
+                              Annuler
+                            </button>
+                          </>
+                        )}
+                        {rdv.statut === "Confirmé" && (
+                          <button
+                            className="btn btn-sm btn-danger"
+                            onClick={() => annulerRdv(rdv.id)}
+                          >
+                            Annuler
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 };

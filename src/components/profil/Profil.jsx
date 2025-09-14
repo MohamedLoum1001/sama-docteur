@@ -1,26 +1,83 @@
-// src/patients/Profil/Profil.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { getAuth } from "firebase/auth";
+import { doc, getDoc, updateDoc } from "firebase/firestore";
+import { db } from "../../firebase";
 import "./Profil.css";
+
+// Cloudinary config
+const CLOUDINARY_URL = `https://api.cloudinary.com/v1_1/${process.env.REACT_APP_CLOUDINARY_CLOUD_NAME}/image/upload`;
+const CLOUDINARY_UPLOAD_PRESET = process.env.REACT_APP_CLOUDINARY_UPLOAD_PRESET;
 
 const Profil = () => {
   const navigate = useNavigate();
-
   const [user, setUser] = useState({
-    prenom: "Mohamed",
-    nom: "LOUM",
-    email: "mohamed@example.com",
-    telephone: "123456789",
-    adresse: "Dakar, Sénégal",
+    prenom: "",
+    nom: "",
+    email: "",
+    telephone: "",
+    adresse: "",
     photo: "https://via.placeholder.com/150/00a5a8/ffffff?text=Avatar",
   });
-
   const [historique] = useState([
     { date: "2025-01-10", description: "Consultation cardiologie" },
     { date: "2025-03-15", description: "Examen dermatologie" },
   ]);
-
   const [photoUpdated, setPhotoUpdated] = useState(false);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const auth = getAuth();
+        const currentUser = auth.currentUser;
+        if (currentUser) {
+          const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+          if (userDoc.exists()) {
+            setUser((prev) => ({
+              ...prev,
+              ...userDoc.data(),
+              email: currentUser.email || userDoc.data().email || "",
+              photo: userDoc.data().photo || prev.photo,
+            }));
+          }
+        }
+      } catch (error) {
+        // Optionally handle error
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handlePhotoChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("upload_preset", CLOUDINARY_UPLOAD_PRESET);
+      fetch(CLOUDINARY_URL, {
+        method: "POST",
+        body: formData,
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (data.secure_url) {
+            setUser((prev) => ({ ...prev, photo: data.secure_url }));
+            setPhotoUpdated(true);
+            setTimeout(() => setPhotoUpdated(false), 300);
+            // Update Firestore with new photo URL
+            const auth = getAuth();
+            const currentUser = auth.currentUser;
+            if (currentUser) {
+              const userRef = doc(db, "users", currentUser.uid);
+              updateDoc(userRef, { photo: data.secure_url });
+            }
+          }
+        })
+        .catch(() => {
+          // Optionally handle error
+        });
+    }
+  };
 
   const handleUpdate = (e) => {
     e.preventDefault();
@@ -28,7 +85,7 @@ const Profil = () => {
   };
 
   return (
-    <div className="container mx-auto px-2 mt-2">
+    <div className="container mx-auto px-2 mt-5">
       {/* Bouton Retour aligné à gauche */}
       <div className="mb-4 flex items-start">
         <button
@@ -38,46 +95,7 @@ const Profil = () => {
           <i className="fa fa-arrow-left me-2"></i> Retour à l’accueil
         </button>
       </div>
-
-      {/* Photo de profil */}
-      <div className="text-center mb-4 relative">
-        <div className="relative inline-block w-32 h-32">
-          <img
-            src={user.photo}
-            alt="Profil"
-            className={`rounded-full w-32 h-32 object-cover border-4 border-primary transition-transform duration-300 ${
-              photoUpdated ? "scale-105" : ""
-            }`}
-          />
-          {/* Cercle caméra */}
-          <label
-            htmlFor="photoUpload"
-            className="absolute bottom-0 right-0 w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center cursor-pointer border-2 border-white hover:bg-blue-600 transition"
-            title="Ajouter / Modifier"
-          >
-            <i className="fa fa-camera text-white"></i>
-          </label>
-          <input
-            type="file"
-            id="photoUpload"
-            accept="image/*"
-            className="hidden"
-            onChange={(e) => {
-              const file = e.target.files[0];
-              if (file) {
-                const reader = new FileReader();
-                reader.onloadend = () => {
-                  setUser((prev) => ({ ...prev, photo: reader.result }));
-                  setPhotoUpdated(true);
-                  setTimeout(() => setPhotoUpdated(false), 300);
-                };
-                reader.readAsDataURL(file);
-              }
-            }}
-          />
-        </div>
-        <h3 className="fw-bold text-primary mt-2">👤 Mon profil</h3>
-      </div>
+      <h3 className="fw-bold text-primary mt-2">👤 Mon profil</h3>
 
       {/* Formulaire */}
       <div className="card shadow-lg p-4 border-0 rounded-4 mb-5">
@@ -119,9 +137,7 @@ const Profil = () => {
                 type="text"
                 className="form-control rounded-pill py-2"
                 value={user.telephone}
-                onChange={(e) =>
-                  setUser({ ...user, telephone: e.target.value })
-                }
+                onChange={(e) => setUser({ ...user, telephone: e.target.value })}
               />
             </div>
             <div className="col-12">
