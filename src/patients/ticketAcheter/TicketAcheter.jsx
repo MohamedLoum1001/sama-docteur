@@ -2,18 +2,33 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
+import { db, auth } from "../../firebase";
+import { collection, query, where, getDocs } from "firebase/firestore";
 import "./TicketAcheter.css";
 
 const TicketAcheter = () => {
   const navigate = useNavigate();
 
-  // Ici on simule la récupération des tickets depuis un backend ou localStorage
+  // Récupère les tickets achetés par le patient depuis Firestore
   const [tickets, setTickets] = useState([]);
 
-  // Exemple : récupérer les tickets depuis localStorage au chargement
   useEffect(() => {
-    const savedTickets = JSON.parse(localStorage.getItem("tickets")) || [];
-    setTickets(savedTickets);
+    const fetchTickets = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+      try {
+        const q = query(collection(db, "tickets"), where("patientId", "==", user.uid));
+        const querySnapshot = await getDocs(q);
+        const ticketsList = [];
+        querySnapshot.forEach((doc) => {
+          ticketsList.push({ id: doc.id, ...doc.data() });
+        });
+        setTickets(ticketsList);
+      } catch (error) {
+        setTickets([]);
+      }
+    };
+    fetchTickets();
   }, []);
 
   return (
@@ -35,11 +50,36 @@ const TicketAcheter = () => {
             className="card shadow mt-4 p-4 rounded-3 text-center"
           >
             <h5 className="text-primary mb-3">🎫 Ticket #{ticket.id}</h5>
-            <p>Médecin : {ticket.doctorName}</p>
-            <p>Spécialité : {ticket.doctorSpecialty}</p>
-            <p>Date : {ticket.date}</p>
-            <p>Heure : {ticket.time}</p>
-            <p>Carte : {ticket.cardNumber}</p>
+            {ticket.patientName && ticket.patientName !== "" && (
+              <p><strong>Prénom et Nom du Patient :</strong> {ticket.patientName}</p>
+            )}
+            {ticket.date && ticket.date !== "Date non renseignée" && (
+              <p><strong>Date :</strong> {ticket.date}</p>
+            )}
+            {ticket.time && ticket.time !== "Heure non renseignée" && (
+              <p><strong>Heure :</strong> {ticket.time}</p>
+            )}
+            {ticket.doctorName && ticket.doctorName !== "Médecin inconnu" && (
+              <p><strong>Nom du docteur :</strong> {ticket.doctorName}</p>
+            )}
+            {ticket.doctorSpecialty && ticket.doctorSpecialty !== "Spécialité inconnue" && (
+              <p><strong>Spécialité :</strong> {ticket.doctorSpecialty}</p>
+            )}
+            {ticket.createdAt && (
+              <p><strong>createdAt :</strong> {ticket.createdAt}</p>
+            )}
+            {ticket.prix && (
+              <p><strong>Prix :</strong> {ticket.prix} €</p>
+            )}
+            {ticket.cardNumber && (
+              <p><strong>Carte :</strong> {ticket.cardNumber}</p>
+            )}
+            {ticket.statutPaiement && (
+              <p><strong>Statut paiement :</strong> {ticket.statutPaiement}</p>
+            )}
+            {ticket.qrCodeUrl && (
+              <p><strong>QR Code :</strong> <a href={ticket.qrCodeUrl} target="_blank" rel="noopener noreferrer">Voir</a></p>
+            )}
 
             <div className="mt-3">
               <QRCodeCanvas

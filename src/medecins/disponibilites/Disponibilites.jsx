@@ -1,6 +1,13 @@
+// src/patients/disponibilites/Disponibilites.jsx
 import React, { useState, useEffect } from "react";
 import { db, auth } from "../../firebase";
-import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import {
+  doc,
+  setDoc,
+  onSnapshot,
+  serverTimestamp,
+  getDoc,
+} from "firebase/firestore";
 
 const joursDisponibles = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
 
@@ -21,9 +28,33 @@ const Disponibilites = () => {
   const [editIndex, setEditIndex] = useState(null);
   const [editForm, setEditForm] = useState({ jour: "", heureDebut: "", heureFin: "", date: "", type: "jour" });
 
+  const [nomMedecin, setNomMedecin] = useState("Médecin inconnu");
+  const [role, setRole] = useState("");
+
+  // Charger le rôle et nom du médecin
+  useEffect(() => {
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const userRef = doc(db, "users", user.uid);
+      const userSnap = await getDoc(userRef);
+
+      if (userSnap.exists()) {
+        const data = userSnap.data();
+        setNomMedecin(data.nom || "Médecin inconnu");
+        setRole(data.role || "");
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
+  // Charger ses disponibilités
   useEffect(() => {
     const user = auth.currentUser;
     if (!user) return;
+
     const docRef = doc(db, "disponibilites", user.uid);
     const unsubscribe = onSnapshot(docRef, (snapshot) => {
       if (snapshot.exists()) {
@@ -37,20 +68,27 @@ const Disponibilites = () => {
 
   const saveHoraires = async (newHoraires) => {
     const user = auth.currentUser;
-    if (!user) return;
+    if (!user || role !== "medecin") return;
+
     await setDoc(doc(db, "disponibilites", user.uid), {
       idMedecin: user.uid,
-      nomMedecin: user.displayName || "Médecin inconnu",
+      nomMedecin: nomMedecin,
       horaires: newHoraires,
       updatedAt: serverTimestamp(),
     });
   };
 
   const ajouterHoraire = async () => {
+    if (role !== "medecin") {
+      alert("Seuls les médecins peuvent ajouter des disponibilités.");
+      return;
+    }
+
     if ((form.type === "jour" && !form.jour) || !form.heureDebut || !form.heureFin || !form.date) {
       alert("Veuillez remplir tous les champs.");
       return;
     }
+
     const newHoraires = [...horaires, { ...form }];
     setForm({ jour: "", heureDebut: "", heureFin: "", date: "", type: "jour" });
     await saveHoraires(newHoraires);
@@ -89,6 +127,8 @@ const Disponibilites = () => {
         <div className="card shadow-lg border-0 rounded-4 mb-5">
           <div className="card-body">
             <h5 className="card-title text-secondary fw-bold mb-3">🗓️ Disponibilités</h5>
+            <p className="text-muted mb-3">👨‍⚕️ Médecin : <strong>{nomMedecin}</strong></p>
+
             <table className="table table-hover align-middle">
               <thead className="table-light">
                 <tr>
@@ -183,57 +223,62 @@ const Disponibilites = () => {
                 ))}
               </tbody>
             </table>
-            <h6 className="mt-4 fw-semibold">➕ Ajouter une disponibilité</h6>
-            <div className="row g-3 align-items-center mt-2">
-              <div className="col-md-3">
-                <select
-                  className="form-select rounded-3 mb-2"
-                  value={form.type}
-                  onChange={(e) => setForm({ ...form, type: e.target.value, jour: "" })}
-                >
-                  <option value="jour">Jour spécifique</option>
-                  <option value="semaine">Toute la semaine</option>
-                  <option value="mois">Tout le mois</option>
-                </select>
-                {form.type === "jour" && (
-                  <select
-                    className="form-select rounded-3 mt-2"
-                    value={form.jour}
-                    onChange={(e) => setForm({ ...form, jour: e.target.value })}
-                  >
-                    <option value="">Jour</option>
-                    {joursDisponibles.map((jour) => (
-                      <option key={jour} value={jour}>{jour}</option>
-                    ))}
-                  </select>
-                )}
-              </div>
-              <div className="col-md-3">
-                <input
-                  type="date"
-                  className="form-control rounded-3 mb-2"
-                  value={form.date}
-                  onChange={(e) => setForm({ ...form, date: e.target.value })}
-                />
-                <input
-                  type="time"
-                  className="form-control rounded-3"
-                  value={form.heureDebut}
-                  onChange={(e) => setForm({ ...form, heureDebut: e.target.value })}
-                />
-              </div>
-              <div className="col-md-3">
-                <input
-                  type="time"
-                  className="form-control rounded-3"
-                  value={form.heureFin}
-                  onChange={(e) => setForm({ ...form, heureFin: e.target.value })}
-                />
-              </div>
-              <div className="col-md-3">
-                <button className="btn btn-custom mt-3 rounded-pill w-100" type="button" onClick={ajouterHoraire}>Ajouter</button>
-              </div>
-            </div>
+
+            {role === "medecin" && (
+              <>
+                <h6 className="mt-4 fw-semibold">➕ Ajouter une disponibilité</h6>
+                <div className="row g-3 align-items-center mt-2">
+                  <div className="col-md-3">
+                    <select
+                      className="form-select rounded-3 mb-2"
+                      value={form.type}
+                      onChange={(e) => setForm({ ...form, type: e.target.value, jour: "" })}
+                    >
+                      <option value="jour">Jour spécifique</option>
+                      <option value="semaine">Toute la semaine</option>
+                      <option value="mois">Tout le mois</option>
+                    </select>
+                    {form.type === "jour" && (
+                      <select
+                        className="form-select rounded-3 mt-2"
+                        value={form.jour}
+                        onChange={(e) => setForm({ ...form, jour: e.target.value })}
+                      >
+                        <option value="">Jour</option>
+                        {joursDisponibles.map((jour) => (
+                          <option key={jour} value={jour}>{jour}</option>
+                        ))}
+                      </select>
+                    )}
+                  </div>
+                  <div className="col-md-3">
+                    <input
+                      type="date"
+                      className="form-control rounded-3 mb-2"
+                      value={form.date}
+                      onChange={(e) => setForm({ ...form, date: e.target.value })}
+                    />
+                    <input
+                      type="time"
+                      className="form-control rounded-3"
+                      value={form.heureDebut}
+                      onChange={(e) => setForm({ ...form, heureDebut: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <input
+                      type="time"
+                      className="form-control rounded-3"
+                      value={form.heureFin}
+                      onChange={(e) => setForm({ ...form, heureFin: e.target.value })}
+                    />
+                  </div>
+                  <div className="col-md-3">
+                    <button className="btn btn-custom mt-3 rounded-pill w-100" type="button" onClick={ajouterHoraire}>Ajouter</button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>

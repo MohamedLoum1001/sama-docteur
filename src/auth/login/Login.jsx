@@ -50,9 +50,14 @@ const Login = () => {
         formData.password
       );
       const user = userCredential.user;
-
-      // Récupérer le rôle depuis Firestore
-      const userDoc = await getDoc(doc(db, "users", user.uid));
+      console.log("Utilisateur connecté :", auth.currentUser);
+      if (auth.currentUser) {
+        console.log("UID:", auth.currentUser.uid);
+        console.log("Email:", auth.currentUser.email);
+        console.log("DisplayName:", auth.currentUser.displayName);
+      }
+  // Récupérer le rôle depuis Firestore
+  const userDoc = await getDoc(doc(db, "users", user.uid));
       if (userDoc.exists()) {
         const userData = userDoc.data();
         alert("Connexion réussie ✅");

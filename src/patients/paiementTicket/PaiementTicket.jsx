@@ -1,47 +1,99 @@
 // src/patients/PaiementTicket/PaiementTicket.jsx
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { QRCodeCanvas } from "qrcode.react"; // ✅ Import corrigé
+import { useNavigate, useLocation } from "react-router-dom";
+import { QRCodeCanvas } from "qrcode.react";
+import { db, auth } from "../../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import "./PaiementTicket.css";
 
-const PaiementTicket = ({ doctorName, doctorSpecialty, appointmentDate, appointmentTime }) => {
+const PaiementTicket = () => {
+  const location = useLocation();
+  // Récupération des infos du rendez-vous depuis location.state
+  const appointment = location.state?.appointment || {};
+  const doctorName = appointment.doctor || "";
+  const doctorSpecialty = appointment.specialty || "";
+  const appointmentDate = appointment.date ? new Date(appointment.date).toLocaleDateString('fr-FR') : "";
+  const appointmentTime = appointment.time || "";
   const navigate = useNavigate();
 
-  const [payment, setPayment] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-  });
-
+  const [payment, setPayment] = useState({ cardNumber: "", expiryDate: "", cvv: "" });
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState(false);
   const [lastTicket, setLastTicket] = useState(null);
+  const [errorMsg, setErrorMsg] = useState("");
 
-  const onSubmit = (e) => {
+  // Simulation de paiement : le paiement est toujours accepté pour tester le flux
+  const onSubmit = async (e) => {
     e.preventDefault();
+    setErrorMsg("");
+    const user = auth.currentUser;
+    if (!user) {
+      setErrorMsg("Utilisateur non connecté. Veuillez vous authentifier.");
+      setPaymentError(true);
+      setPaymentSuccess(false);
+      return;
+    }
     if (payment.cardNumber && payment.expiryDate && payment.cvv) {
+      // Validation stricte des champs essentiels
+  if (!doctorName || !doctorSpecialty || !appointmentDate || !appointmentTime || !user.displayName) {
+        setPaymentError(true);
+        setPaymentSuccess(false);
+        setErrorMsg("Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure, nom patient). Veuillez recommencer la réservation.");
+        return;
+      }
       setPaymentSuccess(true);
       setPaymentError(false);
-
+      const ticketId = Date.now().toString();
+      const patientName = user.displayName;
+      const rendezvousId = Math.random().toString(36).substring(2, 18);
+      const createdAt = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'medium' });
+      const qrCodeUrl = `https://firebasestorage.googleapis.com/qrcode/ticket_${ticketId}.png`;
       const ticket = {
-        id: Date.now(),
-        doctorName,
+        id: ticketId,
+        patientId: user.uid,
+        patientName,
+        doctorName: `Dr. ${doctorName}`,
         doctorSpecialty,
         date: appointmentDate,
         time: appointmentTime,
+        prix: 50,
+        statutPaiement: "payé",
+        createdAt,
+        rendezvousId,
+        qrCodeUrl,
         cardNumber: payment.cardNumber.replace(/\d(?=\d{4})/g, "*"),
       };
-
       setLastTicket(ticket);
-
-      // Réinitialiser le formulaire
       setPayment({ cardNumber: "", expiryDate: "", cvv: "" });
-
-      // Ici tu peux appeler ton API pour envoyer le ticket par SMS/email
       sendTicket(ticket);
+      // Ajout du ticket dans Firestore
+      try {
+        await addDoc(collection(db, "tickets"), ticket);
+      } catch (error) {
+        setErrorMsg("Erreur lors de l'enregistrement du ticket dans Firestore. Veuillez vérifier votre connexion ou vos droits Firestore.");
+        setPaymentError(true);
+        setPaymentSuccess(false);
+        console.error("Firestore ticket error:", error);
+        return;
+      }
+      // Ajout du paiement dans Firestore
+      try {
+        await addDoc(collection(db, "paiements"), {
+          date: serverTimestamp(),
+          methode: "Carte bancaire",
+          patientId: user.uid,
+          prix: 50,
+          statut: "réussi",
+          ticketId: ticketId,
+          transactionId: ticketId,
+        });
+      } catch (error) {
+        // Erreur d'enregistrement du paiement
+      }
     } else {
       setPaymentError(true);
       setPaymentSuccess(false);
+      setErrorMsg("Veuillez remplir tous les champs de paiement.");
     }
   };
 
@@ -144,7 +196,7 @@ const PaiementTicket = ({ doctorName, doctorSpecialty, appointmentDate, appointm
             )}
             {paymentError && (
               <div className="alert alert-danger mt-3">
-                Une erreur est survenue lors du paiement. Veuillez réessayer.
+                {errorMsg ? errorMsg : "Une erreur est survenue lors du paiement. Veuillez réessayer."}
               </div>
             )}
           </div>
