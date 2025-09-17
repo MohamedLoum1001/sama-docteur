@@ -3,20 +3,36 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { db, auth } from "../../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { collection, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import "./PaiementTicket.css";
 
 const PaiementTicket = () => {
+  // Champ pour saisir le nom complet si non présent dans Firebase
+  const [patientFullName, setPatientFullName] = useState("");
   const location = useLocation();
   // Récupération des infos du rendez-vous depuis location.state
   const appointment = location.state?.appointment || {};
-  const doctorName = appointment.doctor || "";
-  const doctorSpecialty = appointment.specialty || "";
-  const appointmentDate = appointment.date ? new Date(appointment.date).toLocaleDateString('fr-FR') : "";
-  const appointmentTime = appointment.time || "";
+    // Correction : formatage robuste des champs
+    const doctorName = appointment.doctor ? appointment.doctor.replace(/^Dr\.\s*/, "") : "";
+    const doctorSpecialty = appointment.specialty || "";
+    // Si appointment.date est un objet Date, on le formate, sinon on prend la string
+    let appointmentDate = "";
+    if (appointment.date) {
+      if (typeof appointment.date === "string") {
+        // Si déjà une string, on la prend telle quelle
+        appointmentDate = appointment.date;
+      } else if (appointment.date instanceof Date) {
+        appointmentDate = appointment.date.toLocaleDateString('fr-FR');
+      }
+    }
+    const appointmentTime = appointment.time || "";
   const navigate = useNavigate();
 
-  const [payment, setPayment] = useState({ cardNumber: "", expiryDate: "", cvv: "" });
+  const [payment, setPayment] = useState({
+    cardNumber: "",
+    expiryDate: "",
+    cvv: "",
+  });
   const [paymentSuccess, setPaymentSuccess] = useState(false);
   const [paymentError, setPaymentError] = useState(false);
   const [lastTicket, setLastTicket] = useState(null);
@@ -33,20 +49,38 @@ const PaiementTicket = () => {
       setPaymentSuccess(false);
       return;
     }
+    // Si le nom complet n'est pas renseigné dans Firebase, on exige la saisie
+    const patientName = user.displayName ? user.displayName : patientFullName.trim();
     if (payment.cardNumber && payment.expiryDate && payment.cvv) {
-      // Validation stricte des champs essentiels
-  if (!doctorName || !doctorSpecialty || !appointmentDate || !appointmentTime || !user.displayName) {
+      // Debug : afficher les valeurs des champs utilisés dans la validation
+      console.log("doctorName:", doctorName);
+      console.log("doctorSpecialty:", doctorSpecialty);
+      console.log("appointmentDate:", appointmentDate);
+      console.log("appointmentTime:", appointmentTime);
+      console.log("user.displayName:", user.displayName);
+      console.log("patientFullName:", patientFullName);
+      if (
+        !doctorName ||
+        !doctorSpecialty ||
+        !appointmentDate ||
+        !appointmentTime ||
+        !patientName
+      ) {
         setPaymentError(true);
         setPaymentSuccess(false);
-        setErrorMsg("Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure, nom patient). Veuillez recommencer la réservation.");
+        setErrorMsg(
+          "Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure, nom patient). Veuillez recommencer la réservation."
+        );
         return;
       }
       setPaymentSuccess(true);
       setPaymentError(false);
       const ticketId = Date.now().toString();
-      const patientName = user.displayName;
       const rendezvousId = Math.random().toString(36).substring(2, 18);
-      const createdAt = new Date().toLocaleString('fr-FR', { dateStyle: 'long', timeStyle: 'medium' });
+      const createdAt = new Date().toLocaleString("fr-FR", {
+        dateStyle: "long",
+        timeStyle: "medium",
+      });
       const qrCodeUrl = `https://firebasestorage.googleapis.com/qrcode/ticket_${ticketId}.png`;
       const ticket = {
         id: ticketId,
@@ -66,11 +100,13 @@ const PaiementTicket = () => {
       setLastTicket(ticket);
       setPayment({ cardNumber: "", expiryDate: "", cvv: "" });
       sendTicket(ticket);
-      // Ajout du ticket dans Firestore
+      // Ajout du ticket dans Firestore avec l'ID personnalisé
       try {
-        await addDoc(collection(db, "tickets"), ticket);
+        await setDoc(doc(db, "tickets", ticketId), ticket);
       } catch (error) {
-        setErrorMsg("Erreur lors de l'enregistrement du ticket dans Firestore. Veuillez vérifier votre connexion ou vos droits Firestore.");
+        setErrorMsg(
+          "Erreur lors de l'enregistrement du ticket dans Firestore. Veuillez vérifier votre connexion ou vos droits Firestore."
+        );
         setPaymentError(true);
         setPaymentSuccess(false);
         console.error("Firestore ticket error:", error);
@@ -118,6 +154,23 @@ const PaiementTicket = () => {
         <div className="col-md-6">
           <div className="card shadow p-4 rounded-3">
             <form onSubmit={onSubmit}>
+              {/* Si le nom n'est pas renseigné dans Firebase, demander au patient */}
+              {!auth.currentUser?.displayName && (
+                <div className="mb-3">
+                  <label htmlFor="patientFullName" className="form-label">
+                    Prénom et nom du patient <span className="text-danger">*</span>
+                  </label>
+                  <input
+                    type="text"
+                    id="patientFullName"
+                    className="form-control rounded-pill"
+                    placeholder="Entrez votre prénom et nom"
+                    value={patientFullName}
+                    onChange={(e) => setPatientFullName(e.target.value)}
+                    required
+                  />
+                </div>
+              )}
               <div className="mb-3">
                 <label htmlFor="cardNumber" className="form-label">
                   Numéro de carte
@@ -196,7 +249,9 @@ const PaiementTicket = () => {
             )}
             {paymentError && (
               <div className="alert alert-danger mt-3">
-                {errorMsg ? errorMsg : "Une erreur est survenue lors du paiement. Veuillez réessayer."}
+                {errorMsg
+                  ? errorMsg
+                  : "Une erreur est survenue lors du paiement. Veuillez réessayer."}
               </div>
             )}
           </div>

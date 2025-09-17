@@ -1,32 +1,93 @@
 // src/medecins/ListeRendezVous.jsx
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import {
+  collection,
+  query,
+  where,
+  getDocs,
+  doc,
+  updateDoc,
+} from "firebase/firestore";
+import { db, auth } from "../../firebase";
 import "./ListRendezVous.css";
 
 const ListeRendezVous = () => {
   const [rendezVousList, setRendezVousList] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Action: Confirmer
-  const confirmerRdv = (id) => {
-    setRendezVousList((prev) =>
-      prev.map((rdv) =>
-        rdv.id === id ? { ...rdv, statut: "Confirmé" } : rdv
-      )
-    );
+  // 🔹 Charger les rendez-vous du médecin connecté
+  useEffect(() => {
+    const fetchRendezVous = async () => {
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          console.warn("Aucun utilisateur connecté !");
+          setLoading(false);
+          return;
+        }
+
+        // ⚡ Assurez-vous que vos documents Firestore ont bien un champ doctorId
+        const q = query(
+          collection(db, "rendezvous"),
+          where("doctorId", "==", user.uid)
+        );
+
+        const snapshot = await getDocs(q);
+
+        if (snapshot.empty) {
+          console.warn("Aucun rendez-vous trouvé pour doctorId =", user.uid);
+        }
+
+        const rdvs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+
+        console.log("✅ Rendez-vous récupérés :", rdvs);
+        setRendezVousList(rdvs);
+      } catch (error) {
+        console.error(
+          "Erreur lors de la récupération des rendez-vous :",
+          error
+        );
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRendezVous();
+  }, []);
+
+  // 🔹 Confirmer un RDV
+  const confirmerRdv = async (id) => {
+    try {
+      await updateDoc(doc(db, "rendezvous", id), { statut: "Confirmé" });
+      setRendezVousList((prev) =>
+        prev.map((rdv) =>
+          rdv.id === id ? { ...rdv, statut: "Confirmé" } : rdv
+        )
+      );
+    } catch (error) {
+      console.error("Erreur lors de la confirmation :", error);
+    }
   };
 
-  // Action: Annuler
-  const annulerRdv = (id) => {
-    setRendezVousList((prev) =>
-      prev.map((rdv) =>
-        rdv.id === id ? { ...rdv, statut: "Annulé" } : rdv
-      )
-    );
+  // 🔹 Annuler un RDV
+  const annulerRdv = async (id) => {
+    try {
+      await updateDoc(doc(db, "rendezvous", id), { statut: "Annulé" });
+      setRendezVousList((prev) =>
+        prev.map((rdv) => (rdv.id === id ? { ...rdv, statut: "Annulé" } : rdv))
+      );
+    } catch (error) {
+      console.error("Erreur lors de l'annulation :", error);
+    }
   };
 
-  // Format date en français
-  const formatDate = (date) => {
-    return new Date(date).toLocaleString("fr-FR", {
+  // 🔹 Format date en français
+  const formatDate = (date) =>
+    new Date(date).toLocaleString("fr-FR", {
       weekday: "long",
       year: "numeric",
       month: "long",
@@ -34,9 +95,8 @@ const ListeRendezVous = () => {
       hour: "2-digit",
       minute: "2-digit",
     });
-  };
 
-  // Détermine la classe bootstrap en fonction du statut
+  // 🔹 Badge selon statut
   const getStatusClass = (statut) => {
     if (statut === "Confirmé") return "badge bg-success rounded-pill px-3 py-2";
     if (statut === "En attente")
@@ -53,13 +113,13 @@ const ListeRendezVous = () => {
         </Link>
       </div>
 
-      {/* Titre */}
       <h2 className="text-center text-primary fw-bold mb-4">
         📅 Mes Rendez-vous Programmés
       </h2>
 
-      {/* Message ou tableau selon la liste */}
-      {rendezVousList.length === 0 ? (
+      {loading ? (
+        <p className="text-center">Chargement...</p>
+      ) : rendezVousList.length === 0 ? (
         <div className="alert alert-info text-center mt-5">
           Vous n'avez pas de rendez-vous avec aucun patient.
         </div>
@@ -80,7 +140,7 @@ const ListeRendezVous = () => {
                 <tbody>
                   {rendezVousList.map((rdv) => (
                     <tr key={rdv.id}>
-                      <td>{rdv.patient}</td>
+                      <td>{rdv.patientName}</td>
                       <td>{formatDate(rdv.date)}</td>
                       <td>{rdv.motif}</td>
                       <td>
