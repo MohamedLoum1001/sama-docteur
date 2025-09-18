@@ -1,4 +1,4 @@
-// src/patients/TicketAcheter/TicketAcheter.jsx
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
@@ -13,6 +13,21 @@ import {
   updateDoc,
 } from "firebase/firestore";
 import "./TicketAcheter.css";
+
+// Format date FR
+const formatDateFR = (dateStr) => {
+  if (!dateStr) return "";
+  try {
+    return new Date(dateStr).toLocaleDateString("fr-FR", {
+      weekday: "long",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  } catch {
+    return dateStr;
+  }
+};
 
 const TicketAcheter = () => {
   const navigate = useNavigate();
@@ -115,7 +130,7 @@ const TicketAcheter = () => {
   }, []);
 
   return (
-    <div className="container mt-5 py-2">
+    <div className="container mt-3">
       {/* Bouton retour */}
       <button
         className="btn custom-btn mb-3 d-flex align-items-center rounded-pill"
@@ -124,157 +139,67 @@ const TicketAcheter = () => {
         <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
       </button>
 
-      <h2 className="text-center mb-4">🎟️ Mes tickets achetés</h2>
+      <h2 className="text-center mb-0">🎟️ Mes tickets achetés</h2>
 
       {tickets.length > 0 ? (
         tickets.map((ticket) => (
           <div
             key={ticket.id}
-            className="card shadow mt-4 p-4 rounded-3 text-center"
+            className="card shadow-lg mt-4 p-4 rounded-4 text-start border-0 position-relative"
+            style={{ maxWidth: 500, margin: "0 auto" }}
           >
-            <h5 className="text-primary mb-3">🎫 Ticket #{ticket.id}</h5>
-
-            {ticket.patientName && (
-              <p>
-                <strong>Patient :</strong> {ticket.patientName}
-              </p>
-            )}
-
-            {/* 🔹 Date */}
-            {editingTicketId === ticket.id ? (
-              <div className="mb-2">
-                <strong>Date :</strong>
-                <input
-                  type="date"
-                  className="form-control d-inline-block w-auto ms-2"
-                  value={newDate}
-                  onChange={(e) => setNewDate(e.target.value)}
-                />
-                <button
-                  className="btn btn-success btn-sm ms-2"
-                  onClick={() => handleEditDate(ticket.id)}
-                >
-                  Valider
-                </button>
-                <button
-                  className="btn btn-secondary btn-sm ms-2"
-                  onClick={() => {
-                    setEditingTicketId(null);
-                    setNewDate("");
-                  }}
-                >
-                  Annuler
-                </button>
-              </div>
-            ) : (
-              <p>
-                <strong>Date :</strong> {ticket.date || "Non renseignée"}
-                <button
-                  className="btn btn-warning btn-sm ms-2"
-                  onClick={() => {
-                    setEditingTicketId(ticket.id);
-                    setNewDate("");
-                  }}
-                >
-                  Modifier
-                </button>
-              </p>
-            )}
-
-            {/* 🔹 Heure */}
-            {editingTimeTicketId === ticket.id ? (
-              <div className="mb-2">
-                <strong>Heure :</strong>
-                <input
-                  type="time"
-                  className="form-control d-inline-block w-auto ms-2"
-                  value={newTime}
-                  onChange={(e) => setNewTime(e.target.value)}
-                />
-                <button
-                  className="btn btn-success btn-sm ms-2"
-                  onClick={() => handleEditTime(ticket.id)}
-                >
-                  Valider
-                </button>
-                <button
-                  className="btn btn-secondary btn-sm ms-2"
-                  onClick={() => {
-                    setEditingTimeTicketId(null);
-                    setNewTime("");
-                  }}
-                >
-                  Annuler
-                </button>
-              </div>
-            ) : (
-              <p>
-                <strong>Heure :</strong> {ticket.time || "Non renseignée"}
-                <button
-                  className="btn btn-warning btn-sm ms-2"
-                  onClick={() => {
-                    setEditingTimeTicketId(ticket.id);
-                    setNewTime("");
-                  }}
-                >
-                  Modifier
-                </button>
-              </p>
-            )}
-
-            {/* 🔹 Infos médecin */}
-            {ticket.doctorName && (
-              <p>
-                <strong>Médecin :</strong> {ticket.doctorName}
-              </p>
-            )}
-            {ticket.doctorSpecialty && (
-              <p>
-                <strong>Spécialité :</strong> {ticket.doctorSpecialty}
-              </p>
-            )}
-
-            {/* 🔹 Autres infos */}
-            {ticket.createdAt && (
-              <p>
-                <strong>Créé le :</strong> {ticket.createdAt}
-              </p>
-            )}
-            {ticket.prix && (
-              <p>
-                <strong>Prix :</strong> {ticket.prix} €
-              </p>
-            )}
-            {ticket.cardNumber && (
-              <p>
-                <strong>Carte :</strong> {ticket.cardNumber}
-              </p>
-            )}
-            {ticket.statutPaiement && (
-              <p>
-                <strong>Paiement :</strong> {ticket.statutPaiement}
-              </p>
-            )}
-
-            {/* 🔹 QR Code */}
-            <div className="mt-3">
+            <div className="d-flex justify-content-between align-items-center mb-2">
+              <h5 className="text-primary fw-bold mb-0">🎫 Ticket #{ticket.id}</h5>
+              <span className={
+                ticket.statutPaiement === "payé"
+                  ? "badge bg-success rounded-pill px-3 py-2"
+                  : "badge bg-danger rounded-pill px-3 py-2"
+              }>
+                {ticket.statutPaiement === "payé" ? "Payé" : "Non payé"}
+              </span>
+            </div>
+            <hr />
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Patient :</span>
+              <span className="ms-2">{ticket.patientName}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Médecin :</span>
+              <span className="ms-2">{ticket.doctorName}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Spécialité :</span>
+              <span className="ms-2">{ticket.doctorSpecialty}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Date :</span>
+              <span className="ms-2">{formatDateFR(ticket.date)}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Heure :</span>
+              <span className="ms-2">{ticket.time}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Prix :</span>
+              <span className="ms-2">{ticket.prix} €</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Carte :</span>
+              <span className="ms-2">{ticket.cardNumber}</span>
+            </div>
+            <div className="mb-2">
+              <span className="fw-semibold text-secondary">Créé le :</span>
+              <span className="ms-2">{ticket.createdAt}</span>
+            </div>
+            <div className="d-flex justify-content-center align-items-center mt-4">
               <QRCodeCanvas
                 value={JSON.stringify(ticket)}
-                size={180}
+                size={160}
                 level="H"
                 includeMargin={true}
               />
             </div>
-
-            {/* 🔹 Bouton annulation */}
-            <button
-              className="btn btn-danger mt-3 rounded-pill"
-              onClick={() => handleCancelTicket(ticket.id)}
-            >
-              Annuler le rendez-vous
-            </button>
-
-            <p className="mt-2 text-muted">
+            <p className="mt-3 text-muted text-center">
               Scannez ce QR code pour récupérer votre ticket
             </p>
           </div>

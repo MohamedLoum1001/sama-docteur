@@ -54,7 +54,18 @@ const Login = () => {
       if (auth.currentUser) {
         console.log("UID:", auth.currentUser.uid);
         console.log("Email:", auth.currentUser.email);
-        console.log("DisplayName:", auth.currentUser.displayName);
+        // Récupère le prénom et le nom depuis Firestore
+        const userDoc = await getDoc(doc(db, "users", auth.currentUser.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          const prenom = userData.prenom || "";
+          const nom = userData.nom || "";
+          console.log("Prénom:", prenom);
+          console.log("Nom:", nom);
+        } else {
+          console.log("Prénom: inconnu");
+          console.log("Nom: inconnu");
+        }
       }
   // Récupérer le rôle depuis Firestore
   const userDoc = await getDoc(doc(db, "users", user.uid));

@@ -18,7 +18,7 @@ const ListeRendezVous = () => {
 
   // 🔹 Charger les rendez-vous du médecin connecté
   useEffect(() => {
-    const fetchRendezVous = async () => {
+    const fetchTickets = async () => {
       try {
         const user = auth.currentUser;
         if (!user) {
@@ -26,37 +26,20 @@ const ListeRendezVous = () => {
           setLoading(false);
           return;
         }
-
-        // ⚡ Assurez-vous que vos documents Firestore ont bien un champ doctorId
-        const q = query(
-          collection(db, "rendezvous"),
-          where("doctorId", "==", user.uid)
-        );
-
+        // On récupère les tickets où le doctorId correspond à l'UID du médecin connecté
+        const doctorId = user.uid;
+        const q = query(collection(db, "tickets"), where("doctorId", "==", doctorId));
         const snapshot = await getDocs(q);
-
-        if (snapshot.empty) {
-          console.warn("Aucun rendez-vous trouvé pour doctorId =", user.uid);
-        }
-
-        const rdvs = snapshot.docs.map((docSnap) => ({
-          id: docSnap.id,
-          ...docSnap.data(),
-        }));
-
-        console.log("✅ Rendez-vous récupérés :", rdvs);
+        const rdvs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
+        console.log("✅ Tickets filtrés par doctorId :", rdvs);
         setRendezVousList(rdvs);
       } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des rendez-vous :",
-          error
-        );
+        console.error("Erreur lors de la récupération des tickets :", error);
       } finally {
         setLoading(false);
       }
     };
-
-    fetchRendezVous();
+    fetchTickets();
   }, []);
 
   // 🔹 Confirmer un RDV
@@ -124,61 +107,56 @@ const ListeRendezVous = () => {
           Vous n'avez pas de rendez-vous avec aucun patient.
         </div>
       ) : (
-        <div className="card shadow-lg border-0 rounded-4">
-          <div className="card-body p-4">
-            <div className="table-responsive">
-              <table className="table align-middle table-hover">
-                <thead className="table-light">
-                  <tr>
-                    <th>👤 Patient</th>
-                    <th>🗓️ Date & Heure</th>
-                    <th>📝 Motif</th>
-                    <th>📌 Statut</th>
-                    <th>Actions</th>
+        <div className="mb-4">
+          <h4 className="mb-3 fw-bold text-primary">Tableau des rendez-vous</h4>
+          <div className="table-responsive">
+            <table className="table table-hover table-striped align-middle shadow rounded-4 overflow-hidden">
+              <thead className="bg-primary text-white">
+                <tr>
+                  <th className="px-3 py-2">Patient</th>
+                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2">Heure</th>
+                  <th className="px-3 py-2">Spécialité</th>
+                  <th className="px-3 py-2">Statut paiement</th>
+                  <th className="px-3 py-2">Statut</th>
+                  <th className="px-3 py-2">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rendezVousList.map((rdv, idx) => (
+                  <tr key={rdv.id} className={idx % 2 === 0 ? "bg-light" : ""}>
+                    <td className="px-3 py-2 fw-semibold text-dark">
+                      {rdv.patientName || rdv.nomCompletPatient || rdv.prenom + " " + rdv.nom || rdv.patientEmail}
+                    </td>
+                    <td className="px-3 py-2">{rdv.date}</td>
+                    <td className="px-3 py-2">{rdv.time}</td>
+                    <td className="px-3 py-2">{rdv.doctorSpecialty}</td>
+                    <td className="px-3 py-2">
+                      <span className={
+                        rdv.statutPaiement === "payé"
+                          ? "badge bg-success rounded-pill px-3 py-2"
+                          : "badge bg-danger rounded-pill px-3 py-2"
+                      }>
+                        {rdv.statutPaiement || "Non payé"}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <span className={getStatusClass(rdv.statutPaiement === "payé" ? "Confirmé" : rdv.statut)}>
+                        {rdv.statutPaiement === "payé" ? "Confirmé" : rdv.statut}
+                      </span>
+                    </td>
+                    <td className="px-3 py-2">
+                      <button
+                        className="btn btn-sm btn-danger rounded-pill px-3"
+                        onClick={() => annulerRdv(rdv.id)}
+                      >
+                        Annuler
+                      </button>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {rendezVousList.map((rdv) => (
-                    <tr key={rdv.id}>
-                      <td>{rdv.patientName}</td>
-                      <td>{formatDate(rdv.date)}</td>
-                      <td>{rdv.motif}</td>
-                      <td>
-                        <span className={getStatusClass(rdv.statut)}>
-                          {rdv.statut}
-                        </span>
-                      </td>
-                      <td>
-                        {rdv.statut === "En attente" && (
-                          <>
-                            <button
-                              className="btn btn-sm btn-success me-2"
-                              onClick={() => confirmerRdv(rdv.id)}
-                            >
-                              Confirmer
-                            </button>
-                            <button
-                              className="btn btn-sm btn-danger"
-                              onClick={() => annulerRdv(rdv.id)}
-                            >
-                              Annuler
-                            </button>
-                          </>
-                        )}
-                        {rdv.statut === "Confirmé" && (
-                          <button
-                            className="btn btn-sm btn-danger"
-                            onClick={() => annulerRdv(rdv.id)}
-                          >
-                            Annuler
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           </div>
         </div>
       )}

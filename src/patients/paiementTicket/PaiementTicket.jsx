@@ -1,5 +1,5 @@
 // src/patients/PaiementTicket/PaiementTicket.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { db, auth } from "../../firebase";
@@ -7,25 +7,57 @@ import { collection, addDoc, serverTimestamp, setDoc, doc } from "firebase/fires
 import "./PaiementTicket.css";
 
 const PaiementTicket = () => {
-  // Champ pour saisir le nom complet si non présent dans Firebase
-  const [patientFullName, setPatientFullName] = useState("");
   const location = useLocation();
   // Récupération des infos du rendez-vous depuis location.state
-  const appointment = location.state?.appointment || {};
-    // Correction : formatage robuste des champs
-    const doctorName = appointment.doctor ? appointment.doctor.replace(/^Dr\.\s*/, "") : "";
-    const doctorSpecialty = appointment.specialty || "";
-    // Si appointment.date est un objet Date, on le formate, sinon on prend la string
-    let appointmentDate = "";
-    if (appointment.date) {
-      if (typeof appointment.date === "string") {
-        // Si déjà une string, on la prend telle quelle
-        appointmentDate = appointment.date;
-      } else if (appointment.date instanceof Date) {
-        appointmentDate = appointment.date.toLocaleDateString('fr-FR');
+  const {
+    patientName = "",
+    doctor = "",
+    doctorId = "",
+    specialty = "",
+    date = "",
+    time = ""
+  } = location.state || {};
+
+  // Extraction prénom/nom patient
+  const [patientFullName, setPatientFullName] = useState("");
+  const [loadingPatient, setLoadingPatient] = useState(true);
+  // Récupère prénom et nom du patient depuis Firestore
+  useEffect(() => {
+    async function fetchPatientName() {
+      setLoadingPatient(true);
+      try {
+        const user = auth.currentUser;
+        if (!user) {
+          setPatientFullName("");
+          setLoadingPatient(false);
+          return;
+        }
+        const { uid, email } = user;
+        // Cherche par uid puis par email si besoin
+        let querySnapshot = null;
+        const { getDocs, collection, where, query } = await import("firebase/firestore");
+        querySnapshot = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
+        if (querySnapshot.empty && email) {
+          querySnapshot = await getDocs(query(collection(db, "users"), where("email", "==", email)));
+        }
+        if (!querySnapshot.empty) {
+          const data = querySnapshot.docs[0].data();
+          setPatientFullName(`${data.prenom || ""} ${data.nom || ""}`.trim());
+        } else {
+          setPatientFullName("");
+        }
+      } catch {
+        setPatientFullName("");
       }
+      setLoadingPatient(false);
     }
-    const appointmentTime = appointment.time || "";
+    fetchPatientName();
+  }, []);
+  // Extraction prénom/nom du docteur
+  const doctorName = doctor.replace(/^Dr\.?\s*/, "");
+  const doctorSpecialty = specialty;
+  const appointmentDate = date;
+  const appointmentTime = time;
   const navigate = useNavigate();
 
   const [payment, setPayment] = useState({
@@ -50,7 +82,17 @@ const PaiementTicket = () => {
       return;
     }
     // Si le nom complet n'est pas renseigné dans Firebase, on exige la saisie
-    const patientName = user.displayName ? user.displayName : patientFullName.trim();
+    let patientName = "";
+    if (patientFullName && patientFullName.trim().length > 0) {
+      patientName = patientFullName.trim();
+    } else if (user.displayName && user.displayName.trim().length > 0) {
+      patientName = user.displayName.trim();
+    } else {
+      setPaymentError(true);
+      setPaymentSuccess(false);
+      setErrorMsg("Le nom du patient est requis. Veuillez le renseigner.");
+      return;
+    }
     if (payment.cardNumber && payment.expiryDate && payment.cvv) {
       // Debug : afficher les valeurs des champs utilisés dans la validation
       console.log("doctorName:", doctorName);
@@ -63,13 +105,12 @@ const PaiementTicket = () => {
         !doctorName ||
         !doctorSpecialty ||
         !appointmentDate ||
-        !appointmentTime ||
-        !patientName
+        !appointmentTime
       ) {
         setPaymentError(true);
         setPaymentSuccess(false);
         setErrorMsg(
-          "Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure, nom patient). Veuillez recommencer la réservation."
+          "Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure). Veuillez recommencer la réservation."
         );
         return;
       }
@@ -88,6 +129,7 @@ const PaiementTicket = () => {
         patientName,
         doctorName: `Dr. ${doctorName}`,
         doctorSpecialty,
+  doctorId: doctorId || "", // <-- Ajout de l'UID du médecin
         date: appointmentDate,
         time: appointmentTime,
         prix: 50,
@@ -154,23 +196,62 @@ const PaiementTicket = () => {
         <div className="col-md-6">
           <div className="card shadow p-4 rounded-3">
             <form onSubmit={onSubmit}>
-              {/* Si le nom n'est pas renseigné dans Firebase, demander au patient */}
-              {!auth.currentUser?.displayName && (
-                <div className="mb-3">
-                  <label htmlFor="patientFullName" className="form-label">
-                    Prénom et nom du patient <span className="text-danger">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    id="patientFullName"
-                    className="form-control rounded-pill"
-                    placeholder="Entrez votre prénom et nom"
-                    value={patientFullName}
-                    onChange={(e) => setPatientFullName(e.target.value)}
-                    required
-                  />
-                </div>
-              )}
+              {/* Prénom et nom du patient (pré-rempli, modifiable si besoin) */}
+              <div className="mb-3">
+                <label htmlFor="patientFullName" className="form-label">
+                  Prénom et nom du patient <span className="text-danger">*</span>
+                </label>
+                <input
+                  type="text"
+                  id="patientFullName"
+                  className="form-control rounded-pill"
+                  placeholder="Entrez votre prénom et nom"
+                  value={loadingPatient ? "Chargement..." : patientFullName}
+                  onChange={(e) => setPatientFullName(e.target.value)}
+                  required
+                  disabled={loadingPatient}
+                />
+              </div>
+              {/* Prénom et nom du docteur (pré-rempli, non modifiable) */}
+              <div className="mb-3">
+                <label className="form-label">Prénom et nom du docteur</label>
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  value={doctorName}
+                  disabled
+                />
+              </div>
+              {/* Spécialité du docteur (pré-rempli, non modifiable) */}
+              <div className="mb-3">
+                <label className="form-label">Spécialité</label>
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  value={doctorSpecialty}
+                  disabled
+                />
+              </div>
+              {/* Date du rendez-vous (pré-rempli, non modifiable) */}
+              <div className="mb-3">
+                <label className="form-label">Date du rendez-vous</label>
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  value={appointmentDate}
+                  disabled
+                />
+              </div>
+              {/* Heure du rendez-vous (pré-rempli, non modifiable) */}
+              <div className="mb-3">
+                <label className="form-label">Heure du rendez-vous</label>
+                <input
+                  type="text"
+                  className="form-control rounded-pill"
+                  value={appointmentTime}
+                  disabled
+                />
+              </div>
               <div className="mb-3">
                 <label htmlFor="cardNumber" className="form-label">
                   Numéro de carte
