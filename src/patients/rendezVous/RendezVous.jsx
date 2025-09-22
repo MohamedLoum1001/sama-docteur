@@ -16,16 +16,14 @@ import { useNavigate } from "react-router-dom";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 
-// Génère des créneaux horaires toutes les 30 minutes
+// 🔹 Génère des créneaux horaires toutes les 30 minutes
 const generateTimeSlots = (start, end) => {
   const slots = [];
   let [h, m] = start.split(":").map(Number);
   const [endH, endM] = end.split(":").map(Number);
 
   while (h < endH || (h === endH && m < endM)) {
-    const hh = String(h).padStart(2, "0");
-    const mm = String(m).padStart(2, "0");
-    slots.push(`${hh}:${mm}`);
+    slots.push(`${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`);
     m += 30;
     if (m >= 60) {
       h += 1;
@@ -35,27 +33,43 @@ const generateTimeSlots = (start, end) => {
   return slots;
 };
 
-// Format date FR
+// 🔹 Formater une date en français
 const formatDateFR = (dateStr) => {
   try {
-    return new Date(dateStr).toLocaleDateString("fr-FR", {
+    const date = typeof dateStr === "string" ? new Date(dateStr) : dateStr;
+    return date.toLocaleDateString("fr-FR", {
       weekday: "long",
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
     });
   } catch {
-    return dateStr;
+    return "Date invalide";
   }
 };
 
-// Format heure FR
+// 🔹 Formater l'heure en français
 const formatTimeFR = (timeStr) => {
   try {
     const [h, m] = timeStr.split(":");
     return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
   } catch {
     return timeStr;
+  }
+};
+
+// 🔹 Fonction centralisée pour envoyer une notification
+const sendNotification = async (userId, title, message) => {
+  try {
+    await addDoc(collection(db, "notifications"), {
+      userId,
+      title,
+      message,
+      isRead: false,
+      createdAt: serverTimestamp(),
+    });
+  } catch (err) {
+    console.error("Erreur notification :", err);
   }
 };
 
@@ -76,7 +90,7 @@ const RendezVous = () => {
   const [prenom, setPrenom] = useState("");
   const [nom, setNom] = useState("");
 
-  // Récupérer prénom et nom du patient connecté
+  // 🔹 Récupérer prénom et nom du patient connecté
   useEffect(() => {
     const fetchPatientInfo = async () => {
       const user = auth.currentUser;
@@ -101,7 +115,7 @@ const RendezVous = () => {
     fetchPatientInfo();
   }, []);
 
-  // Charger les spécialités et médecins
+  // 🔹 Charger les spécialités et médecins
   useEffect(() => {
     const fetchSpecialties = async () => {
       const q = query(collection(db, "users"), where("role", "==", "medecin"));
@@ -122,7 +136,7 @@ const RendezVous = () => {
     fetchSpecialties();
   }, []);
 
-  // Charger les rendez-vous du patient
+  // 🔹 Charger les rendez-vous du patient
   useEffect(() => {
     const fetchRendezvous = async () => {
       const user = auth.currentUser;
@@ -138,7 +152,7 @@ const RendezVous = () => {
     fetchRendezvous();
   }, []);
 
-  // Charger les disponibilités du médecin selon la date choisie
+  // 🔹 Charger les disponibilités du médecin
   useEffect(() => {
     const fetchDisponibilites = async () => {
       if (!appointment.doctorId || !appointment.date) {
@@ -148,7 +162,7 @@ const RendezVous = () => {
 
       const formattedDate = appointment.date.toISOString().split("T")[0];
 
-      // 1️⃣ Disponibilités du médecin
+      // Disponibilités du médecin
       const dispoQuery = query(
         collection(db, "disponibilites"),
         where("idMedecin", "==", appointment.doctorId),
@@ -161,11 +175,10 @@ const RendezVous = () => {
         const dispo = dispoSnap.docs[0].data();
         slots = generateTimeSlots(dispo.heureDebut, dispo.heureFin);
       } else {
-        // Disponibilité par défaut
         slots = generateTimeSlots("08:00", "17:00");
       }
 
-      // 2️⃣ Exclure les créneaux déjà réservés
+      // Exclure créneaux déjà pris
       const rvQuery = query(
         collection(db, "rendezvous"),
         where("doctorId", "==", appointment.doctorId),
@@ -180,13 +193,12 @@ const RendezVous = () => {
     fetchDisponibilites();
   }, [appointment.doctorId, appointment.date]);
 
-  // Soumettre un rendez-vous
+  // 🔹 Soumettre un rendez-vous + notifications
   const submitAppointment = async (e) => {
     e.preventDefault();
     const user = auth.currentUser;
     if (!user) return alert("Utilisateur non connecté");
 
-    // Validation des champs
     if (
       !appointment.specialty ||
       !appointment.doctor ||
@@ -196,25 +208,44 @@ const RendezVous = () => {
       !prenom.trim() ||
       !nom.trim()
     ) {
-      alert(
-        "Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure, nom patient)."
-      );
+      alert("Tous les champs doivent être renseignés.");
       return;
     }
 
     try {
       const patientName = `${prenom} ${nom}`.trim();
+      const formattedDate = appointment.date.toISOString().split("T")[0];
+
       const docRef = await addDoc(collection(db, "rendezvous"), {
         patientId: user.uid,
         patientName,
         specialty: appointment.specialty,
         doctor: appointment.doctor,
         doctorId: appointment.doctorId,
-        date: appointment.date.toISOString().split("T")[0],
+        date: formattedDate,
         time: appointment.time,
         statut: "en attente",
         createdAt: serverTimestamp(),
       });
+
+      // 🔔 Notifications
+      await sendNotification(
+        appointment.doctorId,
+        "Nouveau rendez-vous",
+        `Vous avez un rendez-vous avec ${patientName} le ${formatDateFR(
+          formattedDate
+        )} à ${formatTimeFR(appointment.time)}.`
+      );
+
+      await sendNotification(
+        user.uid,
+        "Rendez-vous confirmé",
+        `Votre rendez-vous avec ${
+          appointment.doctor
+        } est prévu le ${formatDateFR(formattedDate)} à ${formatTimeFR(
+          appointment.time
+        )}.`
+      );
 
       alert("Rendez-vous enregistré ✅");
       setRendezvousList((prev) => [
@@ -226,7 +257,7 @@ const RendezVous = () => {
           specialty: appointment.specialty,
           doctor: appointment.doctor,
           doctorId: appointment.doctorId,
-          date: appointment.date.toISOString().split("T")[0],
+          date: formattedDate,
           time: appointment.time,
           statut: "en attente",
         },
@@ -240,7 +271,7 @@ const RendezVous = () => {
           specialty: appointment.specialty,
           doctor: appointment.doctor,
           doctorId: appointment.doctorId,
-          date: appointment.date.toISOString().split("T")[0],
+          date: formattedDate,
           time: appointment.time,
         },
       });
@@ -258,11 +289,28 @@ const RendezVous = () => {
     }
   };
 
-  // Annuler un rendez-vous
-  const cancelAppointment = async (id) => {
+  // 🔹 Annuler un rendez-vous + notifications
+  const cancelAppointment = async (id, doctorId, doctorName, date, time) => {
     if (window.confirm("Voulez-vous vraiment annuler ce rendez-vous ?")) {
       await deleteDoc(doc(db, "rendezvous", id));
       setRendezvousList((list) => list.filter((rv) => rv.id !== id));
+
+      // Notifications patient et médecin
+      await sendNotification(
+        auth.currentUser.uid,
+        "Rendez-vous annulé",
+        `Votre rendez-vous avec ${doctorName} du ${formatDateFR(
+          date
+        )} à ${formatTimeFR(time)} a été annulé.`
+      );
+
+      await sendNotification(
+        doctorId,
+        "Rendez-vous annulé",
+        `Le patient ${prenom} ${nom} a annulé son rendez-vous du ${formatDateFR(
+          date
+        )} à ${formatTimeFR(time)}.`
+      );
     }
   };
 
@@ -278,10 +326,9 @@ const RendezVous = () => {
         </button>
       </div>
 
+      {/* Titre */}
       <div className="text-center mb-4">
-        <h3 className="fw-bold text-primary">
-          📅 Prendre un rendez-vous médical
-        </h3>
+        <h3 className="fw-bold text-primary">📅 Prendre un rendez-vous</h3>
         <div className="mt-2 text-secondary">
           {auth.currentUser && (
             <span>
@@ -412,10 +459,11 @@ const RendezVous = () => {
           <table className="table table-hover table-striped align-middle shadow rounded-4 overflow-hidden">
             <thead className="bg-primary text-white">
               <tr>
-                <th className="px-3 py-2">Date/Heure</th>
-                <th className="px-3 py-2">Médecin</th>
-                <th className="px-3 py-2">Spécialité</th>
-                <th className="px-3 py-2">Statut</th>
+                <th>Date/Heure</th>
+                <th>Médecin</th>
+                <th>Spécialité</th>
+                <th>Statut</th>
+                <th>Action</th>
               </tr>
             </thead>
             <tbody>
@@ -428,21 +476,41 @@ const RendezVous = () => {
               ) : (
                 rendezvousList.map((rv, idx) => (
                   <tr key={rv.id} className={idx % 2 === 0 ? "bg-light" : ""}>
-                    <td className="px-3 py-2 fw-semibold text-dark">
+                    <td>
                       {formatDateFR(rv.date)} {formatTimeFR(rv.time)}
                     </td>
-                    <td className="px-3 py-2">{rv.doctor}</td>
-                    <td className="px-3 py-2">{rv.specialty}</td>
-                    <td className="px-3 py-2">
+                    <td>{rv.doctor}</td>
+                    <td>{rv.specialty}</td>
+                    <td>
                       {rv.statut === "Annulé" ? (
-                        <span className="badge bg-danger rounded-pill px-3 py-2">
-                          Rendez-vous annulé
+                        <span className="badge bg-danger rounded-pill">
+                          Annulé
+                        </span>
+                      ) : rv.statut === "Confirmé" ? (
+                        <span className="badge bg-success rounded-pill">
+                          Confirmé
                         </span>
                       ) : (
-                        <span className="badge bg-success rounded-pill px-3 py-2">
-                          Rendez-vous confirmé
+                        <span className="badge bg-warning text-dark rounded-pill">
+                          En attente
                         </span>
                       )}
+                    </td>
+                    <td>
+                      <button
+                        className="btn btn-sm btn-outline-danger rounded-pill"
+                        onClick={() =>
+                          cancelAppointment(
+                            rv.id,
+                            rv.doctorId,
+                            rv.doctor,
+                            rv.date,
+                            rv.time
+                          )
+                        }
+                      >
+                        Annuler
+                      </button>
                     </td>
                   </tr>
                 ))

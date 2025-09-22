@@ -1,4 +1,4 @@
-// src/medecins/ListeRendezVous.jsx
+// src/medecin/ListeRendezVous.jsx
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
@@ -8,6 +8,8 @@ import {
   getDocs,
   doc,
   updateDoc,
+  addDoc,
+  serverTimestamp,
 } from "firebase/firestore";
 import { db, auth } from "../../firebase";
 import "./ListRendezVous.css";
@@ -22,16 +24,22 @@ const ListeRendezVous = () => {
       try {
         const user = auth.currentUser;
         if (!user) {
-          console.warn("Aucun utilisateur connecté !");
           setLoading(false);
           return;
         }
-        // On récupère les tickets où le doctorId correspond à l'UID du médecin connecté
+
         const doctorId = user.uid;
-        const q = query(collection(db, "tickets"), where("doctorId", "==", doctorId));
+        const q = query(
+          collection(db, "tickets"),
+          where("doctorId", "==", doctorId)
+        );
         const snapshot = await getDocs(q);
-        const rdvs = snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }));
-        console.log("✅ Tickets filtrés par doctorId :", rdvs);
+
+        const rdvs = snapshot.docs.map((docSnap) => ({
+          id: docSnap.id,
+          ...docSnap.data(),
+        }));
+
         setRendezVousList(rdvs);
       } catch (error) {
         console.error("Erreur lors de la récupération des tickets :", error);
@@ -39,58 +47,128 @@ const ListeRendezVous = () => {
         setLoading(false);
       }
     };
+
     fetchTickets();
   }, []);
 
-  // 🔹 Confirmer un RDV
-  const confirmerRdv = async (id) => {
+  // 🔹 Format date en FR
+  const formatDateFR = (date) => {
     try {
-      await updateDoc(doc(db, "rendezvous", id), { statut: "Confirmé" });
-      setRendezVousList((prev) =>
-        prev.map((rdv) =>
-          rdv.id === id ? { ...rdv, statut: "Confirmé" } : rdv
-        )
-      );
-    } catch (error) {
-      console.error("Erreur lors de la confirmation :", error);
+      const d = new Date(date);
+      return d.toLocaleDateString("fr-FR", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+      });
+    } catch {
+      return date;
     }
   };
 
-  // 🔹 Annuler un RDV
-  const annulerRdv = async (id) => {
+  // 🔹 Format heure en FR
+  const formatTimeFR = (timeStr) => {
     try {
-      await updateDoc(doc(db, "rendezvous", id), { statut: "Annulé" });
+      const [h, m] = timeStr.split(":");
+      return `${h.padStart(2, "0")}:${m.padStart(2, "0")}`;
+    } catch {
+      return timeStr;
+    }
+  };
+
+  // 🔹 Badge statut paiement
+  const getPaymentClass = (paiement) => {
+    if (paiement === "payé") return "badge bg-success rounded-pill px-3 py-2";
+    if (paiement === "remboursé")
+      return "badge bg-info text-dark rounded-pill px-3 py-2";
+    return "badge bg-danger rounded-pill px-3 py-2";
+  };
+
+  // 🔹 Badge statut RDV
+  const getStatusClass = (statut) => {
+    if (statut === "Confirmé") return "badge bg-success rounded-pill px-3 py-2";
+    if (statut === "Annulé") return "badge bg-danger rounded-pill px-3 py-2";
+    return "badge bg-warning text-dark rounded-pill px-3 py-2";
+  };
+
+  // 🔹 Valider un RDV
+  const validerRdv = async (rdv) => {
+    try {
+      await updateDoc(doc(db, "tickets", rdv.id), { statut: "Confirmé" });
+
       setRendezVousList((prev) =>
-        prev.map((rdv) => (rdv.id === id ? { ...rdv, statut: "Annulé" } : rdv))
+        prev.map((r) => (r.id === rdv.id ? { ...r, statut: "Confirmé" } : r))
       );
+
+      // Notification patient
+      await addDoc(collection(db, "notifications"), {
+        userId: rdv.patientId,
+        title: "Rendez-vous validé",
+        message: `Votre rendez-vous avec Dr ${
+          rdv.nomCompletMedecin || rdv.doctorName
+        } du ${formatDateFR(rdv.date)} à ${formatTimeFR(
+          rdv.time
+        )} a été validé.`,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
+    } catch (error) {
+      console.error("Erreur lors de la validation :", error);
+    }
+  };
+
+  // 🔹 Annuler un RDV + remboursement + notifications
+  const annulerRdv = async (rdv) => {
+    if (!window.confirm("Voulez-vous vraiment annuler ce rendez-vous ?"))
+      return;
+
+    try {
+      await updateDoc(doc(db, "tickets", rdv.id), {
+        statut: "Annulé",
+        statutPaiement: "remboursé",
+      });
+
+      setRendezVousList((prev) =>
+        prev.map((r) =>
+          r.id === rdv.id
+            ? { ...r, statut: "Annulé", statutPaiement: "remboursé" }
+            : r
+        )
+      );
+
+      // Notification patient
+      await addDoc(collection(db, "notifications"), {
+        userId: rdv.patientId,
+        title: "Rendez-vous annulé",
+        message: `Votre rendez-vous avec Dr ${
+          rdv.nomCompletMedecin || rdv.doctorName
+        } du ${formatDateFR(rdv.date)} à ${formatTimeFR(
+          rdv.time
+        )} a été annulé.`,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
+
+      // Notification médecin
+      await addDoc(collection(db, "notifications"), {
+        userId: rdv.doctorId,
+        title: "Rendez-vous annulé par le patient",
+        message: `Le patient ${
+          rdv.nomCompletPatient || rdv.patientName
+        } a annulé son rendez-vous du ${formatDateFR(
+          rdv.date
+        )} à ${formatTimeFR(rdv.time)}.`,
+        isRead: false,
+        createdAt: serverTimestamp(),
+      });
     } catch (error) {
       console.error("Erreur lors de l'annulation :", error);
     }
   };
 
-  // 🔹 Format date en français
-  const formatDate = (date) =>
-    new Date(date).toLocaleString("fr-FR", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-  // 🔹 Badge selon statut
-  const getStatusClass = (statut) => {
-    if (statut === "Confirmé") return "badge bg-success rounded-pill px-3 py-2";
-    if (statut === "En attente")
-      return "badge bg-warning text-dark rounded-pill px-3 py-2";
-    return "badge bg-secondary rounded-pill px-3 py-2";
-  };
-
   return (
     <div className="container py-4">
-      {/* Bouton retour */}
-      <div className="mb-0 flex items-start">
+      <div className="mb-3">
         <Link to="/home-medecin" className="btn btn-custom rounded-pill">
           <i className="bi bi-arrow-left me-2"></i>Retour à l'accueil
         </Link>
@@ -107,57 +185,63 @@ const ListeRendezVous = () => {
           Vous n'avez pas de rendez-vous avec aucun patient.
         </div>
       ) : (
-        <div className="mb-4">
-          <h4 className="mb-3 fw-bold text-primary">Tableau des rendez-vous</h4>
-          <div className="table-responsive">
-            <table className="table table-hover table-striped align-middle shadow rounded-4 overflow-hidden">
-              <thead className="bg-primary text-white">
-                <tr>
-                  <th className="px-3 py-2">Patient</th>
-                  <th className="px-3 py-2">Date</th>
-                  <th className="px-3 py-2">Heure</th>
-                  <th className="px-3 py-2">Spécialité</th>
-                  <th className="px-3 py-2">Statut paiement</th>
-                  <th className="px-3 py-2">Statut</th>
-                  <th className="px-3 py-2">Actions</th>
+        <div className="table-responsive">
+          <table className="table table-hover table-striped align-middle shadow rounded-4 overflow-hidden">
+            <thead className="bg-primary text-white">
+              <tr>
+                <th>Patient</th>
+                <th>Date</th>
+                <th>Heure</th>
+                <th>Spécialité</th>
+                <th>Statut paiement</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rendezVousList.map((rdv, idx) => (
+                <tr key={rdv.id} className={idx % 2 === 0 ? "bg-light" : ""}>
+                  <td>{rdv.patientName || rdv.nomCompletPatient}</td>
+                  <td>{formatDateFR(rdv.date)}</td>
+                  <td>{formatTimeFR(rdv.time)}</td>
+                  <td>{rdv.doctorSpecialty}</td>
+                  <td>
+                    <span className={getPaymentClass(rdv.statutPaiement)}>
+                      {rdv.statutPaiement || "Non payé"}
+                    </span>
+                  </td>
+                  <td>
+                    <span className={getStatusClass(rdv.statut)}>
+                      {rdv.statut || "En attente"}
+                    </span>
+                  </td>
+                  <td>
+                    {rdv.statut === "Annulé" ? (
+                      <span className="badge bg-danger rounded-pill px-3 py-2">
+                        RV annulé
+                      </span>
+                    ) : (
+                      <>
+                        <button
+                          className="btn btn-sm btn-success rounded-pill px-3 me-2"
+                          onClick={() => validerRdv(rdv)}
+                          disabled={rdv.statut === "Confirmé"}
+                        >
+                          Valider
+                        </button>
+                        <button
+                          className="btn btn-sm btn-danger rounded-pill px-3"
+                          onClick={() => annulerRdv(rdv)}
+                        >
+                          Annuler
+                        </button>
+                      </>
+                    )}
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {rendezVousList.map((rdv, idx) => (
-                  <tr key={rdv.id} className={idx % 2 === 0 ? "bg-light" : ""}>
-                    <td className="px-3 py-2 fw-semibold text-dark">
-                      {rdv.patientName || rdv.nomCompletPatient || rdv.prenom + " " + rdv.nom || rdv.patientEmail}
-                    </td>
-                    <td className="px-3 py-2">{rdv.date}</td>
-                    <td className="px-3 py-2">{rdv.time}</td>
-                    <td className="px-3 py-2">{rdv.doctorSpecialty}</td>
-                    <td className="px-3 py-2">
-                      <span className={
-                        rdv.statutPaiement === "payé"
-                          ? "badge bg-success rounded-pill px-3 py-2"
-                          : "badge bg-danger rounded-pill px-3 py-2"
-                      }>
-                        {rdv.statutPaiement || "Non payé"}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <span className={getStatusClass(rdv.statutPaiement === "payé" ? "Confirmé" : rdv.statut)}>
-                        {rdv.statutPaiement === "payé" ? "Confirmé" : rdv.statut}
-                      </span>
-                    </td>
-                    <td className="px-3 py-2">
-                      <button
-                        className="btn btn-sm btn-danger rounded-pill px-3"
-                        onClick={() => annulerRdv(rdv.id)}
-                      >
-                        Annuler
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>
