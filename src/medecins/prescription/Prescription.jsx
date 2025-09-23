@@ -13,6 +13,9 @@ import {
   where,
 } from "firebase/firestore";
 
+// 🔹 Import du cachet médical
+import cachetImage from "../../assets/cachet.png";
+
 const Prescription = () => {
   const navigate = useNavigate();
   const [patients, setPatients] = useState([]);
@@ -23,11 +26,9 @@ const Prescription = () => {
   });
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Référence au canvas pour signature
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  // 🔹 Récupérer uniquement les patients ayant un rendez-vous avec ce docteur
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -64,18 +65,16 @@ const Prescription = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  // 🔹 Gestion du dessin signature
+  // ✍️ Gestion signature manuscrite
   const startDrawing = (e) => {
     setIsDrawing(true);
     draw(e);
   };
-
   const endDrawing = () => {
     setIsDrawing(false);
     const ctx = canvasRef.current.getContext("2d");
     ctx.beginPath();
   };
-
   const draw = (e) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
@@ -91,7 +90,6 @@ const Prescription = () => {
     ctx.beginPath();
     ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
   };
-
   const clearSignature = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -117,7 +115,6 @@ const Prescription = () => {
         return;
       }
 
-      // 🔹 Récupérer les infos du patient
       const patientDoc = await getDoc(doc(db, "users", patientId));
       if (!patientDoc.exists()) {
         alert("Patient introuvable.");
@@ -126,10 +123,22 @@ const Prescription = () => {
       }
       const patientData = patientDoc.data();
 
-      // 🔹 Extraire la signature en base64 depuis le canvas
+      // ✍️ Signature manuscrite en base64
       const signatureBase64 = canvasRef.current.toDataURL("image/png");
 
-      // 🔹 Ajouter ordonnance dans Firestore
+      // 🔹 Convertir cachet en base64
+      const cachetBase64 = await fetch(cachetImage)
+        .then((res) => res.blob())
+        .then(
+          (blob) =>
+            new Promise((resolve) => {
+              const reader = new FileReader();
+              reader.onloadend = () => resolve(reader.result);
+              reader.readAsDataURL(blob);
+            })
+        );
+
+      // 🔹 Sauvegarde Firestore
       await addDoc(collection(db, "ordonnances"), {
         createdAt: serverTimestamp(),
         doctorId: currentUser.uid,
@@ -140,9 +149,9 @@ const Prescription = () => {
         medicaments,
         instructions,
         signature: signatureBase64,
+        cachet: cachetBase64, // ✅ Ajout du cachet
       });
 
-      // 🔹 Notification Firestore
       await addDoc(collection(db, "notifications"), {
         userId: patientId,
         title: "Nouvelle ordonnance reçue",
@@ -224,7 +233,7 @@ const Prescription = () => {
           ></textarea>
         </div>
 
-        {/* 🔹 Zone de signature */}
+        {/* ✍️ Zone de signature */}
         <div className="mb-3">
           <label className="form-label">Signature du médecin</label>
           <canvas
