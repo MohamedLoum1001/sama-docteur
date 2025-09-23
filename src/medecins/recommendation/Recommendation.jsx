@@ -1,18 +1,37 @@
 // src/pages/Recommandations.jsx
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
+import { db } from "../../firebase";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
 import "./Recommendation.css";
 
 const Recommandation = () => {
+  const { id } = useParams(); // ID du patient
   const [recommandations, setRecommandations] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const submitRecommandation = () => {
-    if (recommandations.trim() !== "") {
-      // Ici tu pourrais envoyer au backend via fetch ou axios
-      alert("Recommandation enregistrée avec succès.");
-      setRecommandations(""); // reset champ
-    } else {
+  const submitRecommandation = async () => {
+    if (recommandations.trim() === "") {
       alert("Veuillez saisir une recommandation.");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // Ajout dans la sous-collection recommandations du patient
+      await addDoc(collection(db, "patients", id, "recommandations"), {
+        message: recommandations,
+        createdAt: serverTimestamp(),
+      });
+
+      alert("✅ Recommandation enregistrée avec succès.");
+      setRecommandations(""); // reset champ
+    } catch (error) {
+      console.error("Erreur enregistrement recommandation:", error);
+      alert("❌ Erreur lors de l'enregistrement. Réessayez.");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -53,8 +72,17 @@ const Recommandation = () => {
           <button
             className="btn btn-custom shadow-sm w-100"
             onClick={submitRecommandation}
+            disabled={loading}
           >
-            <i className="bi bi-send"></i> Envoyer la recommandation
+            {loading ? (
+              <span>
+                <i className="bi bi-hourglass-split"></i> Enregistrement...
+              </span>
+            ) : (
+              <span>
+                <i className="bi bi-send"></i> Envoyer la recommandation
+              </span>
+            )}
           </button>
         </div>
       </div>
