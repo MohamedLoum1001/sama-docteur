@@ -1,0 +1,51 @@
+
+/* Conteneur spécifique à Recommendation */
+.recommendation-container {
+    max-width: 700px;
+    background-color: #f9f9f9;
+    padding: 3rem;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.recommendation-title {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #007bff;
+    text-transform: uppercase;
+    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.recommendation-form-control-lg {
+    border-radius: 8px;
+    font-size: 1.1rem;
+    padding: 1.1rem;
+}
+
+.recommendation-btn-custom {
+    background-color: #00a5a8;
+    border: none;
+    color: white;
+    border-radius: 50px;
+    transition: background-color 0.3s ease;
+}
+
+.recommendation-btn-custom:hover {
+    background-color: #0b89c4 !important;
+}
+
+.recommendation-btn-success i {
+    margin-right: 8px;
+}
+
+.recommendation-mt-3 {
+    margin-top: 1.5rem;
+}
+
+.recommendation-mt-4 {
+    margin-top: 2rem;
+}
+
+.recommendation-text-center {
+    text-align: center;
+}

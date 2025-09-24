@@ -1,7 +1,7 @@
 // src/pages/DossiersMedicaux.jsx
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
+import { db, auth } from "../../firebase";
 import {
   collection,
   query,
@@ -30,7 +30,7 @@ const DossiersMedicaux = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Récupération des patients et dossiers
+  // 🔹 Récupération des patients
   useEffect(() => {
     const fetchPatients = async () => {
       try {
@@ -49,10 +49,19 @@ const DossiersMedicaux = () => {
       }
     };
 
+    fetchPatients();
+  }, []);
+
+  // 🔹 Récupération des dossiers du médecin connecté
+  useEffect(() => {
     const fetchDossiers = async () => {
       try {
         setLoading(true);
-        const snapshot = await getDocs(collection(db, "dossiersMedicaux"));
+        const q = query(
+          collection(db, "dossiersMedicaux"),
+          where("medecinId", "==", auth.currentUser.uid)
+        );
+        const snapshot = await getDocs(q);
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
@@ -65,17 +74,16 @@ const DossiersMedicaux = () => {
       }
     };
 
-    fetchPatients();
     fetchDossiers();
   }, []);
 
-  // Remplissage automatique des champs quand un patient est sélectionné
+  // 🔹 Remplissage automatique des champs quand un patient est sélectionné
   useEffect(() => {
     if (!formData.patientId) return;
     const selectedPatient = patients.find((p) => p.id === formData.patientId);
     if (selectedPatient) {
-      setFormData({
-        ...formData,
+      setFormData((prev) => ({
+        ...prev,
         prenom: selectedPatient.prenom || "",
         nom: selectedPatient.nom || "",
         dateNaissance: selectedPatient.dateNaissance || "",
@@ -83,9 +91,9 @@ const DossiersMedicaux = () => {
         email: selectedPatient.email || "",
         telephone: selectedPatient.telephone || "",
         adresse: selectedPatient.adresse || "",
-      });
+      }));
     }
-  }, [formData.patientId, patients]);
+  }, [formData.patientId, patients]); // ✅ corrigé
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -101,14 +109,8 @@ const DossiersMedicaux = () => {
     setCreating(true);
     try {
       await addDoc(collection(db, "dossiersMedicaux"), {
-        patientId: formData.patientId,
-        prenom: formData.prenom,
-        nom: formData.nom,
-        dateNaissance: formData.dateNaissance,
-        lieuNaissance: formData.lieuNaissance,
-        email: formData.email,
-        telephone: formData.telephone,
-        adresse: formData.adresse,
+        ...formData,
+        medecinId: auth.currentUser.uid, // lien avec le médecin connecté
         createdAt: serverTimestamp(),
       });
 
@@ -124,7 +126,12 @@ const DossiersMedicaux = () => {
         adresse: "",
       });
 
-      const snapshot = await getDocs(collection(db, "dossiersMedicaux"));
+      // Rafraîchir la liste des dossiers
+      const q = query(
+        collection(db, "dossiersMedicaux"),
+        where("medecinId", "==", auth.currentUser.uid)
+      );
+      const snapshot = await getDocs(q);
       setDossiers(snapshot.docs.map((doc) => ({ id: doc.id, ...doc.data() })));
     } catch (err) {
       console.error("Erreur création dossier :", err);
@@ -142,6 +149,7 @@ const DossiersMedicaux = () => {
 
   return (
     <div className="container mt-4">
+      {/* Bouton retour */}
       <div className="mb-4">
         <Link to="/home-medecin" className="btn btn-custom rounded-pill">
           <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
@@ -193,9 +201,6 @@ const DossiersMedicaux = () => {
                   placeholder="Prénom"
                 />
               </div>
-              {errors.prenom && (
-                <small className="text-danger">{errors.prenom}</small>
-              )}
             </div>
             <div className="col-md-6">
               <div className={inputGroupClass("nom")}>
@@ -211,9 +216,6 @@ const DossiersMedicaux = () => {
                   placeholder="Nom"
                 />
               </div>
-              {errors.nom && (
-                <small className="text-danger">{errors.nom}</small>
-              )}
             </div>
           </div>
 
@@ -232,9 +234,6 @@ const DossiersMedicaux = () => {
                   onChange={handleInputChange}
                 />
               </div>
-              {errors.dateNaissance && (
-                <small className="text-danger">{errors.dateNaissance}</small>
-              )}
             </div>
             <div className="col-md-6">
               <div className={inputGroupClass("lieuNaissance")}>
@@ -250,9 +249,6 @@ const DossiersMedicaux = () => {
                   placeholder="Lieu de naissance"
                 />
               </div>
-              {errors.lieuNaissance && (
-                <small className="text-danger">{errors.lieuNaissance}</small>
-              )}
             </div>
           </div>
 
@@ -272,9 +268,6 @@ const DossiersMedicaux = () => {
                   placeholder="Email"
                 />
               </div>
-              {errors.email && (
-                <small className="text-danger">{errors.email}</small>
-              )}
             </div>
             <div className="col-md-6">
               <div className={inputGroupClass("telephone")}>
@@ -290,9 +283,6 @@ const DossiersMedicaux = () => {
                   placeholder="Téléphone"
                 />
               </div>
-              {errors.telephone && (
-                <small className="text-danger">{errors.telephone}</small>
-              )}
             </div>
           </div>
 
@@ -310,9 +300,6 @@ const DossiersMedicaux = () => {
               placeholder="Adresse"
             />
           </div>
-          {errors.adresse && (
-            <small className="text-danger">{errors.adresse}</small>
-          )}
 
           {/* Bouton créer */}
           <div className="text-end">
@@ -365,7 +352,8 @@ const DossiersMedicaux = () => {
                     <strong>Adresse :</strong> {dossier.adresse || "N/A"}
                   </p>
 
-                  <div className="d-flex justify-content-between mt-3">
+                  {/* Boutons pour accéder aux données du patient */}
+                  <div className="d-flex justify-content-between mt-3 flex-wrap gap-2">
                     <button
                       className="btn btn-outline-primary"
                       onClick={() =>
@@ -381,6 +369,16 @@ const DossiersMedicaux = () => {
                       }
                     >
                       Voir Examens
+                    </button>
+                    <button
+                      className="btn btn-outline-warning"
+                      onClick={() =>
+                        navigate(
+                          `/recommandations-patient/${dossier.patientId}`
+                        )
+                      }
+                    >
+                      Voir Recommandations
                     </button>
                   </div>
                 </div>

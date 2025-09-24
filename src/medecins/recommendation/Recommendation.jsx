@@ -1,35 +1,74 @@
 // src/pages/Recommandations.jsx
-import React, { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import { db } from "../../firebase";
-import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import {
+  collection,
+  addDoc,
+  serverTimestamp,
+  getDocs,
+  query,
+  where,
+} from "firebase/firestore";
 import "./Recommendation.css";
 
 const Recommandation = () => {
-  const { id } = useParams(); // ID du patient
+  const [patients, setPatients] = useState([]);
+  const [selectedPatient, setSelectedPatient] = useState("");
   const [recommandations, setRecommandations] = useState("");
   const [loading, setLoading] = useState(false);
 
+  // Charger les patients
+  useEffect(() => {
+    const fetchPatients = async () => {
+      try {
+        const q = query(
+          collection(db, "users"),
+          where("role", "==", "patient")
+        );
+        const snapshot = await getDocs(q);
+        const data = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setPatients(data);
+      } catch (error) {
+        console.error("Erreur récupération patients :", error);
+      }
+    };
+
+    fetchPatients();
+  }, []);
+
   const submitRecommandation = async () => {
+    if (!selectedPatient) {
+      alert("⚠️ Veuillez sélectionner un patient.");
+      return;
+    }
+
     if (recommandations.trim() === "") {
-      alert("Veuillez saisir une recommandation.");
+      alert("⚠️ Veuillez saisir une recommandation.");
       return;
     }
 
     try {
       setLoading(true);
 
-      // Ajout dans la sous-collection recommandations du patient
-      await addDoc(collection(db, "patients", id, "recommandations"), {
-        message: recommandations,
-        createdAt: serverTimestamp(),
-      });
+      // Ajout dans la sous-collection recommandations du patient sélectionné
+      await addDoc(
+        collection(db, "patients", selectedPatient, "recommandations"),
+        {
+          message: recommandations,
+          createdAt: serverTimestamp(),
+        }
+      );
 
-      alert("✅ Recommandation enregistrée avec succès.");
-      setRecommandations(""); // reset champ
+      alert("✅ Recommandation envoyée avec succès.");
+      setRecommandations("");
+      setSelectedPatient("");
     } catch (error) {
       console.error("Erreur enregistrement recommandation:", error);
-      alert("❌ Erreur lors de l'enregistrement. Réessayez.");
+      alert("❌ Erreur lors de l'envoi. Réessayez.");
     } finally {
       setLoading(false);
     }
@@ -52,14 +91,34 @@ const Recommandation = () => {
           📝 Recommandations médicales post-consultation
         </h4>
 
+        {/* Select Patient */}
+        <div className="form-group mb-3">
+          <label htmlFor="patientSelect" className="form-label text-start w-100">
+            Sélectionner un patient :
+          </label>
+          <select
+            id="patientSelect"
+            className="form-control"
+            value={selectedPatient}
+            onChange={(e) => setSelectedPatient(e.target.value)}
+          >
+            <option value="">-- Choisir un patient --</option>
+            {patients.map((p) => (
+              <option key={p.id} value={p.id}>
+                {p.prenom} {p.nom} ({p.email})
+              </option>
+            ))}
+          </select>
+        </div>
+
         {/* Zone de texte */}
         <div className="form-group mt-3">
-          <label htmlFor="recommandation" className="form-label">
+          <label htmlFor="recommandation" className="form-label text-start w-100">
             Message pour le patient :
           </label>
           <textarea
             id="recommandation"
-            className="form-control form-control-lg"
+            className="form-control"
             rows="4"
             value={recommandations}
             onChange={(e) => setRecommandations(e.target.value)}

@@ -119,6 +119,14 @@ const HomePatient = () => {
       link: "/avis",
       color: "#00a5a8",
     },
+    {
+      emoji: "💡",
+      title: "Recommantion du médecin",
+      description: "Voir les recommandations de votre médecin après consultation.",
+      button: "Voir les recommandations",
+      link: "/recommandation-patient",
+      color: "#00a5a8",
+    },
   ];
 
   // 🔎 Filtrage par spécialité
