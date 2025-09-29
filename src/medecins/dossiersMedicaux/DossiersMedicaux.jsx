@@ -93,7 +93,7 @@ const DossiersMedicaux = () => {
         adresse: selectedPatient.adresse || "",
       }));
     }
-  }, [formData.patientId, patients]); // ✅ corrigé
+  }, [formData.patientId, patients]);
 
   const handleInputChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
