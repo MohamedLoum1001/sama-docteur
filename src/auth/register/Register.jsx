@@ -1,4 +1,3 @@
-// src/components/Register.jsx
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth, db } from "../../firebase";
@@ -70,14 +69,14 @@ const Register = () => {
   };
 
   const handleSubmit = async (e) => {
-                <div className="mt-3 text-center">
-                  <button
-                    className="btn btn-outline-primary rounded-pill"
-                    onClick={() => navigate('/login')}
-                  >
-                    Se connecter
-                  </button>
-                </div>
+    <div className="mt-3 text-center">
+      <button
+        className="btn btn-outline-primary rounded-pill"
+        onClick={() => navigate('/login')}
+      >
+        Se connecter
+      </button>
+    </div>
     e.preventDefault();
     if (!validate()) return;
 
@@ -131,8 +130,7 @@ const Register = () => {
   };
 
   const inputGroupClass = (field) =>
-    `input-group mb-3 ${
-      errors[field] ? "border border-danger rounded-pill" : ""
+    `input-group mb-3 ${errors[field] ? "border border-danger rounded-pill" : ""
     }`;
   const inputClass = "form-control border-0 px-3 py-2";
 
@@ -355,11 +353,10 @@ const Register = () => {
                       value={formData.password}
                       onChange={handleChange}
                       placeholder="Mot de passe"
-                      className={`form-control ${
-                        errors.password
+                      className={`form-control ${errors.password
                           ? "border border-danger rounded-pill"
                           : ""
-                      }`}
+                        }`}
                     />
                     <button
                       type="button"
@@ -367,9 +364,8 @@ const Register = () => {
                       onClick={() => setShowPassword(!showPassword)}
                     >
                       <i
-                        className={`fa ${
-                          showPassword ? "fa-eye-slash" : "fa-eye"
-                        }`}
+                        className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"
+                          }`}
                       ></i>
                     </button>
                   </div>
@@ -388,11 +384,10 @@ const Register = () => {
                       value={formData.confirmPassword}
                       onChange={handleChange}
                       placeholder="Confirmer le mot de passe"
-                      className={`form-control ${
-                        errors.confirmPassword
+                      className={`form-control ${errors.confirmPassword
                           ? "border border-danger rounded-pill"
                           : ""
-                      }`}
+                        }`}
                     />
                     <button
                       type="button"
@@ -402,9 +397,8 @@ const Register = () => {
                       }
                     >
                       <i
-                        className={`fa ${
-                          showConfirmPassword ? "fa-eye-slash" : "fa-eye"
-                        }`}
+                        className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"
+                          }`}
                       ></i>
                     </button>
                   </div>
