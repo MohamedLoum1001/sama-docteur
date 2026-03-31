@@ -252,6 +252,7 @@ const Navbar = () => {
                   <i className="bi bi-person me-2"></i> Mon Profil
                 </button>
                 <div className="dropdown-divider"></div>
+                
                 <button className="dropdown-item text-danger d-flex align-items-center py-2" onClick={logout}>
                   <i className="bi bi-box-arrow-right me-2"></i> Déconnexion
                 </button>
