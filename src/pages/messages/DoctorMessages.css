@@ -1,0 +1,35 @@
+.chat-wrapper {
+    height: 600px;
+    border: 1px solid #e2e8f0;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.hover-bg-gray:hover {
+    background-color: #f8fafc;
+}
+
+.bg-teal-100 {
+    background-color: #e6f7f7 !important;
+}
+
+.bg-chat-pattern {
+    background-color: #f1f5f9;
+    background-image: radial-gradient(#cbd5e1 0.5px, transparent 0.5px);
+    background-size: 20px 20px;
+}
+
+.max-w-75 {
+    max-width: 75%;
+}
+
+.transition {
+    transition: all 0.2s ease;
+}
+
+.btn-teal:hover {
+    background-color: #008a8d !important;
+    transform: scale(1.05);
+}

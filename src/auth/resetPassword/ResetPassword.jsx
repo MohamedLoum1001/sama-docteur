@@ -1,147 +1,116 @@
-// src/components/ResetPassword.jsx
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
+import { auth } from "../../firebase";
+import { confirmPasswordReset, verifyPasswordResetCode } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import "./ResetPassword.css";
 
 const ResetPassword = () => {
-  const [formData, setFormData] = useState({
-    password: "",
-    confirmPassword: "",
-  });
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+
+  // Récupération du code 'oobCode' envoyé par Firebase dans l'URL
+  const oobCode = searchParams.get("oobCode");
+
+  const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [errors, setErrors] = useState({});
+  const [status, setStatus] = useState({ type: "", msg: "" });
+
+  // Vérifier si le code est valide dès le chargement
+  useEffect(() => {
+    if (!oobCode) {
+      setStatus({ type: "danger", msg: "Lien de réinitialisation invalide ou expiré." });
+    }
+  }, [oobCode]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
-    if (errors[name]) {
-      setErrors({ ...errors, [name]: "" }); // Supprime l'erreur dès que l'utilisateur tape
-    }
+    if (errors[name]) setErrors({ ...errors, [name]: "" });
   };
 
-  const validate = () => {
-    let tempErrors = {};
-    if (!formData.password) tempErrors.password = "Mot de passe requis";
-    if (!formData.confirmPassword)
-      tempErrors.confirmPassword = "Confirmation requise";
-    if (
-      formData.password &&
-      formData.confirmPassword &&
-      formData.password !== formData.confirmPassword
-    ) {
-      tempErrors.confirmPassword = "Les mots de passe ne correspondent pas";
-    }
-    setErrors(tempErrors);
-    return Object.keys(tempErrors).length === 0;
-  };
-
-  const handleResetPassword = (e) => {
+  const handleResetPassword = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
-    alert("Mot de passe réinitialisé ✅");
-    setFormData({ password: "", confirmPassword: "" });
+
+    // Validation locale
+    if (formData.password !== formData.confirmPassword) {
+      setErrors({ confirmPassword: "Les mots de passe ne correspondent pas" });
+      return;
+    }
+
+    try {
+      // 1. Envoyer le nouveau mot de passe à Firebase avec le code de vérification
+      await confirmPasswordReset(auth, oobCode, formData.password);
+
+      setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! ✅" });
+
+      // Redirection après 3 secondes
+      setTimeout(() => navigate("/login"), 3000);
+    } catch (error) {
+      console.error(error);
+      setStatus({ type: "danger", msg: "Erreur : le lien a expiré ou a déjà été utilisé." });
+    }
   };
 
-  // Classes dynamiques
-  const inputGroupClass = (field) =>
-    `input-group rounded-pill border ${
-      errors[field] ? "border-danger" : "border-secondary"
-    }`;
-
-  const inputClass = "form-control border-0 px-3 py-2";
+  // ... (Gardez vos fonctions de classes dynamiques ici)
 
   return (
     <div className="container mt-5">
       <div className="row justify-content-center">
         <div className="col-md-6">
           <div className="text-center mb-4">
-            <h3 className="fw-bold text-primary">
-              Réinitialiser le mot de passe
-            </h3>
+            <h3 className="fw-bold text-primary">Réinitialiser le mot de passe</h3>
           </div>
 
           <div className="card shadow-lg p-4 border-0 rounded-4">
+            {status.msg && <div className={`alert alert-${status.type} mb-3`}>{status.msg}</div>}
+
             <form onSubmit={handleResetPassword}>
               {/* Nouveau mot de passe */}
-              <div className="mb-3">
-                <label className="form-label text-start w-100">
-                  Nouveau mot de passe
-                </label>
-                <div className={inputGroupClass("password")}>
-                  <span className="input-group-text bg-white rounded-start-pill border-0">
-                    <i className="fa fa-lock"></i>
-                  </span>
+              <div className="mb-3 text-start">
+                <label className="form-label ms-2">Nouveau mot de passe</label>
+                <div className="input-group rounded-pill border border-secondary overflow-hidden">
+                  <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    className={inputClass}
+                    className="form-control border-0"
                     placeholder="Entrer votre mot de passe"
+                    required
                   />
-                  <span
-                    className="input-group-text bg-white rounded-end-pill border-0"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setShowPassword(!showPassword)}
-                  >
-                    <i
-                      className={`fa ${
-                        showPassword ? "fa-eye-slash" : "fa-eye"
-                      }`}
-                    ></i>
+                  <span className="input-group-text bg-white border-0" style={{ cursor: "pointer" }} onClick={() => setShowPassword(!showPassword)}>
+                    <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                   </span>
                 </div>
-                {errors.password && (
-                  <small className="text-danger text-start w-100">
-                    {errors.password}
-                  </small>
-                )}
               </div>
 
-              {/* Confirmation mot de passe */}
-              <div className="mb-4">
-                <label className="form-label text-start w-100">
-                  Confirmer le mot de passe
-                </label>
-                <div className={inputGroupClass("confirmPassword")}>
-                  <span className="input-group-text bg-white rounded-start-pill border-0">
-                    <i className="fa fa-lock"></i>
-                  </span>
+              {/* Confirmation */}
+              <div className="mb-4 text-start">
+                <label className="form-label ms-2">Confirmer le mot de passe</label>
+                <div className="input-group rounded-pill border border-secondary overflow-hidden">
+                  <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
                   <input
                     type={showConfirmPassword ? "text" : "password"}
                     name="confirmPassword"
                     value={formData.confirmPassword}
                     onChange={handleChange}
-                    className={inputClass}
+                    className="form-control border-0"
                     placeholder="Confirmer le mot de passe"
+                    required
                   />
-                  <span
-                    className="input-group-text bg-white rounded-end-pill border-0"
-                    style={{ cursor: "pointer" }}
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  >
-                    <i
-                      className={`fa ${
-                        showConfirmPassword ? "fa-eye-slash" : "fa-eye"
-                      }`}
-                    ></i>
+                  <span className="input-group-text bg-white border-0" style={{ cursor: "pointer" }} onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                    <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                   </span>
                 </div>
-                {errors.confirmPassword && (
-                  <small className="text-danger text-start w-100">
-                    {errors.confirmPassword}
-                  </small>
-                )}
+                {errors.confirmPassword && <small className="text-danger ms-2">{errors.confirmPassword}</small>}
               </div>
 
-              <button
-                type="submit"
-                className="btn w-100 rounded-pill text-white"
-                style={{ backgroundColor: "#00a5a8" }}
-              >
-                Réinitialiser
+              <button type="submit" className="btn w-100 rounded-pill text-white" style={{ backgroundColor: "#00a5a8" }}>
+                Mettre à jour
               </button>
             </form>
           </div>

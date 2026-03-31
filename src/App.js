@@ -5,35 +5,39 @@ import "./App.css";
 import Register from "./auth/register/Register";
 import Login from "./auth/login/Login";
 import ResetPassword from "./auth/resetPassword/ResetPassword";
+import ForgetPassword from "./auth/forgetPassword/ForgetPassword";
+
 
 // Patients
-import HomePatient from "./patients/home/HomePatient";
+import HomePatient from "./pages/patients/home/HomePatient";
 import Profil from "./components/profil/Profil";
-import RendezVous from "./patients/rendezVous/RendezVous";
-import PaiementTicket from "./patients/paiementTicket/PaiementTicket";
-import TicketAcheter from "./patients/ticketAcheter/TicketAcheter";
+import RendezVous from "./pages/patients/rendezVous/RendezVous";
+import PaiementTicket from "./pages/patients/paiementTicket/PaiementTicket";
+import TicketAcheter from "./pages/patients/ticketAcheter/TicketAcheter";
 import Notifications from "./components/Notifications/Notifications";
-import Ordonnances from "./patients/ordonnance/Ordonnances";
-import DossierMedical from "./patients/dossierMedical/DossierMedical";
-import RecommandationsPatient from "./patients/recommandation/RecommandationsPatient";
-import Avis from "./patients/avis/Avis";
-
-// Médecins
-import HomeMedecin from "./medecins/home/HomeMedecine";
-import ListeRendezVous from "./medecins/rendezVous/ListRendzVous";
-import ProfilMedecin from "./medecins/profil/ProfilMedecin";
-import Prescription from "./medecins/prescription/Prescription";
-import Recommandation from "./medecins/recommendation/Recommendation";
-import DossiersMedicaux from "./medecins/dossiersMedicaux/DossiersMedicaux";
-import Disponibilites from "./medecins/disponibilites/Disponibilites";
-
+import Ordonnances from "./pages/patients/ordonnance/Ordonnances";
+import DossierMedical from "./pages/patients/dossierMedical/DossierMedical";
+import RecommandationsPatient from "./pages/patients/recommandation/RecommandationsPatient";
+import Avis from "./pages/patients/avis/Avis";
 // Pages patient par ID
-import OrdonnancesPatient from "./patients/OrdonnancesPatient/OrdonnancesPatient";
-import ExamensPatient from "./patients/ExamensPatient/ExamensPatient";
-import ConsultationsPatient from "./patients/ConsultationsPatient/ConsultationsPatient";
-import RecommandationsPatientById from "./patients/RecommandationsPatientById/RecommandationsPatientById";
+import OrdonnancesPatient from "./pages/patients/OrdonnancesPatient/OrdonnancesPatient";
+import ExamensPatient from "./pages/patients/ExamensPatient/ExamensPatient";
+import ConsultationsPatient from "./pages/patients/ConsultationsPatient/ConsultationsPatient";
+import RecommandationsPatientById from "./pages/patients/RecommandationsPatientById/RecommandationsPatientById";
+// Médecins
+import HomeMedecin from "./pages/medecins/home/HomeMedecine";
+import ListeRendezVous from "./pages/medecins/rendezVous/ListRendzVous";
+import ProfilMedecin from "./pages/medecins/profil/ProfilMedecin";
+import Prescription from "./pages/medecins/prescription/Prescription";
+import Recommandation from "./pages/medecins/recommendation/Recommendation";
+import DossiersMedicaux from "./pages/medecins/dossiersMedicaux/DossiersMedicaux";
+import Disponibilites from "./pages/medecins/disponibilites/Disponibilites";
 // Layout
 import Layout from "./components/Layout/Layout";
+// Admin
+import Dashboard from "./pages/admin/dashboard/Dasboard";
+import DoctorProfile from "./pages/medecins/doctorProfile/DoctorProfile";
+import DoctorMessages from "./pages/messages/DoctorMessages";
 
 function App() {
   return (
@@ -41,16 +45,15 @@ function App() {
       <Routes>
         {/* Redirection racine */}
         <Route path="/" element={<Navigate to="/login" replace />} />
-
         {/* Pages sans navbar */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
-
+        <Route path="/forget-password" element={<ForgetPassword />} />
         {/* Pages avec navbar protégées */}
         <Route element={<Layout />}>
           {/* Patient */}
-          <Route path="/home-patient" element={<ProtectedRoute><HomePatient /></ProtectedRoute>} />
+          <Route path="/patient" element={<ProtectedRoute><HomePatient /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
           <Route path="/rendez-vous" element={<ProtectedRoute><RendezVous /></ProtectedRoute>} />
           <Route path="/paiement-ticket" element={<ProtectedRoute><PaiementTicket /></ProtectedRoute>} />
@@ -60,15 +63,20 @@ function App() {
           <Route path="/dossier-medical" element={<ProtectedRoute><DossierMedical /></ProtectedRoute>} />
           <Route path="/recommandation-patient" element={<ProtectedRoute><RecommandationsPatient /></ProtectedRoute>} />
           <Route path="/avis" element={<ProtectedRoute><Avis /></ProtectedRoute>} />
-
           {/* Médecin */}
-          <Route path="/home-medecin" element={<ProtectedRoute><HomeMedecin /></ProtectedRoute>} />
+          <Route path="/medecin" element={<ProtectedRoute><HomeMedecin /></ProtectedRoute>} />
           <Route path="/liste-rendez-vous" element={<ProtectedRoute><ListeRendezVous /></ProtectedRoute>} />
           <Route path="/profil-medecin" element={<ProtectedRoute><ProfilMedecin /></ProtectedRoute>} />
+
           <Route path="/disponibilites" element={<ProtectedRoute><Disponibilites /></ProtectedRoute>} />
           <Route path="/prescription" element={<ProtectedRoute><Prescription /></ProtectedRoute>} />
           <Route path="/dossiers-medicaux" element={<ProtectedRoute><DossiersMedicaux /></ProtectedRoute>} />
           <Route path="/recommandation" element={<ProtectedRoute><Recommandation /></ProtectedRoute>} />
+          {/* Admin */}
+          <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          {/*  AJOUTE CETTE ROUTE ICI */}
+          <Route path="/messages" element={<ProtectedRoute><DoctorMessages /></ProtectedRoute>} />
+
 
           {/* Pages patient par ID */}
           <Route
@@ -87,6 +95,8 @@ function App() {
             path="/recommandations-patient/:patientId"
             element={<ProtectedRoute><RecommandationsPatientById /></ProtectedRoute>}
           />
+          <Route path="/doctor-profile/:id" element={<DoctorProfile />} />
+          <Route path="/rendez-vous/:id" element={<RendezVous />} />
         </Route>
       </Routes>
     </div>
