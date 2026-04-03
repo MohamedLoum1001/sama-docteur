@@ -37,7 +37,8 @@ import Layout from "./components/Layout/Layout";
 // Admin
 import Dashboard from "./pages/admin/dashboard/Dasboard";
 import DoctorProfile from "./pages/medecins/doctorProfile/DoctorProfile";
-import DoctorMessages from "./pages/messages/DoctorMessages";
+// import DoctorMessages from "./pages/messages/DoctorMessages";
+import Messages from "./components/messages/Messages";
 
 function App() {
   return (
@@ -75,7 +76,7 @@ function App() {
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           {/*  AJOUTE CETTE ROUTE ICI */}
-          <Route path="/messages" element={<ProtectedRoute><DoctorMessages /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
 
           {/* Pages patient par ID */}

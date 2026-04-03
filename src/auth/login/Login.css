@@ -1,68 +1,88 @@
-/* -----------------------------
-   Style pour input-group
------------------------------ */
-.input-group {
-  border: 1px solid grey;
-  border-radius: 50rem;
-  background-color: transparent;
+/* RÉTABLISSEMENT DU SCROLL POUR LOGIN */
+html,
+body {
+  overflow: auto !important;
+  /* Force le scroll sur cette page */
+  height: auto !important;
+  min-height: 100%;
+  background-color: #f8f9fa;
 }
 
-/* Quand on focus sur l'input à l'intérieur de input-group */
-.input-group:focus-within {
-  border: 2px solid #00a5a8;
-  box-shadow: 0 0 0 0.2rem rgba(0, 165, 168, 0.25);
+.login-main-container {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
 }
 
-/* Supprimer hover moche sur inputs et selects */
-.input-group .form-control,
-.input-group .form-select {
-  border: none;
-  /* Supprime la double bordure */
-  background-color: transparent;
-  box-shadow: none !important;
-}
-
-.input-group .form-control:hover,
-.input-group .form-select:hover {
-  border-color: grey !important;
-  box-shadow: none !important;
-}
-
-/* Supprimer l'effet bleu de Bootstrap au focus et garder la bordure turquoise */
-.input-group .form-control:focus,
-.input-group .form-select:focus {
-  outline: none !important;
-  box-shadow: none !important;
-  border-color: #00a5a8 !important;
-}
-
-/* -----------------------------
-   Icônes dans input-group
------------------------------ */
-.input-group-text {
-  border: none !important;
-  /* supprime bordure autour de l'icône */
-  background-color: transparent;
-  cursor: pointer;
-  /* pour icône cliquable */
-}
-
-.input-group-text i {
-  color: grey;
-  transition: color 0.3s;
-}
-
-/* Changer la couleur de l'icône quand hover ou active */
-.input-group-text:hover i,
-.input-group-text i.active {
+.login-title {
   color: #00a5a8;
-  /* turquoise */
 }
 
-/* -----------------------------
-   Supprimer effets supplémentaires
------------------------------ */
-.form-control:focus {
+.login-card {
+  transition: transform 0.3s ease;
+}
+
+/* Style des inputs "Pilule" */
+.custom-input-group {
+  border: 1px solid #ced4da;
+  border-radius: 50rem !important;
+  background: white;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.custom-input-group:focus-within {
+  border-color: #00a5a8;
+  box-shadow: 0 0 0 0.25rem rgba(0, 165, 168, 0.15);
+}
+
+.custom-input-group .input-group-text {
+  background: transparent;
+  border: none;
+  color: #6c757d;
+  padding-left: 15px;
+}
+
+.custom-input-group .form-control {
   box-shadow: none !important;
-  border-color: #00a5a8 !important;
+  padding: 10px 15px;
+  font-size: 16px;
+  /* Évite le zoom automatique sur iPhone */
+}
+
+/* Boutons */
+.btn-login {
+  background-color: #00a5a8;
+  border: none;
+  font-weight: 600;
+}
+
+.btn-login:hover {
+  background-color: #008e91;
+}
+
+.btn-register {
+  background-color: #0b89c4;
+  border: none;
+  font-weight: 600;
+}
+
+.pointer {
+  cursor: pointer;
+}
+
+/* RESPONSIVE MOBILE SPÉCIFIQUE */
+@media (max-width: 576px) {
+  .login-main-container {
+    padding: 20px 10px;
+  }
+
+  .card-body {
+    padding: 30px 20px !important;
+  }
+
+  .login-title {
+    font-size: 1.5rem;
+  }
 }

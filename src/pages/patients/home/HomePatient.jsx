@@ -47,99 +47,102 @@ const HomePatient = () => {
   ];
 
   return (
-    <div className="container mx-auto px-4 pb-12">
-      {/* Titre de bienvenue */}
-      <div className="mt-16 py-8 flex flex-col items-center justify-center gap-2">
-        <FaUserInjured className="text-teal-600 text-5xl mb-2" />
-        <h2 className="font-extrabold text-3xl text-gray-800 text-center">
-          Bienvenue sur votre espace patient
-        </h2>
-        <p className="text-gray-500">Recherchez un praticien dans notre base de données</p>
-      </div>
+    <div className="home-patient-wrapper"> {/* ✅ Wrapper pour activer le scroll */}
+      <div className="container mx-auto px-4 pb-12">
 
-      {/* Barre de recherche avec menu déroulant absolu */}
-      <div className="flex flex-col items-center mb-10 position-relative">
-        <div className="relative w-full max-w-xl">
-          <FaSearch className="absolute top-1/2 left-4 transform -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Rechercher par nom, prénom ou spécialité..."
-            className="pl-12 pr-4 py-4 w-full border-2 border-gray-100 rounded-2xl shadow-xl focus:outline-none focus:border-teal-500 transition-all text-lg"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
+        {/* Titre de bienvenue */}
+        <div className="mt-16 py-8 flex flex-col items-center justify-center gap-2">
+          <FaUserInjured className="text-teal-600 text-5xl mb-2" />
+          <h2 className="font-extrabold text-3xl text-gray-800 text-center">
+            Bienvenue sur votre espace patient
+          </h2>
+          <p className="text-gray-500">Recherchez un praticien dans notre base de données</p>
+        </div>
 
-          {/* RÉSULTATS EN POSITION ABSOLUE */}
-          {searchTerm && (
-            <div
-              className="position-absolute w-100 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-10"
-              style={{ top: "100%", marginTop: "10px", left: 0, zIndex: 1000 }}
-            >
-              <div className="p-3 bg-gray-50 border-bottom">
-                <span className="text-sm font-bold text-gray-600">
-                  {filteredDoctors.length} médecin(s) trouvé(s)
-                </span>
-              </div>
+        {/* Barre de recherche avec menu déroulant absolu */}
+        <div className="flex flex-col items-center mb-10 position-relative">
+          <div className="relative w-full max-w-xl">
+            <FaSearch className="absolute top-1/2 left-4 transform -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Rechercher par nom, prénom ou spécialité..."
+              className="pl-12 pr-4 py-4 w-full border-2 border-gray-100 rounded-2xl shadow-xl focus:outline-none focus:border-teal-500 transition-all text-lg"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
 
-              {filteredDoctors.length > 0 ? (
-                <div className="max-h-60 overflow-y-auto">
-                  {filteredDoctors.map((doc) => (
-                    <div
-                      key={doc.id}
-                      className="p-4 hover:bg-teal-50 cursor-pointer flex justify-between items-center border-b last:border-b-0 transition"
-                      onClick={() => {
-                        navigate(`/doctor-profile/${doc.id}`); // Redirection vers le profil complet
-                        setSearchTerm("");
-                      }}
-                    >
-                      <div className="d-flex align-items-center">
-                        <img
-                          src={doc.photo || `https://ui-avatars.com/api/?name=${doc.prenom}+${doc.nom}&background=00a5a8&color=fff`}
-                          className="rounded-circle me-3"
-                          style={{ width: "45px", height: "45px", objectFit: "cover" }}
-                          alt="avatar"
-                        />
-                        <div className="text-start">
-                          <div className="font-bold text-gray-800" style={{ fontSize: "0.95rem" }}>
-                            Dr. {doc.prenom} {doc.nom}
-                          </div>
-                          <div className="text-sm text-teal-600 fw-medium">
-                            {doc.specialite || "Généraliste"}
+            {/* RÉSULTATS EN POSITION ABSOLUE */}
+            {searchTerm && (
+              <div
+                className="position-absolute w-100 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-10"
+                style={{ top: "100%", marginTop: "10px", left: 0, zIndex: 1000 }}
+              >
+                <div className="p-3 bg-gray-50 border-bottom">
+                  <span className="text-sm font-bold text-gray-600">
+                    {filteredDoctors.length} médecin(s) trouvé(s)
+                  </span>
+                </div>
+
+                {filteredDoctors.length > 0 ? (
+                  <div className="max-h-60 overflow-y-auto">
+                    {filteredDoctors.map((doc) => (
+                      <div
+                        key={doc.id}
+                        className="p-4 hover:bg-teal-50 cursor-pointer flex justify-between items-center border-b last:border-b-0 transition"
+                        onClick={() => {
+                          navigate(`/doctor-profile/${doc.id}`);
+                          setSearchTerm("");
+                        }}
+                      >
+                        <div className="d-flex align-items-center">
+                          <img
+                            src={doc.photo || `https://ui-avatars.com/api/?name=${doc.prenom}+${doc.nom}&background=00a5a8&color=fff`}
+                            className="rounded-circle me-3"
+                            style={{ width: "45px", height: "45px", objectFit: "cover" }}
+                            alt="avatar"
+                          />
+                          <div className="text-start">
+                            <div className="font-bold text-gray-800" style={{ fontSize: "0.95rem" }}>
+                              Dr. {doc.prenom} {doc.nom}
+                            </div>
+                            <div className="text-sm text-teal-600 fw-medium">
+                              {doc.specialite || "Généraliste"}
+                            </div>
                           </div>
                         </div>
+                        <FaCalendarPlus className="text-teal-500" />
                       </div>
-                      <FaCalendarPlus className="text-teal-500" />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="p-4 text-center text-gray-400 italic">
-                  Aucun résultat trouvé
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Grille des fonctionnalités */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {cards.map((card, index) => (
-          <div key={index} className="group p-8 bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-50 flex flex-col justify-between">
-            <div>
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{card.emoji}</div>
-              <h3 className="text-xl font-bold text-gray-800 mb-3">{card.title}</h3>
-              <p className="text-gray-500 text-sm leading-relaxed mb-6">{card.description}</p>
-            </div>
-            <button
-              className="w-full py-3 rounded-xl font-bold text-white transition-all shadow-md active:scale-95"
-              style={{ backgroundColor: "#00a5a8" }}
-              onClick={() => card.action ? card.action() : navigate(card.link)}
-            >
-              Découvrir
-            </button>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="p-4 text-center text-gray-400 italic">
+                    Aucun résultat trouvé
+                  </div>
+                )}
+              </div>
+            )}
           </div>
-        ))}
+        </div>
+
+        {/* Grille des fonctionnalités */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+          {cards.map((card, index) => (
+            <div key={index} className="group p-8 bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-50 flex flex-col justify-between">
+              <div>
+                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{card.emoji}</div>
+                <h3 className="text-xl font-bold text-gray-800 mb-3">{card.title}</h3>
+                <p className="text-gray-500 text-sm leading-relaxed mb-6">{card.description}</p>
+              </div>
+              <button
+                className="w-full py-3 rounded-xl font-bold text-white transition-all shadow-md active:scale-95"
+                style={{ backgroundColor: "#00a5a8" }}
+                onClick={() => card.action ? card.action() : navigate(card.link)}
+              >
+                Découvrir
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

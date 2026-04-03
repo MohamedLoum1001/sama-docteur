@@ -1,11 +1,63 @@
+/* Débloquer tous les conteneurs parents potentiels */
+#root,
+.App,
+.min-vh-100 {
+  overflow-y: auto !important;
+  height: auto !important;
+  min-height: 100vh !important;
+}
+
+html,
+body {
+  overflow-y: auto !important;
+  /* Force uniquement le scroll vertical */
+  overflow-x: hidden !important;
+  /* Évite un scroll horizontal parasite */
+  height: auto !important;
+  min-height: 100vh;
+  background-color: #f8f9fa;
+  /* Pour un scroll plus fluide sur iPhone/Safari */
+  -webkit-overflow-scrolling: touch;
+}
+
+.home-patient-wrapper {
+  min-height: 100vh;
+  padding-top: 20px;
+  /* Augmentez le padding-bottom pour que le dernier menu 
+       ne soit pas collé au bord de l'écran */
+  padding-bottom: 80px;
+}
+
+/* Optionnel : Assurez-vous que la grille ne compresse pas trop les cartes */
+.grid {
+  display: grid;
+  gap: 1.5rem;
+  padding-bottom: 2rem;
+}
+
+/* Styles des cartes et boutons */
 .btn-custom {
-    border: none;
-    color: white;
-    border-radius: 50px;
-    transition: background-color 0.3s ease;
+  border: none;
+  color: white;
+  border-radius: 50px;
+  transition: background-color 0.3s ease;
+}
+
+.btn-custom:hover {
+  background-color: #0b89c4 !important;
+}
+
+/* Amélioration visuelle pour les cartes sur mobile */
+@media (max-width: 768px) {
+
+  /* Ajoute de l'espace sur les côtés pour que les cartes ne touchent pas les bords du téléphone */
+  .container {
+    padding-left: 20px;
+    padding-right: 20px;
   }
-  
-  .btn-custom:hover {
-    background-color: #0b89c4 !important;
+
+  /* Réduit la taille du titre de bienvenue sur petits écrans */
+  h2 {
+    font-size: 1.5rem !important;
   }
-  
+}

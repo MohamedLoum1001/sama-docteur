@@ -1,0 +1,294 @@
+/* 1. La page entière reste fixe */
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden !important; /* Empêche la page entière de bouger */
+    height: 100%;
+    width: 100%;
+    position: fixed; /* Sécurité supplémentaire pour mobile */
+}
+
+/* 2. Le wrapper prend toute la hauteur disponible sous la navbar */
+.chat-wrapper {
+    /* background-color: #f0f2f5; */
+    height: calc(100dvh - 70px); 
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: stretch;
+    overflow: hidden; /* Pas de scroll ici */
+}
+
+/* 3. La carte du chat */
+.chat-card {
+    width: 100%;
+    max-width: 900px;
+    height: 100%;
+    background: #fff;
+    display: flex;
+    justify-content: center;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 4. LA ZONE DE MESSAGES (C'est ici qu'on active le scroll) */
+.chat-body {
+    flex: 1; /* Prend tout l'espace libre */
+    overflow-y: auto !important; /* ✅ Active le scroll vertical ici */
+    padding: 15px;
+    background: #e5ddd5 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    display: flex;
+    flex-direction: column;
+    
+    /* Scroll fluide pour iPhone/Android */
+    -webkit-overflow-scrolling: touch; 
+}
+
+/* 5. Garder le footer en bas */
+.chat-footer-custom {
+    background: #f0f0f0;
+    padding: 10px;
+    flex-shrink: 0; /* Empêche le footer de s'écraser */
+}
+/* ADAPTATION TABLETTE ET DESKTOP */
+@media (min-width: 768px) {
+    .chat-wrapper {
+        align-items: center;
+        /* Centre la carte verticalement sur grand écran */
+        padding: 15px 0;
+    }
+
+    .chat-card {
+        width: 90%;
+        max-width: 850px;
+        height: 95%;
+        border-radius: 20px;
+        border: 1px solid #e0e0e0;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    }
+}
+
+/* 4. HEADER TYPE WHATSAPP (Horizontal) */
+.chat-header-custom {
+    background: #00a5a8;
+    padding: 10px 15px;
+    color: white;
+    flex-shrink: 0;
+    /* Empêche le header de rétrécir */
+    min-height: 65px;
+    display: flex;
+    align-items: center;
+}
+
+.btn-back {
+    background: none;
+    border: none;
+    color: white;
+    font-size: 1.1rem;
+    cursor: pointer;
+    margin-right: 12px;
+}
+
+.avatar-img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.online-status {
+    font-size: 0.7rem;
+    color: #d1f7f7;
+    opacity: 0.9;
+}
+
+/* 5. ZONE DE DISCUSSION (Seule zone qui scrolle) */
+.chat-body {
+    flex: 1;
+    /* Remplit l'espace restant */
+    overflow-y: auto;
+    padding: 15px;
+    background: #e5ddd5 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
+    display: flex;
+    flex-direction: column;
+    -webkit-overflow-scrolling: touch;
+    /* Scroll fluide sur iOS */
+}
+
+/* Scrollbar discrète */
+.chat-body::-webkit-scrollbar {
+    width: 5px;
+}
+
+.chat-body::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.15);
+    border-radius: 5px;
+}
+
+/* 6. STYLE WHATSAPP POUR L'AUDIO */
+.whatsapp-audio-container {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 4px 0;
+}
+
+.audio-avatar-wrapper {
+    position: relative;
+    width: 45px;
+    height: 45px;
+    flex-shrink: 0;
+}
+
+.audio-inline-pic {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.mic-badge {
+    position: absolute;
+    bottom: -2px;
+    right: -2px;
+    background: white;
+    color: #00a5a8;
+    border-radius: 50%;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #eee;
+    font-size: 9px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.audio-mini {
+    height: 35px;
+    width: 180px;
+}
+
+/* 7. BULLES DE MESSAGES */
+.msg-container {
+    display: flex;
+    margin-bottom: 12px;
+    width: 100%;
+    align-items: flex-end;
+}
+
+.msg-sent {
+    justify-content: flex-end;
+    padding-right: 5px;
+}
+
+.msg-received {
+    justify-content: flex-start;
+    padding-left: 5px;
+}
+
+.msg-bubble {
+    max-width: 85%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    position: relative;
+    box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
+}
+
+@media (min-width: 768px) {
+    .msg-bubble {
+        max-width: 70%;
+    }
+}
+
+.msg-sent .msg-bubble {
+    background: #e7ffdb;
+    /* Vert WhatsApp */
+    border-bottom-right-radius: 2px;
+}
+
+.msg-received .msg-bubble {
+    background: #ffffff;
+    border-bottom-left-radius: 2px;
+}
+
+.msg-text {
+    font-size: 0.92rem;
+    color: #303030;
+    word-wrap: break-word;
+}
+
+.msg-meta {
+    font-size: 0.6rem;
+    color: #888;
+    text-align: right;
+    margin-top: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+.read-icon {
+    color: #4fc3f7;
+}
+
+/* 8. FOOTER */
+.chat-footer-custom {
+    background: #f0f0f0;
+    padding: 10px;
+    flex-shrink: 0;
+    /* Empêche le footer de remonter ou disparaître */
+}
+
+.chat-form {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.chat-input {
+    flex: 1;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 25px;
+    outline: none;
+    background: white;
+    font-size: 16px;
+    /* Empêche le zoom auto sur iPhone */
+}
+
+.btn-main {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    border: none;
+    background: #00a5a8;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.recording {
+    background: #ff4757;
+    animation: pulse-red 1.5s infinite;
+}
+
+@keyframes pulse-red {
+    0% {
+        transform: scale(1);
+        box-shadow: 0 0 0 0 rgba(255, 71, 87, 0.4);
+    }
+
+    70% {
+        transform: scale(1.05);
+        box-shadow: 0 0 0 8px rgba(255, 71, 87, 0);
+    }
+
+    100% {
+        transform: scale(1);
+    }
+}

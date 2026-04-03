@@ -1,27 +1,129 @@
-/* Bordure turquoise au focus */
-.input-group:focus-within {
-    border: 2px solid #00a5a8;
+/* RÉTABLISSEMENT DU SCROLL POUR CETTE PAGE */
+html,
+body {
+    overflow: auto !important;
+    /* Force l'autorisation du défilement */
+    height: auto !important;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 0;
+}
+
+.register-page-wrapper {
+    min-height: 100vh;
+    width: 100%;
+    display: block;
+    /* Permet au contenu de pousser la hauteur */
+    padding-top: 80px;
+    /* Espace pour la navbar si présente */
+    padding-bottom: 40px;
+}
+
+.title-color {
+    color: #00a5a8;
+}
+
+.text-primary-custom {
+    color: #00a5a8;
+}
+
+.pointer {
+    cursor: pointer;
+}
+
+/* Groupes d'input personnalisés (Style Pilule) */
+.custom-input-group {
+    border: 1px solid #dee2e6;
     border-radius: 50rem;
-    box-shadow: 0 0 0 0.2rem rgba(0, 165, 168, 0.25);
+    background: white;
+    transition: all 0.2s ease;
+    padding: 2px 5px;
 }
 
-/* Styles de base des inputs */
-.input-group .form-control,
-.input-group .form-select,
-.input-group .input-group-text {
-    border: 1px solid grey;
-    background-color: transparent;
+.custom-input-group:focus-within {
+    border-color: #00a5a8;
+    box-shadow: 0 0 0 0.2rem rgba(0, 165, 168, 0.15);
 }
 
-/* Supprimer l'ombre par défaut au focus */
-.input-group .form-control:focus,
-.input-group .form-select:focus {
+.custom-input-group .input-group-text {
+    background: transparent;
+    border: none;
+    color: #adb5bd;
+    padding-left: 15px;
+}
+
+.custom-input-group .form-control {
     box-shadow: none !important;
-    outline: none !important;
+    background: transparent;
 }
 
-/* Bordure rouge si erreur */
-.form-control.border-danger {
-    border: 2px solid #dc3545 !important;
-    /* rouge bootstrap */
+/* Style spécifique pour les erreurs */
+.is-invalid-group {
+    border-color: #dc3545 !important;
+}
+
+/* Boutons et Selects */
+.btn-primary-custom {
+    background-color: #00a5a8;
+    border: none;
+    color: white;
+    transition: transform 0.2s, background 0.2s;
+}
+
+.btn-primary-custom:hover {
+    background-color: #008e91;
+    transform: translateY(-2px);
+    color: white;
+}
+
+.btn-primary-custom:active {
+    transform: translateY(0);
+}
+
+.custom-select,
+.custom-input {
+    border: 1px solid #dee2e6;
+    height: 48px;
+}
+
+.custom-select:focus,
+.custom-input:focus {
+    border-color: #00a5a8;
+    box-shadow: 0 0 0 0.2rem rgba(0, 165, 168, 0.15);
+}
+
+/* RESPONSIVE */
+@media (max-width: 576px) {
+    .register-page-wrapper {
+        padding-top: 20px;
+    }
+
+    .card-body {
+        padding: 25px 20px !important;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    .custom-input-group {
+        padding: 0;
+    }
+}
+
+/* Animation de l'apparition de la spécialité */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate__fadeIn {
+    animation: fadeIn 0.3s ease forwards;
 }
