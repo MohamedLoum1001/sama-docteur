@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // ✅ Importation du composant réutilisable
 import Button from "../../components/boutons/Button";
-import { db } from "../../firebase";
+// import { db } from "../../firebase";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
