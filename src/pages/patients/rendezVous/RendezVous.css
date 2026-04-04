@@ -1,23 +1,245 @@
-.custom-btn {
-    background-color: #00a5a8;
-    color: white;
-    transition: background-color 0.3s ease;
+/* --- STRUCTURE GLOBALE --- */
+.docto-container {
+    background: #f0f2f5;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    /* On s'assure que le scroll est possible ici */
+    overflow-y: auto;
 }
 
-.custom-btn:hover {
-    background-color: #0b89c4;
-    color: white;
+.docto-header {
+    background: white;
+    padding: 15px 5%;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border-bottom: 1px solid #ddd;
+    position: sticky;
+    top: 0;
+    z-index: 100;
 }
 
-input.form-control:focus,
-select.form-select:focus {
-    border-color: #0b89c4 !important;
-    box-shadow: 0 0 0 0.2rem rgba(11, 137, 196, 0.25);
+.docto-content {
+    display: flex;
+    max-width: 1200px;
+    margin: 20px auto;
+    gap: 20px;
+    padding: 0 15px;
+    align-items: flex-start;
+}
+
+/* --- COLONNE GAUCHE : RECHERCHE ET LISTE --- */
+.doctor-list-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    /* Garde la colonne fixe sur les grands écrans pour faciliter la recherche */
+    position: sticky;
+    top: 90px;
+    max-height: calc(100vh - 120px);
+}
+
+.search-box-wrapper {
+    background: white;
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.search-input-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    color: #00a5a8;
+}
+
+.doctor-search-input {
+    width: 100%;
+    padding: 10px 10px 10px 40px;
+    border: 2px solid #f0f2f5;
+    border-radius: 25px;
     outline: none;
+    transition: 0.3s;
+    font-size: 0.95rem;
 }
 
-/* Facultatif : effet au survol */
-input.form-control:hover,
-select.form-select:hover {
-    border-color: #0b89c4;
+.doctor-search-input:focus {
+    border-color: #00a5a8;
+    background: #fff;
+}
+
+.results-count {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #888;
+    padding-left: 5px;
+}
+
+/* Zone de défilement des médecins */
+.doctor-scroll-list {
+    overflow-y: auto;
+    padding-right: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.doctor-scroll-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.doctor-scroll-list::-webkit-scrollbar-thumb {
+    background: #00a5a8;
+    border-radius: 10px;
+}
+
+.doctor-card-mini {
+    background: white;
+    padding: 12px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    cursor: pointer;
+    transition: 0.3s;
+    border: 2px solid transparent;
+}
+
+.doctor-card-mini:hover,
+.doctor-card-mini.active {
+    border-color: #00a5a8;
+    background: #e6f7f7;
+}
+
+.doctor-card-mini img {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.spec-tag {
+    font-size: 0.8rem;
+    color: #00a5a8;
+    background: #e6f7f7;
+    padding: 2px 8px;
+    border-radius: 4px;
+    display: inline-block;
+    margin-top: 4px;
+}
+
+/* --- COLONNE DROITE : GRILLE DE CRÉNEAUX --- */
+.slots-selection {
+    flex: 2;
+    background: white;
+    border-radius: 15px;
+    padding: 25px;
+    min-height: 500px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.booking-grid .doc-profile-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #eee;
+}
+
+.time-grid-container {
+    display: flex;
+    gap: 20px;
+}
+
+.day-column {
+    flex: 1;
+    text-align: center;
+}
+
+.day-header {
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #444;
+}
+
+.slots-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+    gap: 8px;
+}
+
+.slot-btn {
+    background: #f0f7f7;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    color: #00a5a8;
+    font-weight: 600;
+    transition: 0.2s;
+}
+
+.slot-btn:hover {
+    background: #00a5a8;
+    color: white;
+}
+
+/* --- ÉTATS DIVERS --- */
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #999;
+    text-align: center;
+}
+
+.no-results {
+    text-align: center;
+    color: #999;
+    padding: 20px;
+    font-style: italic;
+}
+
+.back-btn {
+    background: none;
+    border: 1px solid #ddd;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: 0.3s;
+}
+
+.back-btn:hover {
+    background: #f8f9fa;
+    border-color: #00a5a8;
+    color: #00a5a8;
+}
+
+/* --- RESPONSIVE MOBILE --- */
+@media (max-width: 992px) {
+    .docto-content {
+        flex-direction: column;
+    }
+
+    .doctor-list-container {
+        position: static;
+        max-height: none;
+        width: 100%;
+    }
+
+    .slots-selection {
+        width: 100%;
+    }
 }

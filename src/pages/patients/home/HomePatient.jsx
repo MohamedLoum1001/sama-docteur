@@ -4,6 +4,8 @@ import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import { FaUserInjured, FaSearch, FaCalendarPlus } from "react-icons/fa";
+// ✅ Importation du composant réutilisable
+import Button from "../../../components/boutons/Button";
 import "./HomePatient.css";
 
 const HomePatient = () => {
@@ -47,7 +49,7 @@ const HomePatient = () => {
   ];
 
   return (
-    <div className="home-patient-wrapper"> {/* ✅ Wrapper pour activer le scroll */}
+    <div className="home-patient-wrapper">
       <div className="container mx-auto px-4 pb-12">
 
         {/* Titre de bienvenue */}
@@ -59,7 +61,7 @@ const HomePatient = () => {
           <p className="text-gray-500">Recherchez un praticien dans notre base de données</p>
         </div>
 
-        {/* Barre de recherche avec menu déroulant absolu */}
+        {/* Barre de recherche */}
         <div className="flex flex-col items-center mb-10 position-relative">
           <div className="relative w-full max-w-xl">
             <FaSearch className="absolute top-1/2 left-4 transform -translate-y-1/2 text-gray-400" />
@@ -71,7 +73,7 @@ const HomePatient = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            {/* RÉSULTATS EN POSITION ABSOLUE */}
+            {/* RÉSULTATS */}
             {searchTerm && (
               <div
                 className="position-absolute w-100 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-10"
@@ -133,13 +135,14 @@ const HomePatient = () => {
                 <h3 className="text-xl font-bold text-gray-800 mb-3">{card.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed mb-6">{card.description}</p>
               </div>
-              <button
-                className="w-full py-3 rounded-xl font-bold text-white transition-all shadow-md active:scale-95"
-                style={{ backgroundColor: "#00a5a8" }}
+
+              {/* ✅ Utilisation du composant réutilisable Button */}
+              <Button
+                label="Découvrir"
+                variant="login"
+                className="w-full py-3"
                 onClick={() => card.action ? card.action() : navigate(card.link)}
-              >
-                Découvrir
-              </button>
+              />
             </div>
           ))}
         </div>

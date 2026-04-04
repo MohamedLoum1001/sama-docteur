@@ -1,163 +1,142 @@
-// src/pages/TicketAcheter.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
 import { db, auth } from "../../../firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { collection, query, getDocs } from "firebase/firestore";
+import { FaCalendarAlt, FaStethoscope, FaMapMarkerAlt, FaQrcode, FaArrowLeft } from "react-icons/fa";
+// ✅ Importation du composant réutilisable
+import Button from "../../../components/boutons/Button";
 import "./TicketAcheter.css";
-
-// Format date FR
-const formatDateFR = (dateStr) => {
-  if (!dateStr) return "";
-  try {
-    return new Date(dateStr).toLocaleDateString("fr-FR", {
-      weekday: "long",
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
-  } catch {
-    return dateStr;
-  }
-};
 
 const TicketAcheter = () => {
   const navigate = useNavigate();
   const [tickets, setTickets] = useState([]);
+  const [selectedTicket, setSelectedTicket] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  // 🔹 Récupérer les tickets du patient
   useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      fetchTickets();
+    });
+
     const fetchTickets = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-
       try {
-        const q = query(
-          collection(db, "tickets"),
-          where("patientId", "==", user.uid)
-        );
+        console.log("Tentative de récupération globale des tickets...");
+        const q = query(collection(db, "tickets"));
         const querySnapshot = await getDocs(q);
-
         const ticketsList = [];
         querySnapshot.forEach((docSnap) => {
           ticketsList.push({ id: docSnap.id, ...docSnap.data() });
         });
 
+        console.log("Tickets récupérés :", ticketsList.length);
         setTickets(ticketsList);
       } catch (error) {
-        console.error("Erreur lors du chargement des tickets :", error);
-        setTickets([]);
+        console.error("Erreur lors du test de récupération :", error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    fetchTickets();
+    return () => unsubscribe();
   }, []);
 
-  // 🔹 Fonction pour déterminer le badge et le texte selon le statut
-  const getTicketBadge = (ticket) => {
-    const status = (ticket.statusRdv || "").toLowerCase();
-    if (status.includes("annulé") || status.includes("annule")) {
-      return {
-        text: "Ticket Annulé",
-        className: "badge bg-warning rounded-pill px-3 py-2",
-      };
-    }
-    if (status.includes("remboursé") || status.includes("rembourse")) {
-      return {
-        text: "Ticket Remboursé",
-        className: "badge bg-info text-dark rounded-pill px-3 py-2",
-      };
-    }
-    if (ticket.statutPaiement === "payé") {
-      return {
-        text: "Payé",
-        className: "badge bg-success rounded-pill px-3 py-2",
-      };
-    }
-    return {
-      text: "Non payé",
-      className: "badge bg-danger rounded-pill px-3 py-2",
-    };
+  const formatDateFR = (dateStr) => {
+    if (!dateStr) return "";
+    try {
+      return new Date(dateStr).toLocaleDateString("fr-FR", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric",
+      });
+    } catch { return dateStr; }
   };
 
+  if (loading) {
+    return (
+      <div className="history-container d-flex flex-column align-items-center justify-content-center" style={{ minHeight: "70vh" }}>
+        <div className="spinner-border text-primary" role="status"></div>
+        <p className="mt-3 fw-bold text-secondary">Test de récupération en cours...</p>
+      </div>
+    );
+  }
+
   return (
-    <div className="container mt-3">
-      {/* Bouton retour */}
-      <button
-        className="btn custom-btn mb-3 d-flex align-items-center rounded-pill"
-        onClick={() => navigate("/home-patient")}
-      >
-        <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
-      </button>
+    <div className="history-container mt-4">
+      <div className="history-header">
+        <button className="back-btn" onClick={() => navigate("/patient")}>
+          <FaArrowLeft />
+        </button>
+        <h1>Historique des tickets</h1>
+      </div>
 
-      <h2 className="text-center mb-0">🎟️ Mes tickets achetés</h2>
+      <div className="tickets-list">
+        {tickets.length > 0 ? (
+          tickets.map((ticket) => (
+            <div key={ticket.id} className="ticket-card-slim">
+              <div className="ticket-date-side">
+                <span className="day-num">
+                  {ticket.date ? new Date(ticket.date).getDate() : "--"}
+                </span>
+                <span className="month-name">
+                  {ticket.date
+                    ? new Date(ticket.date).toLocaleDateString("fr-FR", { month: "short" }).replace(".", "")
+                    : "---"}
+                </span>
+              </div>
 
-      {tickets.length > 0 ? (
-        tickets.map((ticket) => {
-          const badge = getTicketBadge(ticket);
-          return (
-            <div
-              key={ticket.id}
-              className="card shadow-lg mt-4 p-4 rounded-4 text-start border-0 position-relative"
-              style={{ maxWidth: 500, margin: "0 auto" }}
-            >
-              <div className="d-flex justify-content-between align-items-center mb-2">
-                <h5 className="text-primary fw-bold mb-0">
-                  🎫 Ticket #{ticket.id}
-                </h5>
-                <span className={badge.className}>{badge.text}</span>
+              <div className="ticket-info-main">
+                <div className="status-row">
+                  <span className={`status-badge ${ticket.statutPaiement === "payé" ? "paid" : "pending"}`}>
+                    {ticket.statutPaiement === "payé" ? "Paiement confirmé" : "En attente"}
+                  </span>
+                  <span className="ticket-time">{ticket.time}</span>
+                </div>
+
+                <h3 className="doctor-name">Dr {ticket.doctorName}</h3>
+                <p className="specialty-text">
+                  <FaStethoscope className="me-1" /> {ticket.doctorSpecialty}
+                </p>
+                <p className="location-text">
+                  <FaMapMarkerAlt className="me-1" /> Cabinet Médical (ID Patient: {ticket.patientId})
+                </p>
+
+                <div className="ticket-actions">
+                  {/* ✅ Utilisation du composant réutilisable Button */}
+                  <Button
+                    variant="login"
+                    onClick={() => setSelectedTicket(ticket)}
+                    label={
+                      <>
+                        <FaQrcode className="me-2" /> Voir mon ticket
+                      </>
+                    }
+                  />
+                </div>
               </div>
-              <hr />
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Patient :</span>
-                <span className="ms-2">{ticket.patientName}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Médecin :</span>
-                <span className="ms-2">{ticket.doctorName}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Spécialité :</span>
-                <span className="ms-2">{ticket.doctorSpecialty}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Date :</span>
-                <span className="ms-2">{formatDateFR(ticket.date)}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Heure :</span>
-                <span className="ms-2">{ticket.time}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Prix :</span>
-                <span className="ms-2">{ticket.prix} €</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Carte :</span>
-                <span className="ms-2">{ticket.cardNumber}</span>
-              </div>
-              <div className="mb-2">
-                <span className="fw-semibold text-secondary">Créé le :</span>
-                <span className="ms-2">{ticket.createdAt}</span>
-              </div>
-              <div className="d-flex justify-content-center align-items-center mt-4">
-                <QRCodeCanvas
-                  value={JSON.stringify(ticket)}
-                  size={160}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
-              <p className="mt-3 text-muted text-center">
-                Scannez ce QR code pour récupérer votre ticket
-              </p>
             </div>
-          );
-        })
-      ) : (
-        <p className="text-center text-muted mt-4">
-          Vous n'avez encore aucun ticket acheté.
-        </p>
+          ))
+        ) : (
+          <div className="empty-state">
+            <FaCalendarAlt size={50} color="#ccc" />
+            <p>La collection "tickets" semble vide dans Firestore.</p>
+          </div>
+        )}
+      </div>
+
+      {/* Modal QR Code */}
+      {selectedTicket && (
+        <div className="qr-modal-overlay mt-5" onClick={() => setSelectedTicket(null)}>
+          <div className="qr-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="close-modal" onClick={() => setSelectedTicket(null)}>&times;</button>
+            <h4>Ticket de Test</h4>
+            <div className="qr-box">
+              <QRCodeCanvas value={JSON.stringify(selectedTicket)} size={200} />
+            </div>
+            <div className="qr-details">
+              <h5>Dr {selectedTicket.doctorName}</h5>
+              <p>{formatDateFR(selectedTicket.date)} à {selectedTicket.time}</p>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

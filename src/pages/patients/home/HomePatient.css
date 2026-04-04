@@ -1,17 +1,17 @@
 /* Débloquer tous les conteneurs parents potentiels */
-#root,
+/* #root,
 .App,
 .min-vh-100 {
   overflow-y: auto !important;
   height: auto !important;
   min-height: 100vh !important;
-}
+} */
 
 html,
 body {
-  overflow-y: auto !important;
+  overflow: auto !important;
   /* Force uniquement le scroll vertical */
-  overflow-x: hidden !important;
+  /* overflow-x: hidden !important; */
   /* Évite un scroll horizontal parasite */
   height: auto !important;
   min-height: 100vh;

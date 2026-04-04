@@ -3,13 +3,20 @@ const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 
-// Route pour l'inscription
+// --- ROUTES AUTHENTIFICATION ---
+
+// Inscription
 router.post("/register", authController.register);
 
-// ROUTE MANQUANTE (C'est sûrement ici le problème)
+// Connexion
 router.post("/login", authController.login);
 
-// Route pour le log de déconnexion
+// --- ROUTE PAIEMENT STRIPE ---
+
+// Cette route appelle la fonction createPaymentIntent dans ton contrôleur
+router.post("/create-payment-intent", authController.createPaymentIntent);
+
+// --- ROUTE LOG DE DÉCONNEXION ---
 router.post("/logout-log", (req, res) => {
     console.log("============================================");
     console.log("👋 DÉCONNEXION DÉTECTÉE");
@@ -19,4 +26,5 @@ router.post("/logout-log", (req, res) => {
     console.log("============================================");
     res.status(200).json({ message: "Log de déconnexion reçu" });
 });
+
 module.exports = router;

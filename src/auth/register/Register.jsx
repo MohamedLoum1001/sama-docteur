@@ -1,6 +1,8 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../firebase"; // Assurez-vous du chemin
+// ✅ Importation du composant réutilisable
+import Button from "../../components/boutons/Button";
+import { db } from "../../firebase";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
@@ -103,7 +105,7 @@ const Register = () => {
               <div className="card-body p-4 p-md-5">
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3">
-                    {/* Prénom & Nom */}
+                    {/* ... (tous tes champs d'input restent identiques) ... */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Prénom</label>
                       <div className={`input-group custom-input-group ${errors.prenom ? 'is-invalid-group' : ''}`}>
@@ -121,7 +123,6 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* Naissance */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Date de naissance</label>
                       <div className="input-group custom-input-group">
@@ -138,7 +139,6 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* Contact */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">E-mail</label>
                       <div className="input-group custom-input-group">
@@ -155,7 +155,6 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* Adresse */}
                     <div className="col-12">
                       <label className="form-label fw-bold small">Adresse</label>
                       <div className="input-group custom-input-group">
@@ -164,7 +163,6 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* Rôle */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Je suis un</label>
                       <select name="role" value={formData.role} onChange={handleChange} className="form-select rounded-pill custom-select px-3">
@@ -180,7 +178,6 @@ const Register = () => {
                       </div>
                     )}
 
-                    {/* Passwords */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Mot de passe</label>
                       <div className="input-group custom-input-group overflow-hidden">
@@ -204,9 +201,15 @@ const Register = () => {
                   </div>
 
                   <div className="text-center mt-5">
-                    <button type="submit" className="btn btn-primary-custom w-100 py-3 rounded-pill fw-bold shadow-sm" disabled={isLoading}>
-                      {isLoading ? "Création en cours..." : "S'inscrire maintenant"}
-                    </button>
+                    {/* ✅ Utilisation du composant réutilisable pour S'inscrire */}
+                    <Button
+                      type="submit"
+                      label="S'inscrire maintenant"
+                      variant="register"
+                      loading={isLoading}
+                      className="w-100 py-3"
+                    />
+
                     <p className="mt-4 text-muted">
                       Déjà membre ? <span className="text-primary-custom fw-bold pointer" onClick={() => navigate('/login')}>Se connecter</span>
                     </p>

@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
+// ✅ Importation du composant réutilisable
+import Button from "../../components/boutons/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
@@ -18,7 +20,7 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoading(true); // Active le loader "Vérification..."
+    setLoading(true);
     setErrorMessage("");
 
     try {
@@ -31,16 +33,18 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // ✅ Sauvegarde l'utilisateur dans le stockage local
+        if (data.user.role === "patient") {
+          console.log(`Connecté en tant que Patient : ${data.user.prenom} ${data.user.nom}`);
+          console.log(`ID Utilisateur : ${data.user.id || data.user._id || data.user.uid}`);
+        }
+
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // ✅ REDIRECTION SELON LE RÔLE
-        // On attend un court instant pour laisser l'utilisateur voir le message de succès si nécessaire
         setTimeout(() => {
           if (data.user.role === "patient") navigate("/patient");
           else if (data.user.role === "medecin") navigate("/medecin");
           else if (data.user.role === "admin") navigate("/admin");
-          else navigate("/"); // Redirection par défaut vers Home
+          else navigate("/");
         }, 1000);
 
       } else {
@@ -111,19 +115,21 @@ const Login = () => {
                   {errorMessage && <div className="alert alert-danger py-2 small">{errorMessage}</div>}
 
                   <div className="d-grid gap-2">
-                    {/* ✅ Le bouton change d'état pendant le chargement */}
-                    <button type="submit" className="btn btn-login py-2 rounded-pill text-white shadow-sm" disabled={loading}>
-                      {loading ? (
-                        <>
-                          <i className="fa fa-spinner fa-spin me-2"></i>
-                          Vérification...
-                        </>
-                      ) : "Se connecter"}
-                    </button>
+                    {/* ✅ Utilisation du composant réutilisable pour la connexion */}
+                    <Button
+                      type="submit"
+                      label="Se connecter"
+                      variant="login"
+                      loading={loading}
+                    />
 
-                    <button type="button" onClick={() => navigate("/register")} className="btn btn-register py-2 rounded-pill text-white shadow-sm">
-                      Créer un compte
-                    </button>
+                    {/* ✅ Utilisation du composant réutilisable pour l'inscription */}
+                    <Button
+                      type="button"
+                      label="Créer un compte"
+                      variant="register"
+                      onClick={() => navigate("/register")}
+                    />
                   </div>
                 </form>
               </div>

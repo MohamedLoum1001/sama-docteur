@@ -1,369 +1,229 @@
-// src/patients/PaiementTicket/PaiementTicket.jsx
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useNavigate, useLocation } from "react-router-dom";
-import { QRCodeCanvas } from "qrcode.react";
-import { db, auth } from "../../../firebase";
+import { db } from "../../../firebase";
 import { collection, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
+import { FaArrowLeft, FaLock, FaCalendarCheck } from "react-icons/fa";
+import { QRCodeCanvas } from "qrcode.react";
+// ✅ Importation du composant réutilisable
+import Button from "../../../components/boutons/Button";
 import "./PaiementTicket.css";
 
-const PaiementTicket = () => {
-  const location = useLocation();
-  // Récupération des infos du rendez-vous depuis location.state
-  const {
-    patientName = "",
-    doctor = "",
-    doctorId = "",
-    specialty = "",
-    date = "",
-    time = ""
-  } = location.state || {};
+const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
 
-  // Extraction prénom/nom patient
-  const [patientFullName, setPatientFullName] = useState("");
-  const [loadingPatient, setLoadingPatient] = useState(true);
-  // Récupère prénom et nom du patient depuis Firestore
-  useEffect(() => {
-    async function fetchPatientName() {
-      setLoadingPatient(true);
-      try {
-        const user = auth.currentUser;
-        if (!user) {
-          setPatientFullName("");
-          setLoadingPatient(false);
-          return;
-        }
-        const { uid, email } = user;
-        // Cherche par uid puis par email si besoin
-        let querySnapshot = null;
-        const { getDocs, collection, where, query } = await import("firebase/firestore");
-        querySnapshot = await getDocs(query(collection(db, "users"), where("uid", "==", uid)));
-        if (querySnapshot.empty && email) {
-          querySnapshot = await getDocs(query(collection(db, "users"), where("email", "==", email)));
-        }
-        if (!querySnapshot.empty) {
-          const data = querySnapshot.docs[0].data();
-          setPatientFullName(`${data.prenom || ""} ${data.nom || ""}`.trim());
-        } else {
-          setPatientFullName("");
-        }
-      } catch {
-        setPatientFullName("");
-      }
-      setLoadingPatient(false);
-    }
-    fetchPatientName();
-  }, []);
-  // Extraction prénom/nom du docteur
-  const doctorName = doctor.replace(/^Dr\.?\s*/, "");
-  const doctorSpecialty = specialty;
-  const appointmentDate = date;
-  const appointmentTime = time;
-  const navigate = useNavigate();
-
-  const [payment, setPayment] = useState({
-    cardNumber: "",
-    expiryDate: "",
-    cvv: "",
-  });
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
-  const [paymentError, setPaymentError] = useState(false);
-  const [lastTicket, setLastTicket] = useState(null);
+const CheckoutForm = ({ doctorData, storedUser, displayDate, setPaymentSuccess, setLastTicket }) => {
+  const stripe = useStripe();
+  const elements = useElements();
+  const [isProcessing, setIsProcessing] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
 
-  // Simulation de paiement : le paiement est toujours accepté pour tester le flux
-  const onSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!stripe || !elements) return;
+
+    setIsProcessing(true);
     setErrorMsg("");
-    const user = auth.currentUser;
-    if (!user) {
-      setErrorMsg("Utilisateur non connecté. Veuillez vous authentifier.");
-      setPaymentError(true);
-      setPaymentSuccess(false);
-      return;
-    }
-    // Si le nom complet n'est pas renseigné dans Firebase, on exige la saisie
-    let patientName = "";
-    if (patientFullName && patientFullName.trim().length > 0) {
-      patientName = patientFullName.trim();
-    } else if (user.displayName && user.displayName.trim().length > 0) {
-      patientName = user.displayName.trim();
-    } else {
-      setPaymentError(true);
-      setPaymentSuccess(false);
-      setErrorMsg("Le nom du patient est requis. Veuillez le renseigner.");
-      return;
-    }
-    if (payment.cardNumber && payment.expiryDate && payment.cvv) {
-      // Debug : afficher les valeurs des champs utilisés dans la validation
-      console.log("doctorName:", doctorName);
-      console.log("doctorSpecialty:", doctorSpecialty);
-      console.log("appointmentDate:", appointmentDate);
-      console.log("appointmentTime:", appointmentTime);
-      console.log("user.displayName:", user.displayName);
-      console.log("patientFullName:", patientFullName);
-      if (
-        !doctorName ||
-        !doctorSpecialty ||
-        !appointmentDate ||
-        !appointmentTime
-      ) {
-        setPaymentError(true);
-        setPaymentSuccess(false);
-        setErrorMsg(
-          "Tous les champs du ticket doivent être renseignés (médecin, spécialité, date, heure). Veuillez recommencer la réservation."
-        );
-        return;
-      }
-      setPaymentSuccess(true);
-      setPaymentError(false);
-      const ticketId = Date.now().toString();
-      const rendezvousId = Math.random().toString(36).substring(2, 18);
-      const createdAt = new Date().toLocaleString("fr-FR", {
-        dateStyle: "long",
-        timeStyle: "medium",
+
+    try {
+      const response = await fetch("http://localhost:5000/api/auth/create-payment-intent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: 50,
+          patientName: `${storedUser.prenom} ${storedUser.nom}`,
+          doctorName: doctorData.doctorName,
+          date: doctorData.date,
+          time: doctorData.time
+        }),
       });
-      const qrCodeUrl = `https://firebasestorage.googleapis.com/qrcode/ticket_${ticketId}.png`;
-      const ticket = {
-        id: ticketId,
-        patientId: user.uid,
-        patientName,
-        doctorName: `Dr. ${doctorName}`,
-        doctorSpecialty,
-  doctorId: doctorId || "", // <-- Ajout de l'UID du médecin
-        date: appointmentDate,
-        time: appointmentTime,
-        prix: 50,
-        statutPaiement: "payé",
-        createdAt,
-        rendezvousId,
-        qrCodeUrl,
-        cardNumber: payment.cardNumber.replace(/\d(?=\d{4})/g, "*"),
-      };
-      setLastTicket(ticket);
-      setPayment({ cardNumber: "", expiryDate: "", cvv: "" });
-      sendTicket(ticket);
-      // Ajout du ticket dans Firestore avec l'ID personnalisé
-      try {
-        await setDoc(doc(db, "tickets", ticketId), ticket);
-      } catch (error) {
-        setErrorMsg(
-          "Erreur lors de l'enregistrement du ticket dans Firestore. Veuillez vérifier votre connexion ou vos droits Firestore."
-        );
-        setPaymentError(true);
-        setPaymentSuccess(false);
-        console.error("Firestore ticket error:", error);
-        return;
-      }
-      // Ajout du paiement dans Firestore
-      try {
+
+      if (!response.ok) throw new Error("Erreur serveur backend");
+      const { clientSecret } = await response.json();
+
+      const result = await stripe.confirmCardPayment(clientSecret, {
+        payment_method: {
+          card: elements.getElement(CardElement),
+          billing_details: {
+            name: `${storedUser.prenom} ${storedUser.nom}`,
+            email: storedUser.email
+          },
+        },
+      });
+
+      if (result.error) {
+        setErrorMsg(result.error.message);
+        setIsProcessing(false);
+      } else if (result.paymentIntent.status === "succeeded") {
+        const ticketId = `TICK-${Date.now()}`;
+        const ticketData = {
+          id: ticketId,
+          patientId: storedUser.uid || storedUser.id,
+          patientName: `${storedUser.prenom} ${storedUser.nom}`,
+          doctorName: doctorData.doctorName,
+          doctorSpecialty: doctorData.specialty || "Généraliste",
+          date: doctorData.date,
+          time: doctorData.time,
+          prix: 50,
+          statutPaiement: "payé",
+          createdAt: new Date().toISOString()
+        };
+
+        await setDoc(doc(db, "tickets", ticketId), ticketData);
+
         await addDoc(collection(db, "paiements"), {
           date: serverTimestamp(),
-          methode: "Carte bancaire",
-          patientId: user.uid,
+          methode: "Stripe / Carte",
+          patientId: storedUser.uid || storedUser.id,
           prix: 50,
           statut: "réussi",
-          ticketId: ticketId,
-          transactionId: ticketId,
+          ticketId: ticketId
         });
-      } catch (error) {
-        // Erreur d'enregistrement du paiement
-      }
-    } else {
-      setPaymentError(true);
-      setPaymentSuccess(false);
-      setErrorMsg("Veuillez remplir tous les champs de paiement.");
-    }
-  };
 
-  const sendTicket = (ticket) => {
-    console.log("Envoi du ticket au patient :", ticket);
-    alert("Le ticket a été envoyé sur votre téléphone/email ✅");
+        setLastTicket(ticketData);
+        setPaymentSuccess(true);
+      }
+    } catch (err) {
+      setErrorMsg("Impossible de contacter le serveur de paiement.");
+      console.error(err);
+    } finally {
+      setIsProcessing(false);
+    }
   };
 
   return (
-    <div className="container mt-5 py-2">
-      {/* Bouton retour */}
-      <button
-        className="btn custom-btn mb-3 d-flex align-items-center rounded-pill"
-        onClick={() => navigate("/home-patient")}
-      >
-        <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
-      </button>
+    <form onSubmit={handleSubmit} className="mt-4">
+      <label className="form-label fw-bold">Informations de carte bancaire</label>
+      <div className="p-3 border rounded mb-3 bg-white shadow-sm">
+        <CardElement options={{
+          style: { base: { fontSize: "16px", color: "#424770", "::placeholder": { color: "#aab7c4" } } },
+          hidePostalCode: true
+        }} />
+      </div>
 
-      <h2 className="text-center mb-4">🎟️ Acheter et payer votre ticket</h2>
+      {errorMsg && <div className="alert alert-danger py-2 small">{errorMsg}</div>}
 
-      <div className="row justify-content-center">
-        <div className="col-md-6">
-          <div className="card shadow p-4 rounded-3">
-            <form onSubmit={onSubmit}>
-              {/* Prénom et nom du patient (pré-rempli, modifiable si besoin) */}
-              <div className="mb-3">
-                <label htmlFor="patientFullName" className="form-label">
-                  Prénom et nom du patient <span className="text-danger">*</span>
-                </label>
-                <input
-                  type="text"
-                  id="patientFullName"
-                  className="form-control rounded-pill"
-                  placeholder="Entrez votre prénom et nom"
-                  value={loadingPatient ? "Chargement..." : patientFullName}
-                  onChange={(e) => setPatientFullName(e.target.value)}
-                  required
-                  disabled={loadingPatient}
-                />
-              </div>
-              {/* Prénom et nom du docteur (pré-rempli, non modifiable) */}
-              <div className="mb-3">
-                <label className="form-label">Prénom et nom du docteur</label>
-                <input
-                  type="text"
-                  className="form-control rounded-pill"
-                  value={doctorName}
-                  disabled
-                />
-              </div>
-              {/* Spécialité du docteur (pré-rempli, non modifiable) */}
-              <div className="mb-3">
-                <label className="form-label">Spécialité</label>
-                <input
-                  type="text"
-                  className="form-control rounded-pill"
-                  value={doctorSpecialty}
-                  disabled
-                />
-              </div>
-              {/* Date du rendez-vous (pré-rempli, non modifiable) */}
-              <div className="mb-3">
-                <label className="form-label">Date du rendez-vous</label>
-                <input
-                  type="text"
-                  className="form-control rounded-pill"
-                  value={appointmentDate}
-                  disabled
-                />
-              </div>
-              {/* Heure du rendez-vous (pré-rempli, non modifiable) */}
-              <div className="mb-3">
-                <label className="form-label">Heure du rendez-vous</label>
-                <input
-                  type="text"
-                  className="form-control rounded-pill"
-                  value={appointmentTime}
-                  disabled
-                />
-              </div>
-              <div className="mb-3">
-                <label htmlFor="cardNumber" className="form-label">
-                  Numéro de carte
-                </label>
-                <input
-                  type="text"
-                  id="cardNumber"
-                  className="form-control rounded-pill"
-                  placeholder="Entrez votre numéro de carte"
-                  value={payment.cardNumber}
-                  onChange={(e) =>
-                    setPayment({ ...payment, cardNumber: e.target.value })
-                  }
-                  required
-                />
-              </div>
+      {/* ✅ Utilisation du composant Button pour le paiement */}
+      <Button
+        type="submit"
+        label="Confirmer et payer 50 €"
+        variant="login"
+        loading={isProcessing}
+        disabled={!stripe}
+        className="w-100 mt-2"
+      />
 
-              <div className="mb-3">
-                <label htmlFor="expiryDate" className="form-label">
-                  Date d'expiration
-                </label>
-                <input
-                  type="month"
-                  id="expiryDate"
-                  className="form-control rounded-pill"
-                  value={payment.expiryDate}
-                  onChange={(e) =>
-                    setPayment({ ...payment, expiryDate: e.target.value })
-                  }
-                  required
-                />
+      <p className="security-note mt-3 text-center small text-muted">
+        <FaLock size={12} className="me-1" /> Paiement 100% sécurisé via Stripe
+      </p>
+    </form>
+  );
+};
+
+const PaiementTicket = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const doctorData = location.state || {};
+  const storedUser = JSON.parse(localStorage.getItem("user"));
+
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
+  const [lastTicket, setLastTicket] = useState(null);
+
+  const displayDate = (dateStr) => {
+    if (!dateStr) return "Date non définie";
+    try {
+      const d = new Date(dateStr);
+      return d.toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+    } catch { return "Date invalide"; }
+  };
+
+  return (
+    <Elements stripe={stripePromise}>
+      <div className="payment-page">
+        <div className="container py-4">
+          <button className="back-link" onClick={() => navigate("/patient")}>
+            <FaArrowLeft className="me-2" /> Retour à l'accueil
+          </button>
+
+          <div className="row mt-4">
+            <div className="col-lg-5 mb-4">
+              <div className="summary-card shadow-sm">
+                <div className="summary-header">
+                  <FaCalendarCheck className="me-2" />
+                  <h5>Récapitulatif du rendez-vous</h5>
+                </div>
+                <div className="summary-body">
+                  <div className="summary-item">
+                    <label>Médecin</label>
+                    <p>{doctorData.doctorName || "Non spécifié"}</p>
+                    <span className="text-teal">{doctorData.specialty}</span>
+                  </div>
+                  <hr />
+                  <div className="summary-item">
+                    <label>Date et Heure</label>
+                    <p>{displayDate(doctorData.date)}</p>
+                    <p>à {doctorData.time || "--:--"}</p>
+                  </div>
+                  <hr />
+                  <div className="total-box mt-4">
+                    <span>Total à régler</span>
+                    <span className="price">50 €</span>
+                  </div>
+                </div>
               </div>
-
-              <div className="mb-3">
-                <label htmlFor="cvv" className="form-label">
-                  CVV
-                </label>
-                <input
-                  type="text"
-                  id="cvv"
-                  className="form-control rounded-pill"
-                  placeholder="Entrez le code CVV"
-                  value={payment.cvv}
-                  onChange={(e) =>
-                    setPayment({ ...payment, cvv: e.target.value })
-                  }
-                  required
-                />
-              </div>
-
-              <div className="mb-3">
-                <label htmlFor="amount" className="form-label">
-                  Montant à payer
-                </label>
-                <input
-                  type="text"
-                  id="amount"
-                  className="form-control rounded-pill"
-                  value="50"
-                  disabled
-                />
-              </div>
-
-              <button
-                type="submit"
-                className="btn custom-btn w-100 mt-3 rounded-pill"
-              >
-                💳 Payer
-              </button>
-            </form>
-
-            {paymentSuccess && (
-              <div className="alert alert-success mt-3">
-                Le paiement a été effectué avec succès !
-              </div>
-            )}
-            {paymentError && (
-              <div className="alert alert-danger mt-3">
-                {errorMsg
-                  ? errorMsg
-                  : "Une erreur est survenue lors du paiement. Veuillez réessayer."}
-              </div>
-            )}
-          </div>
-
-          {/* Affichage du ticket avec QR code */}
-          {lastTicket && (
-            <div className="card shadow mt-4 p-4 rounded-3 text-center">
-              <h5 className="text-primary mb-3">🎫 Votre ticket</h5>
-              <p>Médecin : {lastTicket.doctorName}</p>
-              <p>Spécialité : {lastTicket.doctorSpecialty}</p>
-              <p>Date : {lastTicket.date}</p>
-              <p>Heure : {lastTicket.time}</p>
-              <p>Carte : {lastTicket.cardNumber}</p>
-
-              <div className="mt-3">
-                <QRCodeCanvas
-                  value={JSON.stringify(lastTicket)}
-                  size={180}
-                  level="H"
-                  includeMargin={true}
-                />
-              </div>
-
-              <p className="mt-2 text-muted">
-                Scannez ce QR code pour récupérer votre ticket
-              </p>
             </div>
-          )}
+
+            <div className="col-lg-7">
+              <div className="payment-card shadow-sm p-4">
+                {!paymentSuccess ? (
+                  <>
+                    <div className="card-header-custom d-flex justify-content-between align-items-center border-bottom pb-3">
+                      <h5 className="mb-0">Paiement sécurisé par carte</h5>
+                      <div className="cards-icons">
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/5/5e/Visa_Inc._logo.svg" alt="visa" height="20" />
+                        <img src="https://upload.wikimedia.org/wikipedia/commons/2/2a/Mastercard-logo.svg" alt="master" height="25" className="ms-2" />
+                      </div>
+                    </div>
+
+                    <CheckoutForm
+                      doctorData={doctorData}
+                      storedUser={storedUser}
+                      displayDate={displayDate}
+                      setPaymentSuccess={setPaymentSuccess}
+                      setLastTicket={setLastTicket}
+                    />
+                  </>
+                ) : (
+                  <div className="success-container text-center py-4">
+                    <div className="success-icon-box mb-3" style={{ fontSize: "3.5rem", color: "#28a745" }}>✓</div>
+                    <h4>Paiement réussi !</h4>
+                    <p className="text-muted">Votre ticket est disponible ci-dessous.</p>
+
+                    <div className="ticket-visual mt-4 p-4 border rounded bg-light shadow-sm text-center">
+                      <h5 className="text-primary">{lastTicket.doctorName}</h5>
+                      <p className="mb-1">{displayDate(lastTicket.date)}</p>
+                      <p className="fw-bold">Heure : {lastTicket.time}</p>
+                      <div className="d-flex justify-content-center my-3 bg-white p-2 d-inline-block rounded shadow-sm">
+                        <QRCodeCanvas value={JSON.stringify(lastTicket)} size={160} />
+                      </div>
+                      <p className="mt-2 small text-muted">ID Ticket : {lastTicket.id}</p>
+                    </div>
+
+                    {/* ✅ Utilisation du composant Button pour le retour à l'espace patient */}
+                    <Button
+                      label="Aller à mon espace patient"
+                      variant="register"
+                      className="w-100 mt-4 py-2"
+                      onClick={() => navigate("/patient")}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
         </div>
       </div>
-    </div>
+    </Elements>
   );
 };
 

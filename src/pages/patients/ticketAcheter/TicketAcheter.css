@@ -1,22 +1,184 @@
-.custom-btn {
-    background-color: #00a5a8;
-    border-color: #00a5a8;
+.history-container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f8f9fa;
+    min-height: 100vh;
+}
+
+.history-header {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.history-header h1 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.back-btn {
+    border: none;
+    background: white;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    color: #007bff;
+}
+
+/* Carte style Doctolib */
+.ticket-card-slim {
+    display: flex;
+    background: white;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+}
+
+.ticket-date-side {
+    background-color: #eef7ff;
+    color: #007bff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    min-width: 80px;
+    border-right: 1px solid #e0e0e0;
+}
+
+.day-num {
+    font-size: 1.4rem;
+    font-weight: 800;
+}
+
+.month-name {
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.ticket-info-main {
+    padding: 15px 20px;
+    flex-grow: 1;
+}
+
+.status-row {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    font-weight: 700;
+    padding: 3px 10px;
+    border-radius: 20px;
+}
+
+.status-badge.paid {
+    background: #d4edda;
+    color: #155724;
+}
+
+.status-badge.pending {
+    background: #fff3cd;
+    color: #856404;
+}
+
+.doctor-name {
+    font-size: 1.1rem;
+    margin: 0;
+    color: #333;
+}
+
+.specialty-text {
+    font-size: 0.9rem;
+    color: #666;
+    margin-bottom: 2px;
+}
+
+.location-text {
+    font-size: 0.85rem;
+    color: #999;
+    margin-bottom: 12px;
+}
+
+.btn-view-qr {
+    background-color: #007bff;
     color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
 }
 
-.custom-btn:hover {
-    background-color: #0b89c4;
-    border-color: #0b89c4;
+.btn-view-qr:hover {
+    background-color: #0056b3;
 }
 
-input.form-control:focus,
-select.form-select:focus {
-    border-color: #0b89c4 !important;
-    box-shadow: 0 0 0 0.2rem rgba(11, 137, 196, 0.25);
-    outline: none;
+/* Modal QR Code */
+.qr-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
 }
 
-input.form-control:hover,
-select.form-select:hover {
-    border-color: #0b89c4;
+.qr-modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 20px;
+    text-align: center;
+    position: relative;
+    max-width: 350px;
+    width: 100%;
+}
+
+.qr-box {
+    background: white;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    margin: 20px auto;
+    display: inline-block;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    border: none;
+    background: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+
+.ticket-id-tag {
+    font-family: monospace;
+    background: #f1f1f1;
+    padding: 2px 8px;
+    border-radius: 4px;
 }

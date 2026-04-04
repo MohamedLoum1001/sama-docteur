@@ -1,0 +1,17 @@
+/* .layout-container {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.layout-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    max-width: 1140px;
+    margin: 0 auto;
+}
+
+.card-body {
+    overflow: visible !important;
+} */

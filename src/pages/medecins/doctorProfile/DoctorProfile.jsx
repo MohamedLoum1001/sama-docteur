@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
-import { FaPhone, FaMapMarkerAlt, FaStethoscope, FaArrowLeft, FaEnvelope } from "react-icons/fa";
+import { FaPhone, FaStethoscope, FaArrowLeft, FaEnvelope } from "react-icons/fa";
+// ✅ Importation du composant réutilisable
+import Button from "../../../components/boutons/Button";
 
 const DoctorProfile = () => {
     const { id } = useParams();
@@ -28,13 +30,11 @@ const DoctorProfile = () => {
         fetchDoctor();
     }, [id]);
 
-    // ✅ CETTE FONCTION REMPLACE LA MODALE ET ÉVITE L'ERREUR REMOVECHILD
     const handleContactClick = () => {
         if (!storedUser) {
             navigate("/login");
             return;
         }
-        // Redirection directe vers la messagerie
         navigate("/messages", {
             state: {
                 contactId: id,
@@ -68,27 +68,40 @@ const DoctorProfile = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                         <div className="flex items-start">
                             <div className="bg-teal-50 p-3 rounded-xl mr-4 text-teal-600"><FaStethoscope /></div>
-                            <div><p className="text-gray-400 text-sm italic m-0">Spécialité</p><p className="font-semibold m-0">{doctor.specialite || "Non spécifiée"}</p></div>
+                            <div>
+                                <p className="text-gray-400 text-sm italic m-0">Spécialité</p>
+                                <p className="font-semibold m-0">{doctor.specialite || "Non spécifiée"}</p>
+                            </div>
                         </div>
                         <div className="flex items-start">
                             <div className="bg-teal-50 p-3 rounded-xl mr-4 text-teal-600"><FaPhone /></div>
-                            <div><p className="text-gray-400 text-sm italic m-0">Téléphone</p><p className="font-semibold m-0">{doctor.telephone || "Non renseigné"}</p></div>
+                            <div>
+                                <p className="text-gray-400 text-sm italic m-0">Téléphone</p>
+                                <p className="font-semibold m-0">{doctor.telephone || "Non renseigné"}</p>
+                            </div>
                         </div>
                     </div>
 
                     <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                        <button
-                            className="flex-1 py-4 rounded-2xl font-bold text-white shadow-lg bg-[#00a5a8] border-0"
+                        {/* ✅ Utilisation du composant Button pour Contacter */}
+                        <Button
+                            variant="login"
+                            className="flex-1 py-4"
                             onClick={handleContactClick}
-                        >
-                            <FaEnvelope /> Contacter
-                        </button>
-                        <button
-                            className="flex-1 py-4 border-2 border-teal-600 text-teal-600 rounded-2xl font-bold bg-white"
+                            label={
+                                <>
+                                    <FaEnvelope className="mr-2" /> Contacter
+                                </>
+                            }
+                        />
+
+                        {/* ✅ Utilisation du composant Button pour Prendre RDV */}
+                        <Button
+                            variant="register" // Utilise le bleu pour différencier les deux actions
+                            className="flex-1 py-4"
                             onClick={() => navigate(`/rendez-vous/${id}`)}
-                        >
-                            Prendre RDV
-                        </button>
+                            label="Prendre RDV"
+                        />
                     </div>
                 </div>
             </div>

@@ -121,8 +121,8 @@ const Messages = () => {
     };
 
     return (
-        <div className="chat-wrapper">
-            <div className="chat-card shadow-lg">
+        <div className="chat-wrapper mx-auto px-3">
+            <div className="chat-card shadow-lg mt-10 mb-0">
 
                 {/* Header personnalisé avec alignement horizontal type WhatsApp */}
                 <div className="chat-header-custom d-flex align-items-center">

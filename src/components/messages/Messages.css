@@ -1,22 +1,16 @@
-/* 1. La page entière reste fixe */
-html, body {
-    margin: 0;
-    padding: 0;
-    overflow: hidden !important; /* Empêche la page entière de bouger */
-    height: 100%;
-    width: 100%;
-    position: fixed; /* Sécurité supplémentaire pour mobile */
-}
-
 /* 2. Le wrapper prend toute la hauteur disponible sous la navbar */
 .chat-wrapper {
-    /* background-color: #f0f2f5; */
-    height: calc(100dvh - 70px); 
-    margin-top: 10px;
+    margin: 0;
+    padding: 0;
     display: flex;
-    justify-content: center;
-    align-items: stretch;
-    overflow: hidden; /* Pas de scroll ici */
+    flex-direction: column;
+    justify-self: center;
+    overflow: hidden !important; 
+    height: 100vh;
+    width: 100vw;
+    position: fixed; 
+    top: 0;
+    left: 0; /* Pas de scroll ici */
 }
 
 /* 3. La carte du chat */
@@ -24,7 +18,7 @@ html, body {
     width: 100%;
     max-width: 900px;
     height: 100%;
-    background: #fff;
+    /* background: #fff; */
     display: flex;
     justify-content: center;
     flex-direction: column;
@@ -56,6 +50,7 @@ html, body {
         align-items: center;
         /* Centre la carte verticalement sur grand écran */
         padding: 15px 0;
+        margin-top: 100px;
     }
 
     .chat-card {
@@ -67,7 +62,25 @@ html, body {
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     }
 }
+/* ADAPTATION Telephone */
+@media (min-width: 320px) {
+    .chat-wrapper {
+        align-items: center;
+        /* Centre la carte verticalement sur grand écran */
+        padding: 15px 0;
+        margin-top: 20px;
+    }
 
+    .chat-card {
+        width: 90%;
+        max-width: 850px;
+        height: 95%;
+        border-radius: 10px;
+        /* border: 1px solid #e0e0e0; */
+        /* box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05); */
+        margin-bottom: 100px;
+    }
+}
 /* 4. HEADER TYPE WHATSAPP (Horizontal) */
 .chat-header-custom {
     background: #00a5a8;

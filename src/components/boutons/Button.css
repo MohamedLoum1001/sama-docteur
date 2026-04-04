@@ -1,0 +1,8 @@
+/* Dans ton fichier CSS */
+.btn-login, .btn-register {
+  display: inline-flex !important; /* Force le flexbox */
+  align-items: center !important;  /* Aligne verticalement l'icône et le texte */
+  justify-content: center !important; /* Centre le contenu horizontalement */
+  gap: 8px; /* Ajoute un espace entre l'icône et le texte */
+  white-space: nowrap; /* Empêche le texte de revenir à la ligne */
+}
