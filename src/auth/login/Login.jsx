@@ -6,6 +6,9 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
+// ✅ Définition de l'URL de l'API (Local par défaut, variable d'env en production)
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+
 const Login = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -24,7 +27,8 @@ const Login = () => {
     setErrorMessage("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/login", {
+      // ✅ Utilisation de la variable API_URL
+      const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -52,7 +56,8 @@ const Login = () => {
         setLoading(false);
       }
     } catch (error) {
-      setErrorMessage("Impossible de contacter le serveur.");
+      console.error("Erreur de connexion:", error);
+      setErrorMessage("Impossible de contacter le serveur. Vérifiez votre connexion.");
       setLoading(false);
     }
   };
@@ -115,7 +120,6 @@ const Login = () => {
                   {errorMessage && <div className="alert alert-danger py-2 small">{errorMessage}</div>}
 
                   <div className="d-grid gap-2">
-                    {/* ✅ Utilisation du composant réutilisable pour la connexion */}
                     <Button
                       type="submit"
                       label="Se connecter"
@@ -123,7 +127,6 @@ const Login = () => {
                       loading={loading}
                     />
 
-                    {/* ✅ Utilisation du composant réutilisable pour l'inscription */}
                     <Button
                       type="button"
                       label="Créer un compte"

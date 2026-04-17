@@ -2,10 +2,12 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // ✅ Importation du composant réutilisable
 import Button from "../../components/boutons/Button";
-// import { db } from "../../firebase";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
+
+// ✅ Définition dynamique de l'URL de l'API
+const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -68,7 +70,8 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/register", {
+      // ✅ Utilisation de la variable API_URL au lieu de localhost
+      const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(formData),
@@ -83,7 +86,8 @@ const Register = () => {
         setErrors({ ...errors, server: data.error || "Erreur lors de l'inscription" });
       }
     } catch (error) {
-      setErrors({ ...errors, server: "Erreur de connexion au serveur." });
+      console.error("Erreur Inscription:", error);
+      setErrors({ ...errors, server: "Erreur de connexion au serveur. Vérifiez votre connexion." });
     } finally {
       setIsLoading(false);
     }
@@ -105,7 +109,6 @@ const Register = () => {
               <div className="card-body p-4 p-md-5">
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3">
-                    {/* ... (tous tes champs d'input restent identiques) ... */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Prénom</label>
                       <div className={`input-group custom-input-group ${errors.prenom ? 'is-invalid-group' : ''}`}>
@@ -121,6 +124,7 @@ const Register = () => {
                         <span className="input-group-text"><i className="fa fa-user"></i></span>
                         <input type="text" name="nom" value={formData.nom} onChange={handleChange} className="form-control border-0" placeholder="Loum" />
                       </div>
+                      {errors.nom && <small className="text-danger mt-1 d-block">{errors.nom}</small>}
                     </div>
 
                     <div className="col-md-6">
@@ -201,7 +205,6 @@ const Register = () => {
                   </div>
 
                   <div className="text-center mt-5">
-                    {/* ✅ Utilisation du composant réutilisable pour S'inscrire */}
                     <Button
                       type="submit"
                       label="S'inscrire maintenant"
