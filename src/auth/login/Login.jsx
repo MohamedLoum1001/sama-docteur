@@ -60,7 +60,7 @@ const Login = () => {
   return (
     <div className="login-main-container">
       <div className="container">
-        <div className="row justify-content-center align-items-center min-vh-100 py-5">
+        <div className="row justify-content-center align-items-center min-vh-100">
           <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
 
             <div className="text-center mb-4">
