@@ -53,7 +53,7 @@ const HomePatient = () => {
       <div className="container mx-auto px-4 pb-12">
 
         {/* Titre de bienvenue */}
-        <div className="mt-16 py-8 flex flex-col items-center justify-center gap-2">
+        <div className="mt-5 flex flex-col items-center justify-center gap-2">
           <FaUserInjured className="text-teal-600 text-5xl mb-2" />
           <h2 className="font-extrabold text-3xl text-gray-800 text-center">
             Bienvenue sur votre espace patient

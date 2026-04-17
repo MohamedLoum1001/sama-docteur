@@ -12,3 +12,25 @@
     transform: translateY(0);
     pointer-events: auto;
 }
+
+/* Navbar.css */
+
+@media (max-width: 576px) {
+
+    /* On cible le menu de notification quand il est ouvert sur mobile */
+    .navbar .position-relative .dropdown-menu {
+        position: fixed !important;
+        top: 65px !important;
+        left: 5% !important;
+        right: 5% !important;
+        width: 90% !important;
+        margin: 0 auto !important;
+        transform: none !important;
+        z-index: 9999 !important;
+    }
+
+    /* On s'assure que le contenu ne déborde pas horizontalement */
+    .notification-item {
+        white-space: normal !important;
+    }
+}

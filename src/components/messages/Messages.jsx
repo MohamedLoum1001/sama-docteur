@@ -5,7 +5,7 @@ import {
     collection, query, onSnapshot, orderBy,
     addDoc, serverTimestamp, doc
 } from "firebase/firestore";
-import { FaPaperPlane, FaArrowLeft, FaMicrophone, FaStop, FaTrash, FaCheckDouble } from "react-icons/fa";
+import { FaPaperPlane, FaArrowLeft, FaMicrophone, FaStop, FaTrash, FaCheckDouble, FaVideo } from "react-icons/fa";
 import "./Messages.css";
 
 const Messages = () => {
@@ -22,7 +22,6 @@ const Messages = () => {
     const [audioBlob, setAudioBlob] = useState(null);
     const mediaRecorderRef = useRef(null);
 
-    // Données de profil en temps réel
     const [currentUserData, setCurrentUserData] = useState(null);
     const [contactData, setContactData] = useState(null);
 
@@ -32,7 +31,6 @@ const Messages = () => {
         if (!contactId) navigate("/");
     }, [contactId, navigate]);
 
-    // 1. ÉCOUTE DU PROFIL CONNECTÉ
     useEffect(() => {
         if (!user?.uid) return;
         const unsub = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
@@ -41,7 +39,6 @@ const Messages = () => {
         return () => unsub();
     }, [user?.uid]);
 
-    // 2. ÉCOUTE DU PROFIL DU CONTACT
     useEffect(() => {
         if (!contactId) return;
         const unsub = onSnapshot(doc(db, "users", contactId), (docSnap) => {
@@ -50,7 +47,6 @@ const Messages = () => {
         return () => unsub();
     }, [contactId]);
 
-    // 3. ÉCOUTE DES MESSAGES
     useEffect(() => {
         if (!user?.uid || !contactId) return;
         const q = query(collection(db, "messages"), orderBy("createdAt", "asc"));
@@ -68,6 +64,26 @@ const Messages = () => {
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
+
+    const startVideoCall = async () => {
+        try {
+            const callRef = await addDoc(collection(db, "calls"), {
+                callerId: user.uid,
+                callerName: currentUserData?.prenom || "Un utilisateur",
+                receiverId: contactId,
+                status: "ringing",
+                type: "video",
+                createdAt: serverTimestamp(),
+            });
+
+            navigate(`/video-call/${callRef.id}`, {
+                state: { isCaller: true, contactName: contactData ? `Dr. ${contactData.prenom} ${contactData.nom}` : contactName }
+            });
+        } catch (err) {
+            console.error("Erreur appel:", err);
+            alert("Impossible de lancer l'appel.");
+        }
+    };
 
     const startRecording = async () => {
         try {
@@ -124,26 +140,39 @@ const Messages = () => {
         <div className="chat-wrapper mx-auto px-3">
             <div className="chat-card shadow-lg mt-10 mb-0">
 
-                {/* Header personnalisé avec alignement horizontal type WhatsApp */}
-                <div className="chat-header-custom d-flex align-items-center">
-                    {/* Bouton retour */}
-                    <button onClick={() => navigate(-1)} className="btn-back">
-                        <FaArrowLeft />
-                    </button>
+                {/* Header WhatsApp-style corrigé */}
+                <div className="chat-header-custom d-flex align-items-center justify-content-between px-3">
+                    <div className="d-flex align-items-center flex-grow-1">
+                        <button onClick={() => navigate(-1)} className="btn-back me-2">
+                            <FaArrowLeft />
+                        </button>
 
-                    {/* Conteneur du profil : Image + (Nom et Statut) */}
-                    <div className="user-profile-info d-flex align-items-center flex-grow-1" style={{ cursor: 'pointer' }}>
-                        <img
-                            src={contactData?.photo || `https://ui-avatars.com/api/?name=${contactName}&background=ccc&color=fff`}
-                            alt="avatar"
-                            className="avatar-img"
-                        />
-                        <div className="ms-2 d-flex flex-column justify-content-center">
-                            <h6 className="m-0 text-white font-bold header-name">
-                                {contactData ? `Dr. ${contactData.prenom} ${contactData.nom}` : contactName}
-                            </h6>
-                            <small className="online-status">en ligne</small>
+                        <div className="user-profile-info d-flex align-items-center" style={{ cursor: 'pointer' }}>
+                            <img
+                                src={contactData?.photo || `https://ui-avatars.com/api/?name=${contactName}&background=ccc&color=fff`}
+                                alt="avatar"
+                                className="avatar-img"
+                                style={{ width: '40px', height: '40px', borderRadius: '50%' }}
+                            />
+                            <div className="ms-2 d-flex flex-column justify-content-center">
+                                <h6 className="m-0 text-white font-bold header-name">
+                                    {contactData ? `Dr. ${contactData.prenom} ${contactData.nom}` : contactName}
+                                </h6>
+                                <small className="online-status" style={{ color: '#e0e0e0', fontSize: '0.75rem' }}>en ligne</small>
+                            </div>
                         </div>
+                    </div>
+
+                    {/* ✅ SECTION ACTIONS (Icône Vidéo) */}
+                    <div className="header-actions">
+                        <button
+                            className="btn-call-video"
+                            onClick={startVideoCall}
+                            title="Lancer un appel vidéo"
+                            style={{ background: 'transparent', border: 'none', color: 'white', fontSize: '1.2rem', padding: '10px' }}
+                        >
+                            <FaVideo />
+                        </button>
                     </div>
                 </div>
 

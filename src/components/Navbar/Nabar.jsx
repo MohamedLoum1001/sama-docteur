@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { db } from "../../firebase";
+import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import {
   doc,
   collection,
@@ -28,11 +29,14 @@ const Navbar = () => {
   const msgRef = useRef(null);
   const navigate = useNavigate();
 
+  // URL de l'API (à adapter selon ton environnement local ou Vercel)
+  const API_URL = "https://sama-docteur.vercel.app";
+
   const logout = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur";
     try {
-      await fetch("http://localhost:5000/api/auth/logout-log", {
+      await fetch(`${API_URL}/api/auth/logout-log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userName }),
@@ -63,7 +67,7 @@ const Navbar = () => {
         setNotifications(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
       });
 
-      // MESSAGES (Écoute des messages reçus)
+      // MESSAGES
       const msgQuery = query(
         collection(db, "messages"),
         where("receiverId", "==", storedUser.uid),
@@ -71,7 +75,6 @@ const Navbar = () => {
       );
       onSnapshot(msgQuery, (snapshot) => {
         const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        // Un seul message par expéditeur pour la liste de survol
         const uniqueMsgs = Array.from(new Map(msgs.map(m => [m.senderId, m])).values());
         setMessages(uniqueMsgs);
       });
@@ -120,7 +123,7 @@ const Navbar = () => {
             </button>
 
             {showMessages && (
-              <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 p-2" style={{ width: "300px", maxHeight: "400px", overflowY: "auto" }}>
+              <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 p-2" style={{ width: "300px", maxHeight: "400px", overflowY: "auto", position: 'absolute', right: 0 }}>
                 <h6 className="px-2 py-1 fw-bold border-bottom">Messages récents</h6>
                 {messages.length === 0 ? (
                   <p className="text-center text-muted p-3 small">Aucun message</p>
@@ -131,16 +134,11 @@ const Navbar = () => {
                       className={`p-2 rounded mb-1 d-flex align-items-center ${!msg.isRead ? "bg-light fw-bold" : ""}`}
                       style={{ cursor: "pointer", borderBottom: '1px solid #f8f9fa' }}
                       onClick={async () => {
-                        // Marquer comme lu
                         if (!msg.isRead) {
                           await updateDoc(doc(db, "messages", msg.id), { isRead: true });
                         }
-                        // Redirection vers le chat spécifique
                         navigate("/messages", {
-                          state: {
-                            contactId: msg.senderId,
-                            contactName: msg.senderName
-                          }
+                          state: { contactId: msg.senderId, contactName: msg.senderName }
                         });
                         setShowMessages(false);
                       }}
@@ -151,7 +149,6 @@ const Navbar = () => {
                           <span className="small text-dark text-truncate">{msg.senderName}</span>
                           <span style={{ fontSize: '0.6rem' }} className="text-muted">{formatDateTime(msg.createdAt)}</span>
                         </div>
-                        {/* Aperçu du contenu (texte ou vocal) */}
                         <div className="small text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
                           {msg.type === "audio" ? "🎤 Message vocal" : msg.content}
                         </div>
@@ -165,19 +162,23 @@ const Navbar = () => {
 
           {/* 🔔 SECTION NOTIFICATIONS */}
           <div className="position-relative me-3" ref={notifRef}>
-            <button className="btn btn-link position-relative" onClick={() => setShowNotif(!showNotif)}>
+            <button className="btn btn-link position-relative p-0" onClick={() => setShowNotif(!showNotif)}>
               <i className="bi bi-bell fs-5 text-dark"></i>
-              {unreadNotifs > 0 && <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">{unreadNotifs}</span>}
+              {unreadNotifs > 0 && (
+                <span className="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style={{ fontSize: '0.65rem' }}>
+                  {unreadNotifs}
+                </span>
+              )}
             </button>
+
+            {/* Appel du composant NotificationDropdown */}
             {showNotif && (
-              <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 p-2" style={{ width: "320px", maxHeight: "450px", overflowY: "auto" }}>
-                <h6 className="m-0 fw-bold p-2 border-bottom">Notifications</h6>
-                {notifications.map((notif) => (
-                  <div key={notif.id} className="p-3 border-bottom small" onClick={() => updateDoc(doc(db, "notifications", notif.id), { isRead: true })}>
-                    {notif.message}
-                  </div>
-                ))}
-              </div>
+              <NotificationDropdown
+                notifications={notifications}
+                unreadNotifs={unreadNotifs}
+                formatDateTime={formatDateTime}
+                setShowNotif={setShowNotif}
+              />
             )}
           </div>
 
@@ -191,7 +192,7 @@ const Navbar = () => {
               onClick={() => setShowDropdown(!showDropdown)}
             />
             {showDropdown && (
-              <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 py-2 bg-white" style={{ minWidth: "200px" }}>
+              <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 py-2 bg-white" style={{ minWidth: "200px", position: 'absolute', right: 0 }}>
                 <button className="dropdown-item" onClick={() => navigate("/profil")}>Mon Profil</button>
                 <button className="dropdown-item text-danger" onClick={logout}>Déconnexion</button>
               </div>

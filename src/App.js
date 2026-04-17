@@ -7,7 +7,6 @@ import Login from "./auth/login/Login";
 import ResetPassword from "./auth/resetPassword/ResetPassword";
 import ForgetPassword from "./auth/forgetPassword/ForgetPassword";
 
-
 // Patients
 import HomePatient from "./pages/patients/home/HomePatient";
 import Profil from "./components/profil/Profil";
@@ -37,8 +36,10 @@ import Layout from "./components/Layout/Layout";
 // Admin
 import Dashboard from "./pages/admin/dashboard/Dasboard";
 import DoctorProfile from "./pages/medecins/doctorProfile/DoctorProfile";
-// import DoctorMessages from "./pages/messages/DoctorMessages";
 import Messages from "./components/messages/Messages";
+
+// ✅ AJOUT DE L'IMPORT VIDÉO
+import VideoCall from "./pages/VideoCall/VideoCall";
 
 function App() {
   return (
@@ -46,11 +47,19 @@ function App() {
       <Routes>
         {/* Redirection racine */}
         <Route path="/" element={<Navigate to="/login" replace />} />
+
         {/* Pages sans navbar */}
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
+
+        {/* ✅ ROUTE APPEL VIDÉO (Plein écran, sans Layout) */}
+        <Route
+          path="/video-call/:callId"
+          element={<ProtectedRoute><VideoCall /></ProtectedRoute>}
+        />
+
         {/* Pages avec navbar protégées */}
         <Route element={<Layout />}>
           {/* Patient */}
@@ -64,20 +73,21 @@ function App() {
           <Route path="/dossier-medical" element={<ProtectedRoute><DossierMedical /></ProtectedRoute>} />
           <Route path="/recommandation-patient" element={<ProtectedRoute><RecommandationsPatient /></ProtectedRoute>} />
           <Route path="/avis" element={<ProtectedRoute><Avis /></ProtectedRoute>} />
+
           {/* Médecin */}
           <Route path="/medecin" element={<ProtectedRoute><HomeMedecin /></ProtectedRoute>} />
           <Route path="/liste-rendez-vous" element={<ProtectedRoute><ListeRendezVous /></ProtectedRoute>} />
           <Route path="/profil-medecin" element={<ProtectedRoute><ProfilMedecin /></ProtectedRoute>} />
-
           <Route path="/disponibilites" element={<ProtectedRoute><Disponibilites /></ProtectedRoute>} />
           <Route path="/prescription" element={<ProtectedRoute><Prescription /></ProtectedRoute>} />
           <Route path="/dossiers-medicaux" element={<ProtectedRoute><DossiersMedicaux /></ProtectedRoute>} />
           <Route path="/recommandation" element={<ProtectedRoute><Recommandation /></ProtectedRoute>} />
+
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          {/*  AJOUTE CETTE ROUTE ICI */}
-          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
+          {/* Messagerie */}
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
 
           {/* Pages patient par ID */}
           <Route

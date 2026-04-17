@@ -5,12 +5,13 @@
     display: flex;
     flex-direction: column;
     justify-self: center;
-    overflow: hidden !important; 
+    overflow: hidden !important;
     height: 100vh;
     width: 100vw;
-    position: fixed; 
+    position: fixed;
     top: 0;
-    left: 0; /* Pas de scroll ici */
+    left: 0;
+    /* Pas de scroll ici */
 }
 
 /* 3. La carte du chat */
@@ -27,23 +28,27 @@
 
 /* 4. LA ZONE DE MESSAGES (C'est ici qu'on active le scroll) */
 .chat-body {
-    flex: 1; /* Prend tout l'espace libre */
-    overflow-y: auto !important; /* ✅ Active le scroll vertical ici */
+    flex: 1;
+    /* Prend tout l'espace libre */
+    overflow-y: auto !important;
+    /* ✅ Active le scroll vertical ici */
     padding: 15px;
     background: #e5ddd5 url('https://user-images.githubusercontent.com/15075759/28719144-86dc0f70-73b1-11e7-911d-60d70fcded21.png');
     display: flex;
     flex-direction: column;
-    
+
     /* Scroll fluide pour iPhone/Android */
-    -webkit-overflow-scrolling: touch; 
+    -webkit-overflow-scrolling: touch;
 }
 
 /* 5. Garder le footer en bas */
 .chat-footer-custom {
     background: #f0f0f0;
     padding: 10px;
-    flex-shrink: 0; /* Empêche le footer de s'écraser */
+    flex-shrink: 0;
+    /* Empêche le footer de s'écraser */
 }
+
 /* ADAPTATION TABLETTE ET DESKTOP */
 @media (min-width: 768px) {
     .chat-wrapper {
@@ -62,6 +67,7 @@
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
     }
 }
+
 /* ADAPTATION Telephone */
 @media (min-width: 320px) {
     .chat-wrapper {
@@ -81,6 +87,7 @@
         margin-bottom: 100px;
     }
 }
+
 /* 4. HEADER TYPE WHATSAPP (Horizontal) */
 .chat-header-custom {
     background: #00a5a8;
@@ -283,6 +290,30 @@
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
+}
+
+.btn-call-video {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    padding: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease;
+}
+
+.btn-call-video:hover {
+    transform: scale(1.1);
+    color: #e0e0e0;
+}
+
+.chat-header-custom {
+    padding: 10px 15px;
+    background-color: #00a5a8;
+    /* Ta couleur principale */
 }
 
 .recording {
