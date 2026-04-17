@@ -6,7 +6,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
 
-// ✅ Définition dynamique de l'URL de l'API
+// ✅ Définition dynamique de l'URL de l'API (Local par défaut, variable d'env en production)
 const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
 
 const Register = () => {
@@ -70,7 +70,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // ✅ Utilisation de la variable API_URL au lieu de localhost
+      // ✅ Utilisation de la variable API_URL au lieu du lien en dur
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +86,7 @@ const Register = () => {
         setErrors({ ...errors, server: data.error || "Erreur lors de l'inscription" });
       }
     } catch (error) {
-      console.error("Erreur Inscription:", error);
+      console.error("Erreur connexion serveur:", error);
       setErrors({ ...errors, server: "Erreur de connexion au serveur. Vérifiez votre connexion." });
     } finally {
       setIsLoading(false);
@@ -205,6 +205,7 @@ const Register = () => {
                   </div>
 
                   <div className="text-center mt-5">
+                    {/* ✅ Utilisation du composant réutilisable pour S'inscrire */}
                     <Button
                       type="submit"
                       label="S'inscrire maintenant"

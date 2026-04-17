@@ -5,7 +5,7 @@ import { confirmPasswordReset } from "firebase/auth";
 import Button from "../../components/boutons/Button"; // Utilisation de ton composant Button
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import "./ResetPassword.css"; // Assure-toi de créer ce CSS ou d'utiliser Login.css
+import "./ResetPassword.css"; //
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
@@ -60,7 +60,7 @@ const ResetPassword = () => {
 
       setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! ✅" });
 
-      // Redirection vers login
+      // Redirection vers login après succès
       setTimeout(() => navigate("/login"), 2500);
     } catch (error) {
       console.error(error);
@@ -73,7 +73,7 @@ const ResetPassword = () => {
   };
 
   return (
-    <div className="login-main-container"> {/* Réutilisation de la classe container du Login */}
+    <div className="login-main-container">
       <div className="container">
         <div className="row justify-content-center align-items-center min-vh-100">
           <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
@@ -95,7 +95,7 @@ const ResetPassword = () => {
                   {/* Nouveau mot de passe */}
                   <div className="mb-3 text-start">
                     <label className="form-label small fw-bold">Mot de passe</label>
-                    <div className="input-group custom-input-group">
+                    <div className={`input-group custom-input-group ${errors.password ? 'border-danger' : ''}`}>
                       <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
                       <input
                         type={showPassword ? "text" : "password"}
@@ -115,13 +115,13 @@ const ResetPassword = () => {
                         <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                       </span>
                     </div>
-                    {errors.password && <small className="text-danger small">{errors.password}</small>}
+                    {errors.password && <small className="text-danger small d-block mt-1">{errors.password}</small>}
                   </div>
 
                   {/* Confirmation */}
                   <div className="mb-4 text-start">
                     <label className="form-label small fw-bold">Confirmation</label>
-                    <div className="input-group custom-input-group">
+                    <div className={`input-group custom-input-group ${errors.confirmPassword ? 'border-danger' : ''}`}>
                       <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
@@ -141,7 +141,7 @@ const ResetPassword = () => {
                         <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                       </span>
                     </div>
-                    {errors.confirmPassword && <small className="text-danger small">{errors.confirmPassword}</small>}
+                    {errors.confirmPassword && <small className="text-danger small d-block mt-1">{errors.confirmPassword}</small>}
                   </div>
 
                   <Button
@@ -150,6 +150,7 @@ const ResetPassword = () => {
                     variant="login"
                     loading={loading}
                     disabled={!oobCode}
+                    className="w-100"
                   />
                 </form>
               </div>

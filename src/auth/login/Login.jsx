@@ -27,7 +27,7 @@ const Login = () => {
     setErrorMessage("");
 
     try {
-      // ✅ Utilisation de la variable API_URL
+      // ✅ Utilisation de la variable API_URL dynamique
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -120,6 +120,7 @@ const Login = () => {
                   {errorMessage && <div className="alert alert-danger py-2 small">{errorMessage}</div>}
 
                   <div className="d-grid gap-2">
+                    {/* ✅ Composant Bouton Connexion */}
                     <Button
                       type="submit"
                       label="Se connecter"
@@ -127,6 +128,7 @@ const Login = () => {
                       loading={loading}
                     />
 
+                    {/* ✅ Composant Bouton Inscription */}
                     <Button
                       type="button"
                       label="Créer un compte"
