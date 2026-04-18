@@ -1,5 +1,5 @@
 // api/index.js
-require('dotenv').config(); // ⚠️ INDISPENSABLE pour lire les variables .env
+require('dotenv').config();
 
 const express = require("express");
 const cors = require("cors");
@@ -9,7 +9,7 @@ const app = express();
 
 // --- MIDDLEWARES ---
 
-// 1. ✅ Configuration CORS
+// 1. ✅ Configuration CORS (Gère déjà les requêtes OPTIONS par défaut)
 app.use(cors({
     origin: [
         'http://localhost:3000',
@@ -20,35 +20,30 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 2. ✅ Force la réponse 200 pour toutes les requêtes OPTIONS (Preflight)
-// Syntaxe '/*' requise pour éviter l'erreur "Missing parameter name" sur les versions récentes
-app.options('/*', cors());
+// 2. ❌ ON SUPPRIME app.options('/*', ...) qui fait crash Vercel
+// Le middleware au-dessus s'occupe déjà de répondre aux navigateurs.
 
 app.use(express.json());
 
 // --- ROUTES ---
 
-// ✅ Route de test
+// Route de santé pour vérifier que l'API répond
 app.get("/api/health", (req, res) => {
-    res.json({ status: "ok", message: "Serveur Sama Docteur en ligne !" });
+    res.json({ status: "ok", message: "Serveur Sama Docteur opérationnel !" });
 });
 
-// ✅ ROUTES AUTHENTIFICATION
 app.use("/api/auth", authRoutes);
 
-// ✅ GESTION DES ERREURS 404
+// Gestion 404 propre
 app.use((req, res) => {
     res.status(404).json({ error: "Route non trouvée sur le serveur." });
 });
 
-// --- LANCEMENT DU SERVEUR (LOCAL UNIQUEMENT) ---
+// --- LANCEMENT (Local uniquement) ---
 if (process.env.NODE_ENV !== 'production') {
     const PORT = process.env.PORT || 5000;
     app.listen(PORT, () => {
-        console.log("============================================");
-        console.log(`🚀 SERVEUR SAMA DOCTEUR LANCÉ EN LOCAL`);
-        console.log(`📡 URL : http://localhost:${PORT}`);
-        console.log("============================================");
+        console.log(`🚀 SERVEUR LANCÉ : http://localhost:${PORT}`);
     });
 }
 
