@@ -5,7 +5,7 @@ import { confirmPasswordReset } from "firebase/auth";
 import Button from "../../components/boutons/Button"; // Utilisation de ton composant Button
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
-import "./ResetPassword.css"; //
+import "./ResetPassword.css";
 
 const ResetPassword = () => {
   const [searchParams] = useSearchParams();
