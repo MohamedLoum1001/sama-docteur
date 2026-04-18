@@ -3,8 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { FaUserInjured, FaSearch, FaCalendarPlus } from "react-icons/fa";
-// ✅ Importation du composant réutilisable
+import { FaUserInjured, FaSearch, FaCalendarPlus, FaPills } from "react-icons/fa"; // Ajout de FaPills
 import Button from "../../../components/boutons/Button";
 import "./HomePatient.css";
 
@@ -13,7 +12,6 @@ const HomePatient = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [doctorsFromDB, setDoctorsFromDB] = useState([]);
 
-  // ✅ 1. Récupération des médecins depuis Firestore
   useEffect(() => {
     const q = query(collection(db, "users"), where("role", "==", "medecin"));
     const unsubscribe = onSnapshot(q, (snapshot) => {
@@ -26,7 +24,6 @@ const HomePatient = () => {
     return () => unsubscribe();
   }, []);
 
-  // 🔎 2. Filtrage Dynamique
   const filteredDoctors = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
     if (!term) return [];
@@ -39,11 +36,12 @@ const HomePatient = () => {
     );
   }, [searchTerm, doctorsFromDB]);
 
+  // ✅ Liste des cartes mise à jour avec la Pharmacie
   const cards = [
     { emoji: "👤", title: "Gérer mon profil", description: "Mettez à jour vos informations et historique.", link: "/profil" },
     { emoji: "📅", title: "Prendre RDV", description: "Choisissez un médecin et une date disponible.", action: () => navigate("/rendez-vous") },
+    { emoji: "💊", title: "Pharmacie", description: "Trouvez un médicament au meilleur prix près de chez vous.", link: "/pharmacie" }, // 🆕 Nouvelle carte
     { emoji: "🎟️", title: "Tickets", description: "Consultez vos tickets et historique d'achats.", link: "/ticket-acheter" },
-    { emoji: "📹", title: "Consultation en ligne", description: "Lancez une séance vidéo avec votre médecin.", link: "/consultation" },
     { emoji: "🔔", title: "Notifications", description: "Recevez des rappels pour vos soins.", link: "/notifications" },
     { emoji: "📁", title: "Mon dossier médical", description: "Accédez à vos examens et prescriptions.", link: "/dossier-medical" },
   ];
@@ -52,13 +50,12 @@ const HomePatient = () => {
     <div className="home-patient-wrapper">
       <div className="container mx-auto px-4 pb-12">
 
-        {/* Titre de bienvenue */}
         <div className="mt-5 flex flex-col items-center justify-center gap-2">
           <FaUserInjured className="text-teal-600 text-5xl mb-2" />
           <h2 className="font-extrabold text-3xl text-gray-800 text-center">
             Bienvenue sur votre espace patient
           </h2>
-          <p className="text-gray-500">Recherchez un praticien dans notre base de données</p>
+          <p className="text-gray-500">Recherchez un praticien ou accédez à nos services</p>
         </div>
 
         {/* Barre de recherche */}
@@ -73,7 +70,6 @@ const HomePatient = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
 
-            {/* RÉSULTATS */}
             {searchTerm && (
               <div
                 className="position-absolute w-100 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-10"
@@ -136,7 +132,6 @@ const HomePatient = () => {
                 <p className="text-gray-500 text-sm leading-relaxed mb-6">{card.description}</p>
               </div>
 
-              {/* ✅ Utilisation du composant réutilisable Button */}
               <Button
                 label="Découvrir"
                 variant="login"

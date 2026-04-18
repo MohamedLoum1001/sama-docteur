@@ -1,6 +1,10 @@
+import { useEffect } from "react"; // ✅ Ajout de useEffect
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import "./App.css";
+
+// ✅ Import du script d'injection (assure-toi que le fichier est au bon endroit)
+import { injectNationalData } from "./utils/seedData";
 
 import Register from "./auth/register/Register";
 import Login from "./auth/login/Login";
@@ -18,11 +22,14 @@ import Ordonnances from "./pages/patients/ordonnance/Ordonnances";
 import DossierMedical from "./pages/patients/dossierMedical/DossierMedical";
 import RecommandationsPatient from "./pages/patients/recommandation/RecommandationsPatient";
 import Avis from "./pages/patients/avis/Avis";
+import Pharmacie from "./pages/patients/Pharmacie/Pharmacie";
+
 // Pages patient par ID
 import OrdonnancesPatient from "./pages/patients/OrdonnancesPatient/OrdonnancesPatient";
 import ExamensPatient from "./pages/patients/ExamensPatient/ExamensPatient";
 import ConsultationsPatient from "./pages/patients/ConsultationsPatient/ConsultationsPatient";
 import RecommandationsPatientById from "./pages/patients/RecommandationsPatientById/RecommandationsPatientById";
+
 // Médecins
 import HomeMedecin from "./pages/medecins/home/HomeMedecine";
 import ListeRendezVous from "./pages/medecins/rendezVous/ListRendzVous";
@@ -31,17 +38,26 @@ import Prescription from "./pages/medecins/prescription/Prescription";
 import Recommandation from "./pages/medecins/recommendation/Recommendation";
 import DossiersMedicaux from "./pages/medecins/dossiersMedicaux/DossiersMedicaux";
 import Disponibilites from "./pages/medecins/disponibilites/Disponibilites";
+
 // Layout
 import Layout from "./components/Layout/Layout";
+
 // Admin
 import Dashboard from "./pages/admin/dashboard/Dasboard";
 import DoctorProfile from "./pages/medecins/doctorProfile/DoctorProfile";
 import Messages from "./components/messages/Messages";
 
-// ✅ AJOUT DE L'IMPORT VIDÉO
+// Vidéo
 import VideoCall from "./pages/VideoCall/VideoCall";
 
 function App() {
+
+  // ✅ LOGIQUE D'INJECTION NATIONALE
+  useEffect(() => {
+    // On décommente la ligne pour lancer le script
+    injectNationalData();
+  }, []);
+
   return (
     <div className="App">
       <Routes>
@@ -54,7 +70,7 @@ function App() {
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/forget-password" element={<ForgetPassword />} />
 
-        {/* ✅ ROUTE APPEL VIDÉO (Plein écran, sans Layout) */}
+        {/* ROUTE APPEL VIDÉO */}
         <Route
           path="/video-call/:callId"
           element={<ProtectedRoute><VideoCall /></ProtectedRoute>}
@@ -66,6 +82,10 @@ function App() {
           <Route path="/patient" element={<ProtectedRoute><HomePatient /></ProtectedRoute>} />
           <Route path="/profil" element={<ProtectedRoute><Profil /></ProtectedRoute>} />
           <Route path="/rendez-vous" element={<ProtectedRoute><RendezVous /></ProtectedRoute>} />
+
+          {/* Pharmacie */}
+          <Route path="/pharmacie" element={<ProtectedRoute><Pharmacie /></ProtectedRoute>} />
+
           <Route path="/paiement-ticket" element={<ProtectedRoute><PaiementTicket /></ProtectedRoute>} />
           <Route path="/ticket-acheter" element={<ProtectedRoute><TicketAcheter /></ProtectedRoute>} />
           <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
