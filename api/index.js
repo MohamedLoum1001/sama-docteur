@@ -9,54 +9,36 @@ const app = express();
 
 // --- MIDDLEWARES ---
 
-// 1. ✅ Configuration CORS en PREMIER (Très important pour éviter ERR_FAILED)
+// 1. ✅ Configuration CORS (Simplifiée pour éviter les erreurs de compilation)
 app.use(cors({
-    origin: function (origin, callback) {
-        const allowedOrigins = [
-            'http://localhost:3000',
-            'https://sama-docteur.vercel.app'
-        ];
-        if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-            callback(null, true);
-        } else {
-            callback(new Error('Erreur CORS : Origine non autorisée par la politique du serveur.'));
-        }
-    },
+    origin: [
+        'http://localhost:3000',
+        'https://sama-docteur.vercel.app'
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// 2. ✅ Options de pré-vol (Preflight) pour toutes les routes
-app.options('*', cors());
+// ✅ On supprime app.options('(.*)') car cors() gère déjà les requêtes OPTIONS par défaut
+// Cela corrige l'erreur "Missing parameter name" que tu avais dans le terminal.
 
-// Permet au serveur de lire le format JSON
 app.use(express.json());
 
 // --- ROUTES ---
 
-// ✅ ROUTE DE TEST (À tester : https://sama-docteur.vercel.app/api/health)
+// ✅ Route de test (À tester : https://sama-docteur.vercel.app/api/health)
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Serveur Sama Docteur en ligne !" });
 });
 
-// ✅ ROUTES AUTHENTIFICATION (Avec gestion d'erreur Try/Catch)
-app.use("/api/auth", (req, res, next) => {
-    try {
-        // On passe la requête aux routes définies dans authRoutes
-        authRoutes(req, res, next);
-    } catch (error) {
-        console.error("ERREUR ROUTE AUTH:", error);
-        res.status(500).json({
-            error: "Le serveur a rencontré une erreur interne.",
-            details: error.message
-        });
-    }
-});
+// ✅ ROUTES AUTHENTIFICATION
+// Note : authRoutes est un middleware de routage, on l'utilise directement
+app.use("/api/auth", authRoutes);
 
-// ✅ GESTION DES ERREURS 404
+// ✅ GESTION DES ERREURS 404 (Syntaxe propre sans caractères spéciaux)
 app.use((req, res) => {
-    res.status(404).json({ error: `Route ${req.originalUrl} non trouvée sur le serveur.` });
+    res.status(404).json({ error: "Route non trouvée sur le serveur." });
 });
 
 // --- LANCEMENT DU SERVEUR (LOCAL UNIQUEMENT) ---
