@@ -6,8 +6,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
-// ✅ Définition de l'URL de l'API (Local par défaut, variable d'env en production)
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// ✅ Détection automatique de l'URL de l'API (Local par défaut, URL Vercel en production)
+const API_URL = window.location.hostname === "localhost"
+  ? "http://localhost:5000"
+  : "https://sama-docteur.vercel.app";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -27,7 +29,7 @@ const Login = () => {
     setErrorMessage("");
 
     try {
-      // ✅ Utilisation de la variable API_URL dynamique
+      // ✅ Utilisation de l'URL dynamique API_URL
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,13 +39,16 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
+        // Log de succès pour le patient
         if (data.user.role === "patient") {
           console.log(`Connecté en tant que Patient : ${data.user.prenom} ${data.user.nom}`);
           console.log(`ID Utilisateur : ${data.user.id || data.user._id || data.user.uid}`);
         }
 
+        // Stockage des infos utilisateur
         localStorage.setItem("user", JSON.stringify(data.user));
 
+        // Redirection basée sur le rôle
         setTimeout(() => {
           if (data.user.role === "patient") navigate("/patient");
           else if (data.user.role === "medecin") navigate("/medecin");
@@ -57,7 +62,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      setErrorMessage("Impossible de contacter le serveur. Vérifiez votre connexion.");
+      setErrorMessage("Impossible de contacter le serveur.");
       setLoading(false);
     }
   };
@@ -120,7 +125,7 @@ const Login = () => {
                   {errorMessage && <div className="alert alert-danger py-2 small">{errorMessage}</div>}
 
                   <div className="d-grid gap-2">
-                    {/* ✅ Composant Bouton Connexion */}
+                    {/* ✅ Bouton de connexion avec état de chargement */}
                     <Button
                       type="submit"
                       label="Se connecter"
@@ -128,7 +133,7 @@ const Login = () => {
                       loading={loading}
                     />
 
-                    {/* ✅ Composant Bouton Inscription */}
+                    {/* ✅ Bouton de création de compte */}
                     <Button
                       type="button"
                       label="Créer un compte"

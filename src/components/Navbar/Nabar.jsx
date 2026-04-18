@@ -29,21 +29,27 @@ const Navbar = () => {
   const msgRef = useRef(null);
   const navigate = useNavigate();
 
-  // URL de l'API (à adapter selon ton environnement local ou Vercel)
-  const API_URL = "https://sama-docteur.vercel.app";
+  // ✅ URL de l'API Dynamique (Local vs Production)
+  const API_URL = window.location.hostname === "localhost"
+    ? "http://localhost:5000"
+    : "https://sama-docteur.vercel.app";
 
+  // ✅ Logique de déconnexion avec appel API
   const logout = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
-    const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur";
+    const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur Inconnu";
+
     try {
+      // Appel au backend pour logguer la déconnexion
       await fetch(`${API_URL}/api/auth/logout-log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userName }),
       });
-      localStorage.removeItem("user");
-      navigate("/login");
     } catch (error) {
+      console.error("Impossible d'envoyer le log de déconnexion", error);
+    } finally {
+      // Dans tous les cas (succès ou échec de l'API), on nettoie le client
       localStorage.removeItem("user");
       navigate("/login");
     }
@@ -171,7 +177,6 @@ const Navbar = () => {
               )}
             </button>
 
-            {/* Appel du composant NotificationDropdown */}
             {showNotif && (
               <NotificationDropdown
                 notifications={notifications}

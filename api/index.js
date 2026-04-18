@@ -9,34 +9,34 @@ const app = express();
 
 // --- MIDDLEWARES ---
 
-// 1. ✅ Configuration CORS (Simplifiée pour éviter les erreurs de compilation)
+// 1. ✅ Configuration CORS
 app.use(cors({
     origin: [
         'http://localhost:3000',
         'https://sama-docteur.vercel.app'
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // OPTIONS est crucial ici
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// ✅ On supprime app.options('(.*)') car cors() gère déjà les requêtes OPTIONS par défaut
-// Cela corrige l'erreur "Missing parameter name" que tu avais dans le terminal.
+// 2. ✅ Force la réponse 200 pour toutes les requêtes OPTIONS (Preflight)
+// On utilise une route générique qui ne fait pas planter le terminal
+app.options('*', cors());
 
 app.use(express.json());
 
 // --- ROUTES ---
 
-// ✅ Route de test (À tester : https://sama-docteur.vercel.app/api/health)
+// ✅ Route de test
 app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Serveur Sama Docteur en ligne !" });
 });
 
 // ✅ ROUTES AUTHENTIFICATION
-// Note : authRoutes est un middleware de routage, on l'utilise directement
 app.use("/api/auth", authRoutes);
 
-// ✅ GESTION DES ERREURS 404 (Syntaxe propre sans caractères spéciaux)
+// ✅ GESTION DES ERREURS 404
 app.use((req, res) => {
     res.status(404).json({ error: "Route non trouvée sur le serveur." });
 });

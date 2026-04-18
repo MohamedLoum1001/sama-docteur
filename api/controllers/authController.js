@@ -32,7 +32,6 @@ exports.createPaymentIntent = async (req, res) => {
             clientSecret: paymentIntent.client_secret,
         });
     } catch (error) {
-        // ✅ Capture sécurisée des erreurs Stripe
         console.error("❌ Crash createPaymentIntent:", error.message);
         res.status(500).json({
             error: "Erreur lors de l'initialisation du paiement.",
@@ -78,9 +77,13 @@ exports.register = async (req, res) => {
 
         await db.collection("users").doc(userRecord.uid).set(userData);
 
+        // ✅ LOGS DÉTAILLÉS DANS LE TERMINAL
         console.log("============================================");
         console.log("🆕 NOUVEL UTILISATEUR INSCRIT");
-        console.log(`Nom         : ${prenom} ${nom}`);
+        console.log(`Prénom    : ${prenom}`);
+        console.log(`Nom       : ${nom}`);
+        console.log(`Rôle      : ${userData.role}`);
+        console.log(`ID (UID)  : ${userRecord.uid}`);
         console.log("============================================");
 
         res.status(201).json({
@@ -89,7 +92,6 @@ exports.register = async (req, res) => {
         });
 
     } catch (error) {
-        // ✅ Capture sécurisée des erreurs d'inscription
         console.error("❌ Crash Register:", error.message);
         res.status(500).json({
             error: "Erreur interne du serveur lors de l'inscription.",
@@ -105,10 +107,7 @@ exports.login = async (req, res) => {
     try {
         const { email } = req.body;
 
-        // On récupère l'utilisateur Firebase
         const userRecord = await auth.getUserByEmail(email);
-
-        // On récupère les données dans Firestore
         const userDoc = await db.collection("users").doc(userRecord.uid).get();
 
         if (!userDoc.exists) {
@@ -117,9 +116,13 @@ exports.login = async (req, res) => {
 
         const userData = userDoc.data();
 
+        // ✅ LOGS DÉTAILLÉS DANS LE TERMINAL
         console.log("============================================");
         console.log("🔑 CONNEXION RÉUSSIE");
-        console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
+        console.log(`Prénom    : ${userData.prenom}`);
+        console.log(`Nom       : ${userData.nom}`);
+        console.log(`Rôle      : ${userData.role}`);
+        console.log(`ID (UID)  : ${userRecord.uid}`);
         console.log("============================================");
 
         res.status(200).json({
@@ -133,10 +136,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        // ✅ Capture sécurisée des erreurs de connexion (C'est ici que Vercel renvoyait l'erreur HTML)
         console.error("❌ Crash Login:", error.message);
-
-        // On renvoie une erreur 401 pour les identifiants, 500 pour le reste
         const status = error.code === 'auth/user-not-found' ? 404 : 401;
         res.status(status).json({
             error: "Erreur de connexion : Identifiants incorrects ou problème serveur.",

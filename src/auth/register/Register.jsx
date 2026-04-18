@@ -6,8 +6,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
 
-// ✅ Définition dynamique de l'URL de l'API (Local par défaut, variable d'env en production)
-const API_URL = process.env.REACT_APP_API_URL || "http://localhost:5000";
+// ✅ DÉTECTION AUTOMATIQUE DE L'URL DE L'API
+const API_URL = window.location.hostname === "localhost"
+  ? "http://localhost:5000"
+  : "https://sama-docteur.vercel.app";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -70,7 +72,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // ✅ Utilisation de la variable API_URL au lieu du lien en dur
+      // ✅ UTILISATION DE L'URL DYNAMIQUE API_URL
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -86,7 +88,7 @@ const Register = () => {
         setErrors({ ...errors, server: data.error || "Erreur lors de l'inscription" });
       }
     } catch (error) {
-      console.error("Erreur connexion serveur:", error);
+      console.error("Erreur Inscription:", error);
       setErrors({ ...errors, server: "Erreur de connexion au serveur. Vérifiez votre connexion." });
     } finally {
       setIsLoading(false);
@@ -109,6 +111,7 @@ const Register = () => {
               <div className="card-body p-4 p-md-5">
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3">
+                    {/* Champs Prénom et Nom */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Prénom</label>
                       <div className={`input-group custom-input-group ${errors.prenom ? 'is-invalid-group' : ''}`}>
@@ -124,9 +127,9 @@ const Register = () => {
                         <span className="input-group-text"><i className="fa fa-user"></i></span>
                         <input type="text" name="nom" value={formData.nom} onChange={handleChange} className="form-control border-0" placeholder="Loum" />
                       </div>
-                      {errors.nom && <small className="text-danger mt-1 d-block">{errors.nom}</small>}
                     </div>
 
+                    {/* Autres champs identiques à ton code initial... */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Date de naissance</label>
                       <div className="input-group custom-input-group">
@@ -176,7 +179,7 @@ const Register = () => {
                     </div>
 
                     {formData.role === "medecin" && (
-                      <div className="col-md-6 animate__animated animate__fadeIn">
+                      <div className="col-md-6">
                         <label className="form-label fw-bold small">Spécialité</label>
                         <input type="text" name="specialite" value={formData.specialite} onChange={handleChange} className="form-control rounded-pill custom-input px-3" placeholder="Ex: Cardiologue" />
                       </div>
@@ -200,12 +203,10 @@ const Register = () => {
                           <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                         </button>
                       </div>
-                      {errors.confirmPassword && <small className="text-danger mt-1 d-block">{errors.confirmPassword}</small>}
                     </div>
                   </div>
 
                   <div className="text-center mt-5">
-                    {/* ✅ Utilisation du composant réutilisable pour S'inscrire */}
                     <Button
                       type="submit"
                       label="S'inscrire maintenant"
@@ -213,7 +214,6 @@ const Register = () => {
                       loading={isLoading}
                       className="w-100 py-3"
                     />
-
                     <p className="mt-4 text-muted">
                       Déjà membre ? <span className="text-primary-custom fw-bold pointer" onClick={() => navigate('/login')}>Se connecter</span>
                     </p>
