@@ -12,19 +12,17 @@ const app = express();
 // 1. ✅ Configuration CORS en PREMIER (Très important pour éviter ERR_FAILED)
 app.use(cors({
     origin: function (origin, callback) {
-        // Liste des domaines autorisés
         const allowedOrigins = [
             'http://localhost:3000',
             'https://sama-docteur.vercel.app'
         ];
-        // Autoriser si l'origine est dans la liste ou si c'est une requête sans origine (ex: mobile/Postman)
         if (!origin || allowedOrigins.indexOf(origin) !== -1) {
             callback(null, true);
         } else {
             callback(new Error('Erreur CORS : Origine non autorisée par la politique du serveur.'));
         }
     },
-    credentials: true, // Autorise l'envoi de cookies/headers
+    credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
@@ -42,8 +40,19 @@ app.get("/api/health", (req, res) => {
     res.json({ status: "ok", message: "Serveur Sama Docteur en ligne !" });
 });
 
-// ✅ ROUTES AUTHENTIFICATION
-app.use("/api/auth", authRoutes);
+// ✅ ROUTES AUTHENTIFICATION (Avec gestion d'erreur Try/Catch)
+app.use("/api/auth", (req, res, next) => {
+    try {
+        // On passe la requête aux routes définies dans authRoutes
+        authRoutes(req, res, next);
+    } catch (error) {
+        console.error("ERREUR ROUTE AUTH:", error);
+        res.status(500).json({
+            error: "Le serveur a rencontré une erreur interne.",
+            details: error.message
+        });
+    }
+});
 
 // ✅ GESTION DES ERREURS 404
 app.use((req, res) => {

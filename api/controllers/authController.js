@@ -13,7 +13,6 @@ exports.createPaymentIntent = async (req, res) => {
             amount: amount * 100, // Conversion en centimes
             currency: 'eur',
             payment_method_types: ['card'],
-            // On ajoute des métadonnées pour les retrouver dans le dashboard Stripe
             metadata: {
                 patientName,
                 doctorName,
@@ -22,13 +21,9 @@ exports.createPaymentIntent = async (req, res) => {
             }
         });
 
-        // --- AFFICHAGE DANS LE TERMINAL (DEBUG PAIEMENT RÉUSSI) ---
-        // Note : Dans un flux réel, le succès est confirmé via un webhook ou après la confirmation client
         console.log("============================================");
         console.log("💳 TENTATIVE DE PAIEMENT GÉNÉRÉE");
         console.log(`Patient   : ${patientName}`);
-        console.log(`Médecin   : ${doctorName}`);
-        console.log(`Rdv       : ${date} à ${time}`);
         console.log(`Montant   : ${amount} €`);
         console.log(`Statut    : ClientSecret généré ✅`);
         console.log("============================================");
@@ -37,8 +32,12 @@ exports.createPaymentIntent = async (req, res) => {
             clientSecret: paymentIntent.client_secret,
         });
     } catch (error) {
-        console.error("❌ Erreur Stripe:", error.message);
-        res.status(500).json({ error: error.message });
+        // ✅ Capture sécurisée des erreurs Stripe
+        console.error("❌ Crash createPaymentIntent:", error.message);
+        res.status(500).json({
+            error: "Erreur lors de l'initialisation du paiement.",
+            details: error.message
+        });
     }
 };
 
@@ -46,12 +45,12 @@ exports.createPaymentIntent = async (req, res) => {
  * LOGIQUE D'INSCRIPTION
  */
 exports.register = async (req, res) => {
-    const {
-        email, password, prenom, nom, adresse,
-        telephone, dateNaissance, lieuNaissance, role, specialite
-    } = req.body;
-
     try {
+        const {
+            email, password, prenom, nom, adresse,
+            telephone, dateNaissance, lieuNaissance, role, specialite
+        } = req.body;
+
         const saltRounds = 10;
         const hashedPassword = await bcrypt.hash(password, saltRounds);
 
@@ -81,9 +80,7 @@ exports.register = async (req, res) => {
 
         console.log("============================================");
         console.log("🆕 NOUVEL UTILISATEUR INSCRIT");
-        console.log(`ID (UID)    : ${userRecord.uid}`);
         console.log(`Nom         : ${prenom} ${nom}`);
-        console.log(`Rôle        : ${userData.role}`);
         console.log("============================================");
 
         res.status(201).json({
@@ -92,8 +89,12 @@ exports.register = async (req, res) => {
         });
 
     } catch (error) {
-        console.error("❌ Erreur inscription :", error.message);
-        res.status(500).json({ error: "Erreur lors de l'inscription." });
+        // ✅ Capture sécurisée des erreurs d'inscription
+        console.error("❌ Crash Register:", error.message);
+        res.status(500).json({
+            error: "Erreur interne du serveur lors de l'inscription.",
+            details: error.message
+        });
     }
 };
 
@@ -101,14 +102,17 @@ exports.register = async (req, res) => {
  * LOGIQUE DE CONNEXION (LOGIN)
  */
 exports.login = async (req, res) => {
-    const { email } = req.body;
-
     try {
+        const { email } = req.body;
+
+        // On récupère l'utilisateur Firebase
         const userRecord = await auth.getUserByEmail(email);
+
+        // On récupère les données dans Firestore
         const userDoc = await db.collection("users").doc(userRecord.uid).get();
 
         if (!userDoc.exists) {
-            return res.status(404).json({ error: "Utilisateur non trouvé." });
+            return res.status(404).json({ error: "Utilisateur non trouvé dans la base de données." });
         }
 
         const userData = userDoc.data();
@@ -116,7 +120,6 @@ exports.login = async (req, res) => {
         console.log("============================================");
         console.log("🔑 CONNEXION RÉUSSIE");
         console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
-        console.log(`UID         : ${userRecord.uid}`);
         console.log("============================================");
 
         res.status(200).json({
@@ -130,7 +133,14 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("❌ Erreur de connexion :", error.message);
-        res.status(401).json({ error: "Identifiants incorrects." });
+        // ✅ Capture sécurisée des erreurs de connexion (C'est ici que Vercel renvoyait l'erreur HTML)
+        console.error("❌ Crash Login:", error.message);
+
+        // On renvoie une erreur 401 pour les identifiants, 500 pour le reste
+        const status = error.code === 'auth/user-not-found' ? 404 : 401;
+        res.status(status).json({
+            error: "Erreur de connexion : Identifiants incorrects ou problème serveur.",
+            details: error.message
+        });
     }
 };
