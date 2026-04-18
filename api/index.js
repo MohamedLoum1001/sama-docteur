@@ -16,13 +16,13 @@ app.use(cors({
         'https://sama-docteur.vercel.app'
     ],
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // OPTIONS est crucial ici
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
 // 2. ✅ Force la réponse 200 pour toutes les requêtes OPTIONS (Preflight)
-// On utilise une route générique qui ne fait pas planter le terminal
-app.options('*', cors());
+// Syntaxe '/*' requise pour éviter l'erreur "Missing parameter name" sur les versions récentes
+app.options('/*', cors());
 
 app.use(express.json());
 
