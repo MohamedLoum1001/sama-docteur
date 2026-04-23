@@ -1,433 +1,219 @@
-// src/patients/disponibilites/Disponibilites.jsx
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../../firebase";
-import {
-  doc,
-  setDoc,
-  onSnapshot,
-  serverTimestamp,
-  getDoc,
-} from "firebase/firestore";
-
-const joursDisponibles = [
-  "Lundi",
-  "Mardi",
-  "Mercredi",
-  "Jeudi",
-  "Vendredi",
-  "Samedi",
-];
-
-// ✅ Formatage des heures en français
-function formatHeure(heure) {
-  if (!heure) return "";
-  if (/^\d{2}:\d{2}$/.test(heure)) return heure;
-  try {
-    const d = new Date(`1970-01-01T${heure}`);
-    return d.toLocaleTimeString("fr-FR", {
-      hour: "2-digit",
-      minute: "2-digit",
-      hour12: false,
-    });
-  } catch (e) {
-    return heure;
-  }
-}
-
-// ✅ Formatage des dates en français
-function formatDateFr(dateStr) {
-  if (!dateStr) return "";
-  try {
-    const d = new Date(dateStr);
-    return d.toLocaleDateString("fr-FR", {
-      weekday: "long",
-      year: "numeric",
-      month: "long",
-      day: "numeric",
-    });
-  } catch (e) {
-    return dateStr;
-  }
-}
+import { doc, setDoc, onSnapshot, serverTimestamp, getDoc } from "firebase/firestore";
+import { FaChevronLeft, FaChevronRight, FaTrash } from "react-icons/fa";
+import { onAuthStateChanged } from "firebase/auth";
+import "./Disponibilites.css";
 
 const Disponibilites = () => {
   const [horaires, setHoraires] = useState([]);
-  const [form, setForm] = useState({
-    jour: "",
-    heureDebut: "",
-    heureFin: "",
-    date: "",
-    type: "jour",
-  });
-  const [editIndex, setEditIndex] = useState(null);
-  const [editForm, setEditForm] = useState({
-    jour: "",
-    heureDebut: "",
-    heureFin: "",
-    date: "",
-    type: "jour",
-  });
+  const [nomMedecin, setNomMedecin] = useState("");
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [userId, setUserId] = useState(auth.currentUser?.uid || null);
+  const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  const [nomMedecin, setNomMedecin] = useState("Médecin inconnu");
-  const [role, setRole] = useState("");
-
-  // Charger le rôle et nom du médecin
   useEffect(() => {
-    const fetchUserData = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserId(user.uid);
+        getDoc(doc(db, "users", user.uid)).then((userSnap) => {
+          if (userSnap.exists()) {
+            setNomMedecin(userSnap.data().nom || "Docteur");
+          }
+        });
 
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-
-      if (userSnap.exists()) {
-        const data = userSnap.data();
-        setNomMedecin(data.nom || "Médecin inconnu");
-        setRole(data.role || "");
-      }
-    };
-
-    fetchUserData();
-  }, []);
-
-  // Charger ses disponibilités
-  useEffect(() => {
-    const user = auth.currentUser;
-    if (!user) return;
-
-    const docRef = doc(db, "disponibilites", user.uid);
-    const unsubscribe = onSnapshot(docRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setHoraires(snapshot.data().horaires || []);
+        const unsubscribeSnap = onSnapshot(doc(db, "disponibilites", user.uid), (snap) => {
+          if (snap.exists()) {
+            setHoraires(snap.data().horaires || []);
+          }
+          setLoading(false);
+        });
+        return () => unsubscribeSnap();
       } else {
-        setHoraires([]);
+        setUserId(null);
+        setLoading(false);
       }
     });
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
-  const saveHoraires = async (newHoraires) => {
-    const user = auth.currentUser;
-    if (!user || role !== "medecin") return;
+  // ✅ SAUVEGARDE NETTOYÉE POUR FIRESTORE
+  const saveToFirebase = async (newHoraires, currentUid) => {
+    const uidToUse = currentUid || userId || auth.currentUser?.uid;
+    if (!uidToUse) return false;
 
-    await setDoc(doc(db, "disponibilites", user.uid), {
-      idMedecin: user.uid,
-      nomMedecin: nomMedecin,
-      horaires: newHoraires,
-      updatedAt: serverTimestamp(),
-    });
+    try {
+      const docRef = doc(db, "disponibilites", uidToUse);
+
+      // On nettoie les données pour éviter d'envoyer des objets complexes (Date, etc.)
+      const horairesClean = newHoraires.map(h => ({
+        date: String(h.date),
+        heureDebut: String(h.heureDebut),
+        heureFin: String(h.heureFin),
+        type: String(h.type),
+        jour: String(h.jour),
+        nomMedecin: String(nomMedecin || "Docteur")
+      }));
+
+      await setDoc(docRef, {
+        idMedecin: uidToUse,
+        nomMedecin: nomMedecin || "Docteur",
+        horaires: horairesClean,
+        updatedAt: serverTimestamp(),
+      });
+
+      console.log("🚀 Firestore synchronisé avec succès !");
+      return true;
+    } catch (error) {
+      console.error("❌ Erreur Firestore détaillée :", error);
+      return false;
+    }
   };
 
-  const ajouterHoraire = async () => {
-    if (role !== "medecin") {
-      alert("Seuls les médecins peuvent ajouter des disponibilités.");
-      return;
+  const getLocalDateStr = (d) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  };
+
+  const ajouterCreneau = (day, time) => {
+    const dateStr = getLocalDateStr(day);
+    const exists = horaires.find(h => h.date === dateStr && h.heureDebut === time);
+
+    let nouveauxHoraires;
+    if (exists) {
+      nouveauxHoraires = horaires.filter(h => !(h.date === dateStr && h.heureDebut === time));
+    } else {
+      nouveauxHoraires = [...horaires, {
+        date: dateStr,
+        heureDebut: time,
+        heureFin: time,
+        type: "consultation",
+        jour: day.toLocaleDateString('fr-FR', { weekday: 'long' }),
+        nomMedecin: nomMedecin
+      }];
     }
 
-    if (
-      (form.type === "jour" && !form.jour) ||
-      !form.heureDebut ||
-      !form.heureFin ||
-      !form.date
-    ) {
-      alert("Veuillez remplir tous les champs.");
-      return;
+    setHoraires(nouveauxHoraires);
+    // Sauvegarde silencieuse en arrière-plan
+    saveToFirebase(nouveauxHoraires, userId);
+  };
+
+  const getWeekDays = () => {
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+      const d = new Date(currentDate);
+      d.setDate(currentDate.getDate() + i);
+      days.push(d);
     }
-
-    const newHoraires = [...horaires, { ...form }];
-    setForm({ jour: "", heureDebut: "", heureFin: "", date: "", type: "jour" });
-    await saveHoraires(newHoraires);
+    return days;
   };
 
-  const supprimerHoraire = async (index) => {
-    const newHoraires = horaires.filter((_, i) => i !== index);
-    await saveHoraires(newHoraires);
+  const nextWeek = () => {
+    const next = new Date(currentDate);
+    next.setDate(currentDate.getDate() + 7);
+    setCurrentDate(next);
   };
 
-  const activerEdition = (index) => {
-    setEditIndex(index);
-    setEditForm({ ...horaires[index] });
+  const prevWeek = () => {
+    const prev = new Date(currentDate);
+    prev.setDate(currentDate.getDate() - 7);
+    setCurrentDate(prev);
   };
 
-  const sauvegarderEdition = async (index) => {
-    if (
-      (editForm.type === "jour" && !editForm.jour) ||
-      !editForm.heureDebut ||
-      !editForm.heureFin ||
-      !editForm.date
-    ) {
-      alert("Veuillez remplir tous les champs.");
-      return;
-    }
-    const newHoraires = [...horaires];
-    newHoraires[index] = { ...editForm };
-    await saveHoraires(newHoraires);
-    setEditIndex(null);
-    setEditForm({
-      jour: "",
-      heureDebut: "",
-      heureFin: "",
-      date: "",
-      type: "jour",
-    });
-  };
+  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00"];
 
-  const annulerEdition = () => {
-    setEditIndex(null);
-    setEditForm({
-      jour: "",
-      heureDebut: "",
-      heureFin: "",
-      date: "",
-      type: "jour",
-    });
-  };
+  if (loading) return <div className="text-center mt-20 font-bold text-teal-600">Chargement...</div>;
 
   return (
-    <div className="container mt-5">
-      <div className="row">
-        <div className="card shadow-lg border-0 rounded-4 mb-5">
-          <div className="card-body">
-            <h5 className="card-title text-secondary fw-bold mb-3">
-              🗓️ Disponibilités
-            </h5>
-            <p className="text-muted mb-3">
-              👨‍⚕️ Médecin : <strong>{nomMedecin}</strong>
-            </p>
+    <div className="doctolib-container">
+      <div className="header-dispo text-center mb-8">
+        <h2 className="text-3xl font-extrabold text-gray-800">Agenda de {nomMedecin}</h2>
+      </div>
 
-            <table className="table table-hover align-middle">
-              <thead className="table-light">
-                <tr>
-                  <th>📅 Date</th>
-                  <th>Type</th>
-                  <th>Jour</th>
-                  <th>🕒 Début</th>
-                  <th>🕒 Fin</th>
-                  <th>🛠️ Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {horaires.length === 0 && (
-                  <tr>
-                    <td colSpan="6" className="text-center text-muted">
-                      Aucune disponibilité définie.
-                    </td>
-                  </tr>
-                )}
-                {horaires.map((horaire, i) => (
-                  <tr key={i}>
-                    {editIndex === i ? (
-                      <>
-                        <td>
-                          <input
-                            type="date"
-                            className="form-control"
-                            value={editForm.date}
-                            onChange={(e) =>
-                              setEditForm({ ...editForm, date: e.target.value })
-                            }
-                          />
-                        </td>
-                        <td>
-                          <select
-                            className="form-select"
-                            value={editForm.type}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                type: e.target.value,
-                                jour: "",
-                              })
-                            }
-                          >
-                            <option value="jour">Jour spécifique</option>
-                            <option value="semaine">Toute la semaine</option>
-                            <option value="mois">Tout le mois</option>
-                          </select>
-                        </td>
-                        <td>
-                          {editForm.type === "jour" ? (
-                            <select
-                              className="form-select"
-                              value={editForm.jour}
-                              onChange={(e) =>
-                                setEditForm({
-                                  ...editForm,
-                                  jour: e.target.value,
-                                })
-                              }
-                            >
-                              <option value="">Jour</option>
-                              {joursDisponibles.map((jour) => (
-                                <option key={jour} value={jour}>
-                                  {jour}
-                                </option>
-                              ))}
-                            </select>
-                          ) : (
-                            <span className="text-muted">-</span>
-                          )}
-                        </td>
-                        <td>
-                          <input
-                            type="time"
-                            className="form-control"
-                            value={editForm.heureDebut}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                heureDebut: e.target.value,
-                              })
-                            }
-                          />
-                        </td>
-                        <td>
-                          <input
-                            type="time"
-                            className="form-control"
-                            value={editForm.heureFin}
-                            onChange={(e) =>
-                              setEditForm({
-                                ...editForm,
-                                heureFin: e.target.value,
-                              })
-                            }
-                          />
-                        </td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-success me-2"
-                            onClick={() => sauvegarderEdition(i)}
-                          >
-                            ✅ Enregistrer
-                          </button>
-                          <button
-                            className="btn btn-sm btn-secondary"
-                            onClick={annulerEdition}
-                          >
-                            ❌ Annuler
-                          </button>
-                        </td>
-                      </>
-                    ) : (
-                      <>
-                        {/* ✅ Format date et heures en français */}
-                        <td>{formatDateFr(horaire.date)}</td>
-                        <td>
-                          {horaire.type === "semaine"
-                            ? "Toute la semaine"
-                            : horaire.type === "mois"
-                            ? "Tout le mois"
-                            : "Jour spécifique"}
-                        </td>
-                        <td>
-                          {horaire.type === "jour" ? (
-                            horaire.jour
-                          ) : (
-                            <span className="text-muted">-</span>
-                          )}
-                        </td>
-                        <td>{formatHeure(horaire.heureDebut)}</td>
-                        <td>{formatHeure(horaire.heureFin)}</td>
-                        <td>
-                          <button
-                            className="btn btn-sm btn-outline-primary me-2"
-                            onClick={() => activerEdition(i)}
-                          >
-                            Modifier
-                          </button>
-                          <button
-                            className="btn btn-sm btn-outline-danger"
-                            onClick={() => supprimerHoraire(i)}
-                          >
-                            Supprimer
-                          </button>
-                        </td>
-                      </>
-                    )}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-
-            {/* Ajout d’une nouvelle dispo */}
-            {role === "medecin" && (
-              <>
-                <h6 className="mt-4 fw-semibold">
-                  ➕ Ajouter une disponibilité
-                </h6>
-                <div className="row g-3 align-items-center mt-2">
-                  <div className="col-md-3">
-                    <select
-                      className="form-select rounded-3 mb-2"
-                      value={form.type}
-                      onChange={(e) =>
-                        setForm({ ...form, type: e.target.value, jour: "" })
-                      }
-                    >
-                      <option value="jour">Jour spécifique</option>
-                      <option value="semaine">Toute la semaine</option>
-                      <option value="mois">Tout le mois</option>
-                    </select>
-                    {form.type === "jour" && (
-                      <select
-                        className="form-select rounded-3 mt-2"
-                        value={form.jour}
-                        onChange={(e) =>
-                          setForm({ ...form, jour: e.target.value })
-                        }
-                      >
-                        <option value="">Jour</option>
-                        {joursDisponibles.map((jour) => (
-                          <option key={jour} value={jour}>
-                            {jour}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                  </div>
-                  <div className="col-md-3">
-                    <input
-                      type="date"
-                      className="form-control rounded-3 mb-2"
-                      value={form.date}
-                      onChange={(e) =>
-                        setForm({ ...form, date: e.target.value })
-                      }
-                    />
-                    <input
-                      type="time"
-                      className="form-control rounded-3"
-                      value={form.heureDebut}
-                      onChange={(e) =>
-                        setForm({ ...form, heureDebut: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="col-md-3">
-                    <input
-                      type="time"
-                      className="form-control rounded-3"
-                      value={form.heureFin}
-                      onChange={(e) =>
-                        setForm({ ...form, heureFin: e.target.value })
-                      }
-                    />
-                  </div>
-                  <div className="col-md-3">
-                    <button
-                      className="btn btn-custom mt-3 rounded-pill w-100"
-                      type="button"
-                      onClick={ajouterHoraire}
-                    >
-                      Ajouter
-                    </button>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
+      <div className="calendar-card bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden mb-10">
+        <div className="calendar-nav flex justify-between items-center p-6 border-b">
+          <button onClick={prevWeek} className="p-2 border rounded-full text-teal-600"><FaChevronLeft /></button>
+          <span className="font-bold text-xl capitalize">{currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
+          <button onClick={nextWeek} className="p-2 border rounded-full text-teal-600"><FaChevronRight /></button>
         </div>
+
+        <div className="calendar-grid grid grid-cols-7 overflow-x-auto">
+          {getWeekDays().map((day, index) => {
+            const dateStr = getLocalDateStr(day);
+            const isPast = day < new Date().setHours(0, 0, 0, 0);
+            return (
+              <div key={index} className={`calendar-column border-r p-2 ${isPast ? 'bg-gray-50' : ''}`}>
+                <div className="text-center mb-4">
+                  <div className="text-xs font-black uppercase text-teal-600">{day.toLocaleDateString('fr-FR', { weekday: 'short' })}</div>
+                  <div className="text-lg font-bold">{day.getDate()}</div>
+                </div>
+                <div className="flex flex-col gap-2">
+                  {timeSlots.map(time => {
+                    const isActive = horaires.some(h => h.date === dateStr && h.heureDebut === time);
+                    return (
+                      <button
+                        key={time}
+                        disabled={isPast}
+                        onClick={() => ajouterCreneau(day, time)}
+                        className={`py-2 rounded-lg text-sm font-bold border-2 transition-all ${isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-600 border-teal-50'
+                          }`}
+                      >
+                        {time}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="summary-section bg-white shadow-xl rounded-2xl p-6 mb-10 border border-gray-100">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Mes disponibilités ({horaires.length})</h3>
+        <table className="w-full text-left">
+          <thead>
+            <tr className="text-gray-500 text-sm">
+              <th className="p-2">Date</th>
+              <th className="p-2">Heure</th>
+              <th className="p-2 text-center">Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {horaires.map((h, i) => (
+              <tr key={i} className="border-b">
+                <td className="p-2">{new Date(h.date).toLocaleDateString('fr-FR')}</td>
+                <td className="p-2 font-bold text-teal-700">{h.heureDebut}</td>
+                <td className="p-2 text-center">
+                  <button onClick={() => ajouterCreneau(new Date(h.date), h.heureDebut)} className="text-red-400 p-1"><FaTrash /></button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="flex justify-center">
+        <button
+          disabled={horaires.length === 0}
+          onClick={async () => {
+            const success = await saveToFirebase(horaires, auth.currentUser?.uid);
+            if (success) {
+              alert(`Succès ! Vos ${horaires.length} créneaux ont été enregistrés.`);
+              navigate("/medecin"); // Route corrigée selon ton App.js
+            } else {
+              alert("Erreur lors de l'enregistrement. Vérifiez votre connexion Firestore.");
+            }
+          }}
+          className={`px-12 py-4 rounded-full font-bold text-white shadow-lg transition-all ${horaires.length > 0 ? 'bg-teal-600 hover:bg-teal-700 cursor-pointer' : 'bg-gray-300'
+            }`}
+        >
+          Valider et publier mon agenda
+        </button>
       </div>
     </div>
   );

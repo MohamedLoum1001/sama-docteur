@@ -33,7 +33,7 @@ import RecommandationsPatientById from "./pages/patients/RecommandationsPatientB
 // Médecins
 import HomeMedecin from "./pages/medecins/home/HomeMedecine";
 import ListeRendezVous from "./pages/medecins/rendezVous/ListRendzVous";
-import ProfilMedecin from "./pages/medecins/profil/ProfilMedecin";
+import ProfilMedecin from "./pages/medecins/profil/Profil";
 import Prescription from "./pages/medecins/prescription/Prescription";
 import Recommandation from "./pages/medecins/recommendation/Recommendation";
 import DossiersMedicaux from "./pages/medecins/dossiersMedicaux/DossiersMedicaux";

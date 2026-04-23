@@ -1,10 +1,37 @@
-.btn-custom {
-    border: none;
-    color: white;
-    border-radius: 50px;
-    transition: background-color 0.3s ease;
+html,
+body {
+    overflow: auto !important;
+    height: auto !important;
+    min-height: 100vh;
+    background-color: #f8f9fa;
+    -webkit-overflow-scrolling: touch;
 }
 
-.btn-custom:hover {
-    background-color: #0b89c4 !important;
+.home-medecin-wrapper {
+    min-height: 100vh;
+    padding-top: 20px;
+    padding-bottom: 80px;
+}
+
+/* Grille réactive */
+.grid {
+    display: grid;
+    gap: 1.5rem;
+    padding-bottom: 2rem;
+}
+
+/* Animations et boutons */
+.group:hover {
+    transform: translateY(-5px);
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding-left: 15px;
+        padding-right: 15px;
+    }
+
+    h2 {
+        font-size: 1.4rem !important;
+    }
 }

@@ -1,0 +1,46 @@
+.profil-container {
+    background-color: #f8f9fa;
+    /* Gris très clair identique à tes screens */
+    min-height: 100vh;
+}
+
+.profil-card {
+    background: #ffffff;
+}
+
+.text-primary {
+    color: #0b89c4 !important;
+    /* Bleu Sama Docteur */
+}
+
+/* Style des inputs arrondi comme sur ton Login */
+.custom-input-group .form-control {
+    border: 1px solid #dee2e6;
+    border-radius: 50px !important;
+    padding: 12px 20px;
+    font-size: 0.95rem;
+}
+
+.custom-input-group .form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(0, 165, 168, 0.1);
+    border-color: #00a5a8;
+}
+
+/* Bouton Turquoise identique au bouton "Se connecter" */
+.btn-turquoise {
+    background-color: #00a5a8;
+    border: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-turquoise:hover {
+    background-color: #008e91;
+    color: white;
+    transform: translateY(-1px);
+}
+
+.form-label {
+    font-size: 0.9rem;
+    margin-bottom: 0.4rem;
+}

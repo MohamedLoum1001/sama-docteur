@@ -198,7 +198,7 @@ const Navbar = () => {
             />
             {showDropdown && (
               <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 py-2 bg-white" style={{ minWidth: "200px", position: 'absolute', right: 0 }}>
-                <button className="dropdown-item" onClick={() => navigate("/profil")}>Mon Profil</button>
+                {/* <button className="dropdown-item" onClick={() => navigate("/profil")}>Mon Profil</button> */}
                 <button className="dropdown-item text-danger" onClick={logout}>Déconnexion</button>
               </div>
             )}

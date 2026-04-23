@@ -1,0 +1,158 @@
+/* src/pages/Disponibilites.css */
+
+:root {
+    --primary-color: #00a5a8;
+    /* Ton teal actuel */
+    --primary-hover: #008e91;
+    --bg-light: #f8f9fa;
+    --text-main: #2d3748;
+    --text-muted: #a0aec0;
+    --white: #ffffff;
+    --shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+}
+
+.doctolib-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 40px 20px;
+    background-color: var(--bg-light);
+    min-height: 100vh;
+}
+
+.header-dispo h2 {
+    color: var(--text-main);
+    letter-spacing: -0.025em;
+}
+
+.calendar-card {
+    border: none !important;
+    transition: transform 0.3s ease;
+}
+
+/* Barre de navigation */
+.calendar-nav {
+    background-color: var(--white);
+}
+
+.nav-btn {
+    border: 1px solid #edf2f7;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: white;
+}
+
+.nav-btn:hover {
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 12px rgba(0, 165, 168, 0.3);
+}
+
+/* Grille et colonnes */
+.calendar-grid {
+    background-color: var(--white);
+    border-top: 1px solid #edf2f7;
+}
+
+/* Pour le scroll horizontal sur mobile */
+@media (max-width: 1024px) {
+    .calendar-grid {
+        display: flex;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scroll-snap-type: x mandatory;
+    }
+
+    .calendar-column {
+        min-width: 140px;
+        flex: 0 0 auto;
+        scroll-snap-align: start;
+    }
+}
+
+.calendar-column {
+    transition: background-color 0.2s ease;
+}
+
+.day-header {
+    min-height: 80px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+
+/* Style des boutons de créneaux */
+.slot-btn {
+    cursor: pointer;
+    outline: none;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+    /* Ajouté pour fluidifier les changements */
+}
+
+/* ✅ Force la couleur quand le bouton est actif (via la classe Tailwind) */
+.slot-btn.bg-teal-600 {
+    background-color: #00a5a8 !important;
+    color: white !important;
+    border-color: #00a5a8 !important;
+    box-shadow: 0 4px 12px rgba(0, 165, 168, 0.4);
+}
+
+/* ✅ Optionnel : pour voir si le clic passe bien */
+.slot-btn:active {
+    transform: scale(0.95) !important;
+}
+
+/* État : Non sélectionné */
+.slot-btn:not(.bg-teal-600):not(:disabled) {
+    background-color: #f7fafc;
+    color: var(--primary-color);
+    border-color: #edf2f7;
+}
+
+.slot-btn:not(:disabled):hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+    background-color: var(--white);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+}
+
+/* État : Passé / Désactivé */
+.slot-btn:disabled {
+    background-color: #edf2f7 !important;
+    color: #cbd5e0 !important;
+    border-color: #edf2f7 !important;
+    cursor: not-allowed;
+    transform: none !important;
+    box-shadow: none !important;
+}
+
+/* Animation de chargement */
+.text-center.mt-20 {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Scrollbar personnalisée pour la grille mobile */
+.calendar-grid::-webkit-scrollbar {
+    height: 6px;
+}
+
+.calendar-grid::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.calendar-grid::-webkit-scrollbar-thumb {
+    background: #cbd5e0;
+    border-radius: 10px;
+}
+
+.calendar-grid::-webkit-scrollbar-thumb:hover {
+    background: #a0aec0;
+}
