@@ -1,7 +1,7 @@
 // src/pages/Prescription.jsx
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../../../firebase";
+import { db } from "../../../firebase";
 import {
   collection,
   addDoc,
@@ -12,9 +12,8 @@ import {
   query,
   where,
 } from "firebase/firestore";
-
-// 🔹 Import du cachet médical
-import cachetImage from "../../../assets/cachet.png";
+import { FaArrowLeft, FaPrescription, FaEraser } from "react-icons/fa";
+import Button from "../../../components/boutons/Button";
 
 const Prescription = () => {
   const navigate = useNavigate();
@@ -25,254 +24,200 @@ const Prescription = () => {
     instructions: "",
   });
   const [loading, setLoading] = useState(false);
-
   const canvasRef = useRef(null);
   const [isDrawing, setIsDrawing] = useState(false);
 
-  useEffect(() => {
-    const fetchPatients = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) return;
+  // ✅ Récupération du médecin depuis le localStorage
+  const userString = localStorage.getItem("user");
+  const userMedecin = userString ? JSON.parse(userString) : null;
+  const doctorId = userMedecin?.uid || userMedecin?.id || userMedecin?._id;
 
+  useEffect(() => {
+    const fetchPatientsConsultee = async () => {
+      if (!doctorId) return;
+      try {
         const q = query(
-          collection(db, "tickets"),
-          where("doctorId", "==", currentUser.uid)
+          collection(db, "rendezvous"),
+          where("doctorId", "==", doctorId)
         );
         const snapshot = await getDocs(q);
-        const patientIds = [
-          ...new Set(snapshot.docs.map((d) => d.data().patientId)),
-        ];
+        const patientIds = [...new Set(snapshot.docs.map((d) => d.data().patientId))];
+
         if (patientIds.length === 0) return;
 
         const usersSnapshot = await getDocs(collection(db, "users"));
-        const patientsList = usersSnapshot.docs
+        const list = usersSnapshot.docs
           .map((doc) => ({ id: doc.id, ...doc.data() }))
-          .filter(
-            (user) => patientIds.includes(user.id) && user.role === "patient"
-          );
+          .filter((u) => patientIds.includes(u.id));
 
-        setPatients(patientsList);
+        setPatients(list);
       } catch (error) {
         console.error("Erreur récupération patients :", error);
       }
     };
-    fetchPatients();
-  }, []);
+    fetchPatientsConsultee();
+  }, [doctorId]);
 
   const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
-  // ✍️ Gestion signature manuscrite
   const startDrawing = (e) => {
     setIsDrawing(true);
-    draw(e);
-  };
-  const endDrawing = () => {
-    setIsDrawing(false);
-    const ctx = canvasRef.current.getContext("2d");
+    const canvas = canvasRef.current;
+    const ctx = canvas.getContext("2d");
+    const rect = canvas.getBoundingClientRect();
     ctx.beginPath();
+    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
   };
+
   const draw = (e) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
-
     const rect = canvas.getBoundingClientRect();
     ctx.lineWidth = 2;
     ctx.lineCap = "round";
-    ctx.strokeStyle = "#000000";
-
+    ctx.strokeStyle = "#000";
     ctx.lineTo(e.clientX - rect.left, e.clientY - rect.top);
     ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(e.clientX - rect.left, e.clientY - rect.top);
   };
+
   const clearSignature = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  // ✅ FONCTION MISE À JOUR : DOUBLE ENREGISTREMENT ET NOTIFICATION
   const envoyerOrdonnance = async (e) => {
     e.preventDefault();
-    const { patientId, medicaments, instructions } = formData;
-
-    if (!patientId || !medicaments || !instructions) {
-      alert("Veuillez remplir tous les champs.");
+    if (!formData.patientId || !formData.medicaments) {
+      alert("Veuillez remplir les champs obligatoires (Patient et Médicaments).");
       return;
     }
 
     setLoading(true);
-
     try {
-      const currentUser = auth.currentUser;
-      if (!currentUser) {
-        alert("Utilisateur non connecté.");
-        setLoading(false);
-        return;
-      }
-
-      const patientDoc = await getDoc(doc(db, "users", patientId));
-      if (!patientDoc.exists()) {
-        alert("Patient introuvable.");
-        setLoading(false);
-        return;
-      }
-      const patientData = patientDoc.data();
-
-      // ✍️ Signature manuscrite en base64
+      const patient = patients.find(p => p.id === formData.patientId);
       const signatureBase64 = canvasRef.current.toDataURL("image/png");
 
-      // 🔹 Convertir cachet en base64
-      const cachetBase64 = await fetch(cachetImage)
-        .then((res) => res.blob())
-        .then(
-          (blob) =>
-            new Promise((resolve) => {
-              const reader = new FileReader();
-              reader.onloadend = () => resolve(reader.result);
-              reader.readAsDataURL(blob);
-            })
-        );
-
-      // 🔹 Sauvegarde Firestore
-      await addDoc(collection(db, "ordonnances"), {
+      // Objet de données commun pour assurer la cohérence
+      const prescriptionData = {
         createdAt: serverTimestamp(),
-        doctorId: currentUser.uid,
-        doctorName: currentUser.displayName || "Médecin",
-        patientId,
-        prenom: patientData.prenom,
-        nom: patientData.nom,
-        medicaments,
-        instructions,
+        doctorId: doctorId,
+        doctorName: `Dr ${userMedecin.prenom} ${userMedecin.nom}`,
+        patientId: formData.patientId,
+        prenom: patient.prenom, // ✅ Crucial pour l'affichage patient
+        nom: patient.nom,       // ✅ Crucial pour l'affichage patient
+        medicaments: formData.medicaments,
+        instructions: formData.instructions,
         signature: signatureBase64,
-        cachet: cachetBase64, // ✅ Ajout du cachet
-      });
+        statut: "envoyé"
+      };
 
+      // 1️⃣ Enregistrement dans la collection "ordonnances"
+      await addDoc(collection(db, "ordonnances"), prescriptionData);
+
+      // 2️⃣ Enregistrement dans la collection "prescriptions"
+      await addDoc(collection(db, "prescriptions"), prescriptionData);
+
+      // 3️⃣ Envoi de la notification au patient
       await addDoc(collection(db, "notifications"), {
-        userId: patientId,
-        title: "Nouvelle ordonnance reçue",
-        message: `Vous avez reçu une nouvelle ordonnance du Dr ${
-          currentUser.displayName || "Médecin"
-        }.`,
+        userId: formData.patientId,
+        title: "Nouvelle ordonnance 🧾",
+        message: `Dr ${userMedecin.nom} vous a prescrit une ordonnance. Vous pouvez la consulter dans votre espace.`,
         isRead: false,
         createdAt: serverTimestamp(),
       });
 
-      alert("Ordonnance envoyée ✅");
-      setFormData({ patientId: "", medicaments: "", instructions: "" });
-      clearSignature();
+      alert("Ordonnance envoyée avec succès au patient ! ✅");
+      navigate("/medecin");
     } catch (error) {
-      console.error("Erreur lors de l'envoi :", error);
-      alert("Erreur lors de l'envoi de l'ordonnance.");
+      console.error("Erreur lors de l'envoi de l'ordonnance :", error);
+      alert("Une erreur est survenue lors de l'envoi.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="container py-4">
-      <div className="mb-3">
-        <button
-          className="btn btn-custom rounded-pill"
-          onClick={() => navigate("/home-medecin")}
-        >
-          <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
-        </button>
-      </div>
+    <div className="container py-5" style={{ maxWidth: "800px" }}>
+      <button onClick={() => navigate("/medecin")} className="btn btn-link text-teal-600 p-0 mb-4 text-decoration-none fw-bold">
+        <FaArrowLeft className="me-2" /> Retour au tableau de bord
+      </button>
 
-      <h3 className="text-center text-primary mb-3">
-        📄 Prescrire une ordonnance électronique
-      </h3>
-
-      <form onSubmit={envoyerOrdonnance}>
-        <div className="mb-3">
-          <label className="form-label">Sélectionner un patient</label>
-          <select
-            className="form-select rounded-pill"
-            name="patientId"
-            value={formData.patientId}
-            onChange={handleChange}
-            required
-          >
-            <option value="">Choisissez un patient</option>
-            {patients.map((p) => (
-              <option key={p.id} value={p.id}>
-                {p.prenom} {p.nom}
-              </option>
-            ))}
-          </select>
+      <div className="card shadow-lg border-0 rounded-4 p-4">
+        <div className="text-center mb-4">
+          <FaPrescription size={40} className="text-teal-600 mb-2" />
+          <h2 className="fw-bold">Prescrire une Ordonnance</h2>
+          <p className="text-muted small">Sélectionnez un patient consulté pour lui envoyer une prescription.</p>
         </div>
 
-        <div className="mb-3">
-          <label className="form-label">Médicaments prescrits</label>
-          <textarea
-            className="form-control"
-            rows="4"
-            name="medicaments"
-            value={formData.medicaments}
-            onChange={handleChange}
-            placeholder="Liste des médicaments prescrits"
-            required
-          ></textarea>
-        </div>
+        <form onSubmit={envoyerOrdonnance}>
+          <div className="mb-4">
+            <label className="form-label fw-bold">Patient</label>
+            <select className="form-select border-2 rounded-3" name="patientId" onChange={handleChange} value={formData.patientId} required>
+              <option value="">-- Sélectionner le patient --</option>
+              {patients.map((p) => (
+                <option key={p.id} value={p.id}>{p.prenom} {p.nom}</option>
+              ))}
+            </select>
+          </div>
 
-        <div className="mb-3">
-          <label className="form-label">Instructions</label>
-          <textarea
-            className="form-control"
-            rows="3"
-            name="instructions"
-            value={formData.instructions}
-            onChange={handleChange}
-            placeholder="Instructions supplémentaires"
-            required
-          ></textarea>
-        </div>
+          <div className="mb-4">
+            <label className="form-label fw-bold">Médicaments & Posologie</label>
+            <textarea
+              className="form-control border-2 rounded-3"
+              name="medicaments"
+              rows="5"
+              placeholder="Ex: Paracétamol 1g - 1 comprimé 3 fois par jour"
+              value={formData.medicaments}
+              onChange={handleChange}
+              required
+            ></textarea>
+          </div>
 
-        {/* ✍️ Zone de signature */}
-        <div className="mb-3">
-          <label className="form-label">Signature du médecin</label>
-          <canvas
-            ref={canvasRef}
-            width={400}
-            height={150}
-            style={{ border: "1px solid #ccc", borderRadius: "8px" }}
-            onMouseDown={startDrawing}
-            onMouseUp={endDrawing}
-            onMouseOut={endDrawing}
-            onMouseMove={draw}
-          />
-          <div className="mt-2">
-            <button
-              type="button"
-              className="btn btn-secondary me-2"
-              onClick={clearSignature}
-            >
-              Effacer la signature
+          <div className="mb-4">
+            <label className="form-label fw-bold">Instructions supplémentaires</label>
+            <textarea
+              className="form-control border-2 rounded-3"
+              name="instructions"
+              rows="2"
+              placeholder="Ex: À prendre à la fin des repas"
+              value={formData.instructions}
+              onChange={handleChange}
+            ></textarea>
+          </div>
+
+          <div className="mb-4">
+            <label className="form-label fw-bold d-block">Signature manuscrite</label>
+            <canvas
+              ref={canvasRef}
+              width={500}
+              height={150}
+              className="bg-light border rounded-3 w-100"
+              style={{ cursor: "crosshair", touchAction: "none" }}
+              onMouseDown={startDrawing}
+              onMouseMove={draw}
+              onMouseUp={() => setIsDrawing(false)}
+              onMouseOut={() => setIsDrawing(false)}
+            />
+            <button type="button" onClick={clearSignature} className="btn btn-sm btn-outline-danger mt-2">
+              <FaEraser className="me-1" /> Effacer la signature
             </button>
           </div>
-        </div>
 
-        <div className="text-center">
-          <button
-            type="submit"
-            className="btn btn-custom w-100 shadow-sm"
-            disabled={loading}
-          >
-            {loading ? (
-              "Envoi en cours..."
-            ) : (
-              <>
-                <i className="bi bi-send"></i> Envoyer l’ordonnance
-              </>
-            )}
-          </button>
-        </div>
-      </form>
+          <div className="d-grid mt-5">
+            <Button
+              type="submit"
+              label={loading ? "Envoi en cours..." : "Signer et Envoyer l'ordonnance"}
+              variant="login"
+              loading={loading}
+            />
+          </div>
+        </form>
+      </div>
     </div>
   );
 };

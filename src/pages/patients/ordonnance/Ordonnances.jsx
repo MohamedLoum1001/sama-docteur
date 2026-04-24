@@ -1,7 +1,7 @@
 // src/pages/Ordonnances.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../../../firebase";
+import { db } from "../../../firebase";
 import {
   collection,
   query,
@@ -11,6 +11,8 @@ import {
   getDoc,
 } from "firebase/firestore";
 import { jsPDF } from "jspdf";
+import { FaArrowLeft, FaFileDownload, FaFilePrescription, FaUserMd } from "react-icons/fa";
+import Button from "../../../components/boutons/Button"; // ✅ Importation du composant Button
 import "./Ordonnance.css";
 
 import logoImage from "../../../assets/logo-sama-docteur.png";
@@ -23,243 +25,173 @@ const Ordonnances = () => {
   const [loading, setLoading] = useState(true);
   const [doctorsData, setDoctorsData] = useState({});
 
+  // ✅ Récupération utilisateur pour ID et sécurité nom
+  const userString = localStorage.getItem("user");
+  const userProfil = userString ? JSON.parse(userString) : null;
+  const patientId = userProfil?.uid || userProfil?.id || userProfil?._id;
+
   useEffect(() => {
     const fetchOrdonnances = async () => {
-      try {
-        const currentUser = auth.currentUser;
-        if (!currentUser) return;
+      if (!patientId) {
+        setLoading(false);
+        return;
+      }
 
+      try {
         const q = query(
           collection(db, "ordonnances"),
-          where("patientId", "==", currentUser.uid)
+          where("patientId", "==", patientId)
         );
+
         const snapshot = await getDocs(q);
         const data = snapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
         }));
+
+        data.sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0));
         setOrdonnances(data);
 
-        const doctorIds = [
-          ...new Set(data.map((o) => o.doctorId).filter(Boolean)),
-        ];
+        const doctorIds = [...new Set(data.map((o) => o.doctorId).filter(Boolean))];
         const newDoctorsData = {};
 
-        for (const doctorId of doctorIds) {
-          const docRef = doc(db, "users", doctorId);
+        for (const drId of doctorIds) {
+          const docRef = doc(db, "users", drId);
           const docSnap = await getDoc(docRef);
           if (docSnap.exists()) {
-            const { prenom, nom, specialite, telephone, adresse } =
-              docSnap.data();
-            newDoctorsData[doctorId] = {
-              prenom: prenom || "",
-              nom: nom || "",
-              specialite: specialite || "Médecin généraliste",
-              telephone: telephone || "N/A",
-              adresse: adresse || "N/A",
-            };
+            newDoctorsData[drId] = docSnap.data();
           }
         }
-
         setDoctorsData(newDoctorsData);
       } catch (error) {
-        console.error(
-          "Erreur lors de la récupération des ordonnances :",
-          error
-        );
+        console.error("Erreur récupération :", error);
       } finally {
         setLoading(false);
       }
     };
 
     fetchOrdonnances();
-  }, []);
-
-  const homePatient = () => navigate("/home-patient");
+  }, [patientId]);
 
   const downloadPDF = async (ordonnance) => {
-    const doc = new jsPDF("p", "mm", "a4");
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
+    const docPdf = new jsPDF("p", "mm", "a4");
+    const pageWidth = docPdf.internal.pageSize.getWidth();
+    const pageHeight = docPdf.internal.pageSize.getHeight();
 
-    // Fond et bordure principale
-    doc.setFillColor(250, 250, 250);
-    doc.rect(0, 0, pageWidth, pageHeight, "F");
-    doc.setLineWidth(0.7);
-    doc.setDrawColor(200);
-    doc.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, "S");
+    const pPrenom = ordonnance.prenom || userProfil?.prenom || "";
+    const pNom = ordonnance.nom || userProfil?.nom || "Patient";
+    const patientFullName = `${pPrenom} ${pNom}`.trim();
 
-    // Logo
+    docPdf.setFillColor(250, 250, 250);
+    docPdf.rect(0, 0, pageWidth, pageHeight, "F");
+    docPdf.roundedRect(10, 10, pageWidth - 20, pageHeight - 20, 5, 5, "S");
+
     try {
       const logoBase64 = await toBase64(logoImage);
-      doc.addImage(logoBase64, "PNG", 15, 15, 50, 25);
-    } catch (err) {
-      console.warn("Logo non chargé", err);
-    }
+      docPdf.addImage(logoBase64, "PNG", 15, 15, 40, 20);
+    } catch (err) { }
 
-    // Infos médecin
     const doctorInfo = doctorsData[ordonnance.doctorId] || {};
-    const doctorFullName = `Dr. ${doctorInfo.prenom} ${doctorInfo.nom}`;
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(16);
-    doc.text(doctorFullName, pageWidth - 15, 20, { align: "right" });
+    docPdf.setFont("helvetica", "bold");
+    docPdf.text(`Dr. ${doctorInfo.prenom || ""} ${doctorInfo.nom || ""}`, pageWidth - 15, 20, { align: "right" });
+    docPdf.setFont("helvetica", "normal");
+    docPdf.setFontSize(10);
+    docPdf.text(`${doctorInfo.specialite || "Médecin"}`, pageWidth - 15, 27, { align: "right" });
+    docPdf.text(`Tel: ${doctorInfo.telephone || "N/A"}`, pageWidth - 15, 34, { align: "right" });
 
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(10);
-    doc.text(`Spécialité : ${doctorInfo.specialite}`, pageWidth - 15, 27, {
-      align: "right",
-    });
-    doc.text(`Contact : ${doctorInfo.telephone}`, pageWidth - 15, 34, {
-      align: "right",
-    });
-    doc.text(`Adresse : ${doctorInfo.adresse}`, pageWidth - 15, 41, {
-      align: "right",
-    });
+    docPdf.setFontSize(18);
+    docPdf.setFont("helvetica", "bold");
+    docPdf.text("Ordonnance Médicale", pageWidth / 2, 60, { align: "center" });
+    docPdf.line(15, 65, pageWidth - 15, 65);
 
-    // Titre ordonnance
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(18);
-    doc.setTextColor(33, 37, 41);
-    doc.text("Ordonnance Médicale", pageWidth / 2, 60, { align: "center" });
-    doc.setLineWidth(0.2);
-    doc.setDrawColor(150);
-    doc.line(15, 65, pageWidth - 15, 65);
+    docPdf.setFontSize(12);
+    docPdf.setFont("helvetica", "normal");
+    docPdf.text(`Patient : ${patientFullName}`, 15, 78);
 
-    // Patient et date (sans bordure)
-    const createdAt = ordonnance.createdAt?.toDate?.() || new Date();
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(12);
-    doc.text("Patient :", 15, 78);
-    doc.text(`${ordonnance.prenom} ${ordonnance.nom}`, 32, 78);
-    doc.text("Date :", pageWidth - 55, 78, { align: "right" });
-    doc.text(
-      `${createdAt.toLocaleDateString(
-        "fr-FR"
-      )} à ${createdAt.toLocaleTimeString("fr-FR")}`,
-      pageWidth - 15,
-      78,
-      { align: "right" }
-    );
+    const dateStr = ordonnance.createdAt?.seconds
+      ? new Date(ordonnance.createdAt.seconds * 1000).toLocaleDateString("fr-FR")
+      : new Date().toLocaleDateString("fr-FR");
+    docPdf.text(`Date : ${dateStr}`, pageWidth - 15, 78, { align: "right" });
 
-    // Médicaments (sans bordure)
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(12);
-    doc.text("Médicaments :", 15, 95);
-    doc.setFont("helvetica", "normal");
-    doc.text(ordonnance.medicaments, 15, 102, { maxWidth: pageWidth - 30 });
+    docPdf.setFont("helvetica", "bold");
+    docPdf.text("Médicaments :", 15, 95);
+    docPdf.setFont("helvetica", "normal");
+    docPdf.text(ordonnance.medicaments || "", 15, 102, { maxWidth: pageWidth - 30 });
 
-    // Instructions (sans bordure)
-    doc.setFont("helvetica", "bold");
-    doc.text("Instructions :", 15, 120);
-    doc.setFont("helvetica", "normal");
-    doc.text(ordonnance.instructions, 15, 127, { maxWidth: pageWidth - 30 });
+    docPdf.setFont("helvetica", "bold");
+    docPdf.text("Instructions :", 15, 130);
+    docPdf.setFont("helvetica", "normal");
+    docPdf.text(ordonnance.instructions || "", 15, 137, { maxWidth: pageWidth - 30 });
 
-    // Cachet centré
     try {
       const cachetBase64 = await toBase64(cachetImage);
-      doc.addImage(
-        cachetBase64,
-        "PNG",
-        pageWidth / 2 - 25,
-        pageHeight - 65,
-        50,
-        50
-      );
-    } catch (err) {
-      console.warn("Cachet non chargé", err);
-    }
+      docPdf.addImage(cachetBase64, "PNG", pageWidth / 2 - 20, pageHeight - 50, 40, 40);
+    } catch (e) { }
 
-    // Signature droite
     if (ordonnance.signature) {
-      doc.addImage(
-        ordonnance.signature,
-        "PNG",
-        pageWidth - 80,
-        pageHeight - 60,
-        60,
-        30
-      );
-    } else {
-      doc.setFontSize(10);
-      doc.text("Signature :", pageWidth - 60, pageHeight - 40);
-      doc.line(
-        pageWidth - 60,
-        pageHeight - 38,
-        pageWidth - 20,
-        pageHeight - 38
-      );
+      docPdf.addImage(ordonnance.signature, "PNG", pageWidth - 70, pageHeight - 45, 50, 25);
     }
 
-    doc.save(`ordonnance_${ordonnance.id}.pdf`);
+    docPdf.save(`ordonnance_${pNom}.pdf`);
   };
+
+  if (loading) return <div className="text-center mt-5 text-teal">Chargement des ordonnances...</div>;
 
   return (
     <div className="container mt-4 py-3">
-      <div className="mb-3">
-        <button
-          className="btn custom-btn mb-4 d-flex align-items-center rounded-pill"
-          onClick={homePatient}
-        >
-          <i className="bi bi-arrow-left me-2"></i> Retour à l'accueil
-        </button>
+      {/* ✅ Utilisation du Button pour le retour */}
+      <div className="flex justify-start mb-4">
+        <Button
+          label={<><FaArrowLeft className="me-2" /> Retour à l'accueil</>}
+          variant="register" // Style plus léger (souvent blanc/bordure)
+          onClick={() => navigate("/patient")}
+          className="px-4"
+        />
       </div>
 
-      <h2 className="text-center mb-4">Mes Ordonnances</h2>
+      <h2 className="text-center mb-5 fw-bold text-teal">Mes Ordonnances</h2>
 
-      {loading ? (
-        <p className="text-center">Chargement des ordonnances...</p>
-      ) : ordonnances.length === 0 ? (
-        <div className="alert alert-info text-center">
+      {ordonnances.length === 0 ? (
+        <div className="alert alert-info text-center shadow-sm rounded-4">
+          <FaFilePrescription size={40} className="mb-3 d-block mx-auto text-teal" />
           Vous n'avez aucune ordonnance disponible pour le moment.
         </div>
       ) : (
-        ordonnances.map((ordonnance) => {
-          const doctorInfo = doctorsData[ordonnance.doctorId] || {};
-          return (
-            <div
-              key={ordonnance.id}
-              className="card shadow-sm mb-4 border border-gray-200 rounded-lg"
-              style={{ backgroundColor: "#fefefe" }}
-            >
-              <div className="card-body text-center">
-                <h5 className="card-title text-primary">
-                  <i className="bi bi-file-earmark-medical me-2"></i>
-                  Ordonnance du Dr {doctorInfo.prenom} {doctorInfo.nom}
-                </h5>
-                <p>
-                  <strong>Spécialité :</strong> {doctorInfo.specialite}
-                </p>
-                <p>
-                  <strong>Téléphone :</strong> {doctorInfo.telephone}
-                </p>
-                <p>
-                  <strong>Adresse :</strong> {doctorInfo.adresse}
-                </p>
-                <p>
-                  <strong>Médicaments :</strong> {ordonnance.medicaments}
-                </p>
-                <p>
-                  <strong>Instructions :</strong> {ordonnance.instructions}
-                </p>
+        <div className="row">
+          {ordonnances.map((ord) => {
+            const dr = doctorsData[ord.doctorId] || {};
+            return (
+              <div key={ord.id} className="col-md-6 mb-4">
+                <div className="card shadow-sm border-0 rounded-4 overflow-hidden">
+                  <div className="card-header bg-white border-0 pt-4 px-4 d-flex justify-content-between">
+                    <span className="badge bg-light text-teal p-2 px-3 rounded-pill">
+                      {ord.createdAt?.seconds
+                        ? new Date(ord.createdAt.seconds * 1000).toLocaleDateString('fr-FR')
+                        : 'Date inconnue'}
+                    </span>
+                    <FaUserMd className="text-teal opacity-50" size={24} />
+                  </div>
+                  <div className="card-body px-4">
+                    <h5 className="fw-bold text-primary mb-1">Dr. {dr.prenom} {dr.nom}</h5>
+                    <p className="text-muted small mb-3">{dr.specialite}</p>
+                    <div className="bg-light p-3 rounded-3 mb-4">
+                      <p className="small fw-bold text-uppercase text-secondary mb-1">Aperçu prescription :</p>
+                      <p className="text-truncate mb-0">{ord.medicaments}</p>
+                    </div>
 
-                <div className="d-flex justify-content-center align-items-end">
-                  <img
-                    src={cachetImage}
-                    alt="Cachet"
-                    style={{ height: "60px", opacity: 0.8 }}
-                  />
+                    {/* ✅ Utilisation du Button pour le téléchargement PDF */}
+                    <Button
+                      label={<><FaFileDownload className="me-2" /> Télécharger en PDF</>}
+                      variant="login" // Style principal (teal/bleu)
+                      onClick={() => downloadPDF(ord)}
+                      className="w-100 py-2 fw-bold"
+                    />
+                  </div>
                 </div>
-
-                <button
-                  className="btn custom-btn w-25 mt-3 rounded-pill text-white"
-                  onClick={() => downloadPDF(ordonnance)}
-                >
-                  <i className="bi bi-download me-1"></i> Télécharger
-                </button>
               </div>
-            </div>
-          );
-        })
+            );
+          })}
+        </div>
       )}
     </div>
   );

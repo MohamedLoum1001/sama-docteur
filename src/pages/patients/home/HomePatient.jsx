@@ -3,7 +3,13 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
-import { FaUserInjured, FaSearch, FaCalendarPlus, FaPills } from "react-icons/fa"; // Ajout de FaPills
+import {
+  FaUserInjured,
+  FaSearch,
+  FaCalendarPlus,
+  FaPills,
+  FaFilePrescription // ✅ Import de l'icône Ordonnances
+} from "react-icons/fa";
 import Button from "../../../components/boutons/Button";
 import "./HomePatient.css";
 
@@ -36,11 +42,12 @@ const HomePatient = () => {
     );
   }, [searchTerm, doctorsFromDB]);
 
-  // ✅ Liste des cartes mise à jour avec la Pharmacie
+  // ✅ Liste des cartes mise à jour avec Pharmacie et Ordonnances
   const cards = [
     { emoji: "👤", title: "Gérer mon profil", description: "Mettez à jour vos informations et historique.", link: "/profil" },
     { emoji: "📅", title: "Prendre RDV", description: "Choisissez un médecin et une date disponible.", action: () => navigate("/rendez-vous") },
-    { emoji: "💊", title: "Pharmacie", description: "Trouvez un médicament au meilleur prix près de chez vous.", link: "/pharmacie" }, // 🆕 Nouvelle carte
+    { emoji: "💊", title: "Pharmacie", description: "Trouvez un médicament au meilleur prix près de chez vous.", link: "/pharmacie" },
+    { emoji: "🧾", title: "Mes Ordonnances", description: "Consultez et téléchargez vos prescriptions médicales.", link: "/ordonnances" },
     { emoji: "🎟️", title: "Tickets", description: "Consultez vos tickets et historique d'achats.", link: "/ticket-acheter" },
     { emoji: "🔔", title: "Notifications", description: "Recevez des rappels pour vos soins.", link: "/notifications" },
     { emoji: "📁", title: "Mon dossier médical", description: "Accédez à vos examens et prescriptions.", link: "/dossier-medical" },

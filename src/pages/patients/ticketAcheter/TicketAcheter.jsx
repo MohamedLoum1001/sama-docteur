@@ -85,7 +85,11 @@ const TicketAcheter = () => {
 
               <div className="ticket-info-main">
                 <div className="status-row">
-                  <span className={`status-badge ${ticket.statutPaiement === "payé" ? "paid" : "pending"}`}>
+                  {/* ✅ Application de la couleur #00a5a8 sur le statut payé */}
+                  <span
+                    className={`status-badge ${ticket.statutPaiement === "payé" ? "paid" : "pending"}`}
+                    style={ticket.statutPaiement === "payé" ? { backgroundColor: "#00a5a8", color: "#fff" } : {}}
+                  >
                     {ticket.statutPaiement === "payé" ? "Paiement confirmé" : "En attente"}
                   </span>
                   <span className="ticket-time">{ticket.time}</span>
@@ -100,7 +104,6 @@ const TicketAcheter = () => {
                 </p>
 
                 <div className="ticket-actions">
-                  {/* ✅ Utilisation du composant réutilisable Button */}
                   <Button
                     variant="login"
                     onClick={() => setSelectedTicket(ticket)}

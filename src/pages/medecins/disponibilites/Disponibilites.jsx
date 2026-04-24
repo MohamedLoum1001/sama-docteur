@@ -1,73 +1,80 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../../../firebase";
-import { doc, setDoc, onSnapshot, serverTimestamp, getDoc } from "firebase/firestore";
-import { FaChevronLeft, FaChevronRight, FaTrash } from "react-icons/fa";
-import { onAuthStateChanged } from "firebase/auth";
+import { db } from "../../../firebase";
+import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
+import { FaChevronLeft, FaChevronRight, FaTrash, FaArrowLeft } from "react-icons/fa";
+import Button from "../../../components/boutons/Button";
 import "./Disponibilites.css";
 
 const Disponibilites = () => {
   const [horaires, setHoraires] = useState([]);
   const [nomMedecin, setNomMedecin] = useState("");
   const [currentDate, setCurrentDate] = useState(new Date());
-  const [userId, setUserId] = useState(auth.currentUser?.uid || null);
   const [loading, setLoading] = useState(true);
+  const [isModified, setIsModified] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+
   const navigate = useNavigate();
+  const userString = localStorage.getItem("user");
+  const user = userString ? JSON.parse(userString) : null;
+  const userId = user?.uid || user?.id || user?._id;
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        setUserId(user.uid);
-        getDoc(doc(db, "users", user.uid)).then((userSnap) => {
-          if (userSnap.exists()) {
-            setNomMedecin(userSnap.data().nom || "Docteur");
-          }
-        });
+    if (!userId) {
+      navigate("/login");
+      return;
+    }
 
-        const unsubscribeSnap = onSnapshot(doc(db, "disponibilites", user.uid), (snap) => {
-          if (snap.exists()) {
-            setHoraires(snap.data().horaires || []);
-          }
-          setLoading(false);
-        });
-        return () => unsubscribeSnap();
-      } else {
-        setUserId(null);
+    setNomMedecin(`${user.prenom} ${user.nom}`);
+
+    const unsubscribeSnap = onSnapshot(
+      doc(db, "disponibilites", userId),
+      (snap) => {
+        if (snap.exists()) {
+          const data = snap.data().horaires || [];
+          setHoraires(data);
+        }
+        setLoading(false);
+        setIsModified(false);
+      },
+      (error) => {
+        console.error("❌ Erreur Firestore :", error);
         setLoading(false);
       }
-    });
-    return () => unsubscribeAuth();
-  }, []);
+    );
 
-  // ✅ SAUVEGARDE NETTOYÉE POUR FIRESTORE
-  const saveToFirebase = async (newHoraires, currentUid) => {
-    const uidToUse = currentUid || userId || auth.currentUser?.uid;
-    if (!uidToUse) return false;
+    return () => unsubscribeSnap();
+  }, [userId, navigate, user.prenom, user.nom]);
+
+  // ✅ Fonction de sauvegarde réutilisable
+  const saveToFirebase = async (newHoraires) => {
+    if (!userId) return false;
+    setIsSaving(true);
 
     try {
-      const docRef = doc(db, "disponibilites", uidToUse);
-
-      // On nettoie les données pour éviter d'envoyer des objets complexes (Date, etc.)
+      const docRef = doc(db, "disponibilites", userId);
       const horairesClean = newHoraires.map(h => ({
         date: String(h.date),
         heureDebut: String(h.heureDebut),
-        heureFin: String(h.heureFin),
-        type: String(h.type),
+        heureFin: String(h.heureDebut),
+        type: "consultation",
         jour: String(h.jour),
-        nomMedecin: String(nomMedecin || "Docteur")
+        nomMedecin: String(nomMedecin)
       }));
 
       await setDoc(docRef, {
-        idMedecin: uidToUse,
-        nomMedecin: nomMedecin || "Docteur",
+        idMedecin: userId,
+        nomMedecin: nomMedecin,
         horaires: horairesClean,
         updatedAt: serverTimestamp(),
       });
 
-      console.log("🚀 Firestore synchronisé avec succès !");
+      setIsModified(false);
+      setIsSaving(false);
       return true;
     } catch (error) {
-      console.error("❌ Erreur Firestore détaillée :", error);
+      console.error("❌ Erreur d'écriture :", error);
+      setIsSaving(false);
       return false;
     }
   };
@@ -79,27 +86,34 @@ const Disponibilites = () => {
     return `${y}-${m}-${day}`;
   };
 
-  const ajouterCreneau = (day, time) => {
+  // ✅ Logique de Toggle (Ajout/Suppression)
+  const toggleCreneau = async (day, time) => {
     const dateStr = getLocalDateStr(day);
     const exists = horaires.find(h => h.date === dateStr && h.heureDebut === time);
 
     let nouveauxHoraires;
+
     if (exists) {
-      nouveauxHoraires = horaires.filter(h => !(h.date === dateStr && h.heureDebut === time));
+      // Cas de suppression
+      if (window.confirm(`Voulez-vous supprimer le créneau du ${new Date(dateStr).toLocaleDateString('fr-FR')} à ${time} ?`)) {
+        nouveauxHoraires = horaires.filter(h => !(h.date === dateStr && h.heureDebut === time));
+        alert("Créneau supprimé avec succès !");
+      } else {
+        return; // Annulation
+      }
     } else {
+      // Cas d'ajout
       nouveauxHoraires = [...horaires, {
         date: dateStr,
         heureDebut: time,
-        heureFin: time,
-        type: "consultation",
-        jour: day.toLocaleDateString('fr-FR', { weekday: 'long' }),
-        nomMedecin: nomMedecin
+        jour: day.toLocaleDateString('fr-FR', { weekday: 'long' })
       }];
     }
 
     setHoraires(nouveauxHoraires);
-    // Sauvegarde silencieuse en arrière-plan
-    saveToFirebase(nouveauxHoraires, userId);
+    setIsModified(true);
+    // On synchronise direct avec Firestore
+    await saveToFirebase(nouveauxHoraires);
   };
 
   const getWeekDays = () => {
@@ -112,33 +126,38 @@ const Disponibilites = () => {
     return days;
   };
 
-  const nextWeek = () => {
-    const next = new Date(currentDate);
-    next.setDate(currentDate.getDate() + 7);
-    setCurrentDate(next);
-  };
-
-  const prevWeek = () => {
-    const prev = new Date(currentDate);
-    prev.setDate(currentDate.getDate() - 7);
-    setCurrentDate(prev);
-  };
-
-  const timeSlots = ["08:00", "09:00", "10:00", "11:00", "12:00"];
-
   if (loading) return <div className="text-center mt-20 font-bold text-teal-600">Chargement...</div>;
 
   return (
     <div className="doctolib-container">
+
+      <div className="back-nav mb-4">
+        <button
+          onClick={() => navigate("/medecin")}
+          className="btn btn-link text-teal-600 d-flex align-items-center gap-2 text-decoration-none fw-bold"
+        >
+          <FaArrowLeft /> Retour à l'accueil
+        </button>
+      </div>
+
       <div className="header-dispo text-center mb-8">
         <h2 className="text-3xl font-extrabold text-gray-800">Agenda de {nomMedecin}</h2>
+        <p className="text-muted">Cliquez sur une heure pour l'ajouter ou la retirer</p>
       </div>
 
       <div className="calendar-card bg-white shadow-2xl rounded-3xl border border-gray-100 overflow-hidden mb-10">
         <div className="calendar-nav flex justify-between items-center p-6 border-b">
-          <button onClick={prevWeek} className="p-2 border rounded-full text-teal-600"><FaChevronLeft /></button>
+          <button className="btn btn-outline-primary rounded-circle" onClick={() => {
+            const d = new Date(currentDate);
+            d.setDate(d.getDate() - 7);
+            setCurrentDate(d);
+          }}><FaChevronLeft /></button>
           <span className="font-bold text-xl capitalize">{currentDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' })}</span>
-          <button onClick={nextWeek} className="p-2 border rounded-full text-teal-600"><FaChevronRight /></button>
+          <button className="btn btn-outline-primary rounded-circle" onClick={() => {
+            const d = new Date(currentDate);
+            d.setDate(d.getDate() + 7);
+            setCurrentDate(d);
+          }}><FaChevronRight /></button>
         </div>
 
         <div className="calendar-grid grid grid-cols-7 overflow-x-auto">
@@ -152,15 +171,14 @@ const Disponibilites = () => {
                   <div className="text-lg font-bold">{day.getDate()}</div>
                 </div>
                 <div className="flex flex-col gap-2">
-                  {timeSlots.map(time => {
+                  {["08:00", "09:00", "10:00", "11:00", "12:00", "14:00"].map(time => {
                     const isActive = horaires.some(h => h.date === dateStr && h.heureDebut === time);
                     return (
                       <button
                         key={time}
                         disabled={isPast}
-                        onClick={() => ajouterCreneau(day, time)}
-                        className={`py-2 rounded-lg text-sm font-bold border-2 transition-all ${isActive ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-teal-600 border-teal-50'
-                          }`}
+                        onClick={() => toggleCreneau(day, time)}
+                        className={`py-2 rounded-lg text-sm font-bold border-2 transition-all ${isActive ? 'bg-teal-600 text-white border-teal-600 shadow-md' : 'bg-white text-teal-600 border-teal-50'}`}
                       >
                         {time}
                       </button>
@@ -173,47 +191,51 @@ const Disponibilites = () => {
         </div>
       </div>
 
+      <div className="flex justify-center mb-5">
+        <Button
+          type="button"
+          label="Confirmer les modifications"
+          variant="login"
+          disabled={!isModified}
+          loading={isSaving}
+          onClick={async () => {
+            const success = await saveToFirebase(horaires);
+            if (success) {
+              alert("Agenda synchronisé avec succès !");
+              navigate("/medecin");
+            }
+          }}
+        />
+      </div>
+
       <div className="summary-section bg-white shadow-xl rounded-2xl p-6 mb-10 border border-gray-100">
-        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Mes disponibilités ({horaires.length})</h3>
-        <table className="w-full text-left">
+        <h3 className="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Récapitulatif ({horaires.length})</h3>
+        <table className="table">
           <thead>
-            <tr className="text-gray-500 text-sm">
-              <th className="p-2">Date</th>
-              <th className="p-2">Heure</th>
-              <th className="p-2 text-center">Action</th>
+            <tr>
+              <th>Date</th>
+              <th>Heure</th>
+              <th className="text-center">Action</th>
             </tr>
           </thead>
           <tbody>
-            {horaires.map((h, i) => (
-              <tr key={i} className="border-b">
-                <td className="p-2">{new Date(h.date).toLocaleDateString('fr-FR')}</td>
-                <td className="p-2 font-bold text-teal-700">{h.heureDebut}</td>
-                <td className="p-2 text-center">
-                  <button onClick={() => ajouterCreneau(new Date(h.date), h.heureDebut)} className="text-red-400 p-1"><FaTrash /></button>
+            {[...horaires].sort((a, b) => a.date.localeCompare(b.date) || a.heureDebut.localeCompare(b.heureDebut)).map((h, i) => (
+              <tr key={i}>
+                <td>{new Date(h.date).toLocaleDateString('fr-FR')}</td>
+                <td className="font-bold text-teal-700">{h.heureDebut}</td>
+                <td className="text-center">
+                  <button
+                    onClick={() => toggleCreneau(new Date(h.date), h.heureDebut)}
+                    className="btn border-0 p-0"
+                    style={{ color: "#dc3545" }}
+                  >
+                    <FaTrash />
+                  </button>
                 </td>
               </tr>
             ))}
           </tbody>
         </table>
-      </div>
-
-      <div className="flex justify-center">
-        <button
-          disabled={horaires.length === 0}
-          onClick={async () => {
-            const success = await saveToFirebase(horaires, auth.currentUser?.uid);
-            if (success) {
-              alert(`Succès ! Vos ${horaires.length} créneaux ont été enregistrés.`);
-              navigate("/medecin"); // Route corrigée selon ton App.js
-            } else {
-              alert("Erreur lors de l'enregistrement. Vérifiez votre connexion Firestore.");
-            }
-          }}
-          className={`px-12 py-4 rounded-full font-bold text-white shadow-lg transition-all ${horaires.length > 0 ? 'bg-teal-600 hover:bg-teal-700 cursor-pointer' : 'bg-gray-300'
-            }`}
-        >
-          Valider et publier mon agenda
-        </button>
       </div>
     </div>
   );
