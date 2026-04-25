@@ -59,7 +59,7 @@ const HomeMedecin = () => {
     { emoji: "👤", title: "Gérer mon profil", description: "Modifier vos informations personnelles.", link: "/profil-medecin" },
     { emoji: "🗓️", title: "Disponibilités", description: "Définir ou modifier vos horaires de consultation.", link: "/disponibilites" },
     { emoji: "📅", title: "Rendez-vous", description: "Consulter la liste de vos rendez-vous à venir.", link: "/liste-rendez-vous" },
-    { emoji: "📹", title: "Consultation", description: "Effectuer une consultation via un appel vidéo sécurisé.", link: "/consultation-video" },
+    { emoji: "📹", title: "Consultation", description: "Effectuer une consultation via un appel vidéo sécurisé.", link: "/consultation" },
     { emoji: "📝", title: "Prescrire", description: "Créer une ordonnance électronique pour un patient.", link: "/prescription" },
     { emoji: "📚", title: "Dossiers", description: "Accéder à l’historique des dossiers médicaux.", link: "/dossiers-medicaux" },
     { emoji: "🔔", title: "Rappels", description: "Envoyer des rappels de RDV aux patients.", action: () => sendReminders() },

@@ -38,6 +38,8 @@ import Prescription from "./pages/medecins/prescription/Prescription";
 import Recommandation from "./pages/medecins/recommendation/Recommendation";
 import DossiersMedicaux from "./pages/medecins/dossiersMedicaux/DossiersMedicaux";
 import Disponibilites from "./pages/medecins/disponibilites/Disponibilites";
+import Consultation from "./pages/medecins/consultation/Consultation";
+
 
 // Layout
 import Layout from "./components/Layout/Layout";
@@ -102,6 +104,7 @@ function App() {
           <Route path="/prescription" element={<ProtectedRoute><Prescription /></ProtectedRoute>} />
           <Route path="/dossiers-medicaux" element={<ProtectedRoute><DossiersMedicaux /></ProtectedRoute>} />
           <Route path="/recommandation" element={<ProtectedRoute><Recommandation /></ProtectedRoute>} />
+          <Route path="/consultation" element={<ProtectedRoute><Consultation /></ProtectedRoute>} />
 
           {/* Admin */}
           <Route path="/admin" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
