@@ -1,23 +1,29 @@
-# Étape 1 : Construction (Build)
-FROM node:18-alpine as build-stage
-
+FROM node:18-alpine as build
 WORKDIR /app
-
-# Copie des fichiers de dépendances
 COPY package*.json ./
 RUN npm install
 
-# Copie du code source et build
+# --- CRUCIAL : Déclarer les arguments AVANT le build ---
+ARG REACT_APP_FIREBASE_API_KEY
+ARG REACT_APP_FIREBASE_AUTH_DOMAIN
+ARG REACT_APP_FIREBASE_PROJECT_ID
+ARG REACT_APP_FIREBASE_STORAGE_BUCKET
+ARG REACT_APP_FIREBASE_MESSAGING_SENDER_ID
+ARG REACT_APP_FIREBASE_APP_ID
+
+# --- Passer les arguments en variables d'environnement ---
+ENV REACT_APP_FIREBASE_API_KEY=$REACT_APP_FIREBASE_API_KEY
+ENV REACT_APP_FIREBASE_AUTH_DOMAIN=$REACT_APP_FIREBASE_AUTH_DOMAIN
+ENV REACT_APP_FIREBASE_PROJECT_ID=$REACT_APP_FIREBASE_PROJECT_ID
+ENV REACT_APP_FIREBASE_STORAGE_BUCKET=$REACT_APP_FIREBASE_STORAGE_BUCKET
+ENV REACT_APP_FIREBASE_MESSAGING_SENDER_ID=$REACT_APP_FIREBASE_MESSAGING_SENDER_ID
+ENV REACT_APP_FIREBASE_APP_ID=$REACT_APP_FIREBASE_APP_ID
+
 COPY . .
 RUN npm run build
 
-# Étape 2 : Production (Serveur Nginx)
+# Étape de service avec Nginx
 FROM nginx:stable-alpine
-
-# Copie des fichiers compilés depuis l'étape précédente vers le dossier Nginx
-COPY --from=build-stage /app/build /usr/share/nginx/html
-
-# Exposer le port 80 (port par défaut de Nginx)
+COPY --from=build /app/build /usr/share/nginx/html
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
