@@ -42,20 +42,20 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            # Nettoyage
+            # On arrête et on supprime les anciens conteneurs pour éviter les conflits de noms
             docker stop sama-api sama-frontend || true
-            docker rm sama-api sama-frontend || true
+            docker rm -f sama-api sama-frontend || true
 
-            # Pull des images
+            # On récupère les dernières images sur Docker Hub
             docker pull mohamedloum1001/sama-docteur-api:latest
             docker pull mohamedloum1001/sama-docteur-frontend:latest
 
-            # Lancement de l'API avec les variables Firebase
+            # Lancement de l'API avec les variables Firebase (Note les guillemets simples pour la clé)
             docker run -d --name sama-api \
               -p 8000:8000 \
               -e FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
               -e FIREBASE_CLIENT_EMAIL="${{ secrets.FIREBASE_CLIENT_EMAIL }}" \
-              -e FIREBASE_PRIVATE_KEY="${{ secrets.FIREBASE_PRIVATE_KEY }}" \
+              -e FIREBASE_PRIVATE_KEY='${{ secrets.FIREBASE_PRIVATE_KEY }}' \
               mohamedloum1001/sama-docteur-api:latest
 
             # Lancement du Frontend
