@@ -30,6 +30,13 @@ jobs:
           context: ./frontend
           push: true
           tags: mohamedloum1001/sama-docteur-frontend:latest
+          build-args: |
+            REACT_APP_FIREBASE_API_KEY=${{ secrets.REACT_APP_FIREBASE_API_KEY }}
+            REACT_APP_FIREBASE_AUTH_DOMAIN=${{ secrets.REACT_APP_FIREBASE_AUTH_DOMAIN }}
+            REACT_APP_FIREBASE_PROJECT_ID=${{ secrets.REACT_APP_FIREBASE_PROJECT_ID }}
+            REACT_APP_FIREBASE_STORAGE_BUCKET=${{ secrets.REACT_APP_FIREBASE_STORAGE_BUCKET }}
+            REACT_APP_FIREBASE_MESSAGING_SENDER_ID=${{ secrets.REACT_APP_FIREBASE_MESSAGING_SENDER_ID }}
+            REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}
 
   deploy:
     runs-on: ubuntu-latest
@@ -50,7 +57,7 @@ jobs:
             docker pull mohamedloum1001/sama-docteur-api:latest
             docker pull mohamedloum1001/sama-docteur-frontend:latest
 
-            # Lancement de l'API avec les variables Firebase (Note les guillemets simples pour la clé)
+            # Lancement de l'API avec les variables Firebase
             docker run -d --name sama-api \
               -p 8000:8000 \
               -e FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
@@ -58,5 +65,5 @@ jobs:
               -e FIREBASE_PRIVATE_KEY='${{ secrets.FIREBASE_PRIVATE_KEY }}' \
               mohamedloum1001/sama-docteur-api:latest
 
-            # Lancement du Frontend
+            # Lancement du Frontend (Les variables React sont déjà intégrées dans l'image lors du build)
             docker run -d --name sama-frontend -p 80:80 mohamedloum1001/sama-docteur-frontend:latest
