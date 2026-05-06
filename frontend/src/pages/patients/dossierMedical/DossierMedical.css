@@ -1,0 +1,171 @@
+:root {
+    --docto-blue: #00a5a8;
+    --docto-dark: #1a2b3c;
+    --bg-light: #f8fafb;
+    --text-gray: #6d7f8b;
+}
+
+.medical-dossier-wrapper {
+    background-color: var(--bg-light);
+    min-height: 100vh;
+    padding-bottom: 50px;
+}
+
+.dossier-header {
+    background: white;
+    padding: 20px 0;
+    border-bottom: 1px solid #e1e8ed;
+}
+
+.title-modern {
+    color: var(--docto-dark);
+    font-weight: 800;
+    font-size: 1.5rem;
+    margin: 0;
+}
+
+/* Onglets Modernes */
+.modern-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 30px;
+    overflow-x: auto;
+    padding-bottom: 5px;
+}
+
+.modern-tabs button {
+    flex: 1;
+    min-width: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 15px;
+    border: none;
+    background: white;
+    border-radius: 12px;
+    color: var(--text-gray);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 1px solid #e1e8ed;
+}
+
+.modern-tabs button.active {
+    background: var(--docto-blue);
+    color: white;
+    border-color: var(--docto-blue);
+    box-shadow: 0 4px 12px rgba(0, 165, 168, 0.2);
+}
+
+/* Grille de cartes */
+.medical-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 20px;
+}
+
+.medical-card {
+    background: white;
+    border-radius: 16px;
+    padding: 20px;
+    border: 1px solid #e1e8ed;
+    transition: transform 0.2s;
+}
+
+.medical-card:hover {
+    transform: translateY(-3px);
+    border-color: var(--docto-blue);
+}
+
+.card-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.date-badge {
+    background: #eef2f6;
+    color: var(--docto-dark);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.type-tag {
+    color: var(--docto-blue);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 800;
+}
+
+.doctor-name {
+    font-size: 1.1rem;
+    color: var(--docto-dark);
+    margin-bottom: 10px;
+}
+
+.main-text {
+    color: #4a5568;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+.download-action-btn {
+    width: 100%;
+    margin-top: 15px;
+    padding: 10px;
+    border-radius: 8px;
+    border: 1px dashed var(--docto-blue);
+    background: #f0fbfc;
+    color: var(--docto-blue);
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+/* Loader */
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 80vh;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--docto-blue);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: 15px;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.empty-state {
+    text-align: center;
+    padding: 50px;
+    background: white;
+    border-radius: 20px;
+    color: var(--text-gray);
+}
+
+.empty-icon {
+    font-size: 4rem;
+    margin-bottom: 20px;
+}

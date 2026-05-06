@@ -1,0 +1,35 @@
+services:
+  # --- FRONTEND (React + Nginx) ---
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: sama-docteur-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+    networks:
+      - sama-network
+    restart: always
+
+  # --- BACKEND (Node.js API) ---
+  api:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    container_name: sama-docteur-api
+    ports:
+      - "5000:5000"
+    env_file:
+      - ./api/.env
+    # On monte le fichier de clé Firebase pour qu'il soit accessible dans le conteneur
+    volumes:
+      - ./api/serviceAccountKey.json.json:/app/serviceAccountKey.json.json
+    networks:
+      - sama-network
+    restart: always
+
+networks:
+  sama-network:
+    driver: bridge
