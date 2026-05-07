@@ -16,19 +16,18 @@ const ForgetPassword = () => {
         setLoading(true);
         setStatus({ type: "", msg: "" });
 
-        // ✅ Configuration pour rediriger l'utilisateur vers ton site après le reset
+        // ✅ CORRECTION : On redirige vers ton IP Azure au lieu de Vercel
         const actionCodeSettings = {
-            url: 'https://sama-docteur.vercel.app/login',
+            url: 'http://4.233.208.186/login',
             handleCodeInApp: false,
         };
 
         try {
-            // ✅ Envoi du mail via Firebase Auth avec les réglages de redirection
             await sendPasswordResetEmail(auth, email, actionCodeSettings);
 
             setStatus({
                 type: "success",
-                msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception (et vos spams). ✅"
+                msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception. ✅"
             });
 
             // Redirection automatique vers le login après 4 secondes
@@ -56,15 +55,13 @@ const ForgetPassword = () => {
         <div className="container mt-5">
             <div className="row justify-content-center">
                 <div className="col-md-6 col-lg-5">
-                    {/* En-tête */}
                     <div className="text-center mb-4">
-                        <h3 className="fw-bold text-primary">Récupération</h3>
+                        <h3 className="fw-bold" style={{ color: "#00a5a8" }}>Récupération</h3>
                         <p className="text-muted">
                             Saisissez votre email pour recevoir les instructions de réinitialisation.
                         </p>
                     </div>
 
-                    {/* Carte du formulaire */}
                     <div className="card shadow-lg p-4 border-0 rounded-4">
                         <form onSubmit={handleSubmit}>
                             <div className="mb-4 text-start">
@@ -84,14 +81,12 @@ const ForgetPassword = () => {
                                 </div>
                             </div>
 
-                            {/* Messages d'état */}
                             {status.msg && (
                                 <div className={`alert alert-${status.type} py-2 small shadow-sm`}>
                                     {status.msg}
                                 </div>
                             )}
 
-                            {/* Bouton d'action */}
                             <button
                                 type="submit"
                                 className="btn w-100 mb-3 rounded-pill text-white shadow"
@@ -105,12 +100,11 @@ const ForgetPassword = () => {
                                 )}
                             </button>
 
-                            {/* Lien de retour */}
                             <div className="text-center">
                                 <button
                                     type="button"
-                                    className="btn btn-link text-decoration-none text-primary fw-bold p-0"
-                                    style={{ fontSize: "0.9rem" }}
+                                    className="btn btn-link text-decoration-none fw-bold p-0"
+                                    style={{ fontSize: "0.9rem", color: "#00a5a8" }}
                                     onClick={() => navigate("/login")}
                                 >
                                     <i className="fa fa-arrow-left me-2"></i> Retour à la connexion

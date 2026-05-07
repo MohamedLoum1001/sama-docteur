@@ -6,9 +6,10 @@ import { Search, Archive, Ban, Trash2, RotateCcw, UserPlus, X } from 'lucide-rea
 // ✅ Importation de ton composant Button
 import Button from "../../../components/boutons/Button";
 
+// ✅ CORRECTION : L'URL pointe vers Azure avec le port 8000 en production
 const API_URL = window.location.hostname === "localhost"
-    ? "http://localhost:5000"
-    : "https://sama-docteur.vercel.app";
+    ? "http://localhost:8000"
+    : "http://4.233.208.186:8000";
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -17,7 +18,6 @@ const Users = () => {
     const [showAddForm, setShowAddForm] = useState(false);
     const [submitting, setSubmitting] = useState(false);
 
-    // ✅ Mise à jour de l'état avec adresse et date de naissance
     const [newUser, setNewUser] = useState({
         prenom: "",
         nom: "",
@@ -51,8 +51,11 @@ const Users = () => {
         try {
             const querySnapshot = await getDocs(collection(db, "users"));
             setUsers(querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        } catch (error) { console.error(error); }
-        finally { setLoading(false); }
+        } catch (error) {
+            console.error("Erreur récupération users:", error);
+        } finally {
+            setLoading(false);
+        }
     };
 
     useEffect(() => { fetchUsers(); }, []);
@@ -61,19 +64,28 @@ const Users = () => {
         e.preventDefault();
         setSubmitting(true);
         try {
+            // ✅ APPEL VERS TON SERVEUR AZURE POUR L'INSCRIPTION ADMIN
             const response = await fetch(`${API_URL}/api/auth/register`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(newUser),
             });
+
             if (response.ok) {
-                alert("Compte créé. Un mail avec le mot de passe a été envoyé.");
+                alert("Compte créé sur Azure ✅. Un mail avec le mot de passe a été envoyé.");
                 setShowAddForm(false);
                 setNewUser({ prenom: "", nom: "", email: "", telephone: "", adresse: "", dateNaissance: "", role: "medecin", specialite: "" });
                 fetchUsers();
+            } else {
+                const errorData = await response.json();
+                alert(`Erreur : ${errorData.error}`);
             }
-        } catch (error) { console.error(error); }
-        finally { setSubmitting(false); }
+        } catch (error) {
+            console.error("Erreur création user:", error);
+            alert("Impossible de contacter le serveur Azure.");
+        } finally {
+            setSubmitting(false);
+        }
     };
 
     const handleUpdateStatus = async (user, newStatus) => {
@@ -114,7 +126,7 @@ const Users = () => {
                         <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
                         <input
                             type="text"
-                            placeholder="Rechercher un utilisateur..."
+                            placeholder="Rechercher un membre..."
                             className="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-[#00a5a8] outline-none shadow-sm"
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
@@ -137,44 +149,43 @@ const Users = () => {
                                 <button onClick={() => setShowAddForm(false)} className="hover:text-red-400 transition-colors"><X /></button>
                             </div>
                             <form onSubmit={handleAddUser} className="p-6 space-y-4 max-h-[80vh] overflow-y-auto">
-                                <p className="text-xs text-gray-500 italic">* Le mot de passe sera généré et envoyé par mail.</p>
+                                <p className="text-xs text-gray-500 italic">* Le mot de passe sera généré par Azure et envoyé par mail.</p>
 
                                 <div className="grid grid-cols-2 gap-4">
-                                    <input type="text" placeholder="Prénom" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })} />
-                                    <input type="text" placeholder="Nom" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })} />
+                                    <input type="text" placeholder="Prénom" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.prenom} onChange={(e) => setNewUser({ ...newUser, prenom: e.target.value })} />
+                                    <input type="text" placeholder="Nom" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.nom} onChange={(e) => setNewUser({ ...newUser, nom: e.target.value })} />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">
                                     <div className="flex flex-col">
-                                        <label className="text-[10px] text-gray-400 ml-1">Date de naissance</label>
-                                        <input type="date" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, dateNaissance: e.target.value })} />
+                                        <label className="text-[10px] text-gray-400 ml-1 uppercase font-bold">Naissance</label>
+                                        <input type="date" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.dateNaissance} onChange={(e) => setNewUser({ ...newUser, dateNaissance: e.target.value })} />
                                     </div>
                                     <div className="flex flex-col justify-end">
-                                        <input type="text" placeholder="Téléphone" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, telephone: e.target.value })} />
+                                        <input type="text" placeholder="Téléphone" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.telephone} onChange={(e) => setNewUser({ ...newUser, telephone: e.target.value })} />
                                     </div>
                                 </div>
 
-                                <input type="text" placeholder="Adresse complète" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, adresse: e.target.value })} />
+                                <input type="text" placeholder="Adresse complète" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.adresse} onChange={(e) => setNewUser({ ...newUser, adresse: e.target.value })} />
+                                <input type="email" placeholder="Email professionnel" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.email} onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
 
-                                <input type="email" placeholder="Email professionnel" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, email: e.target.value })} />
-
-                                <select className="w-full border p-2 rounded-lg outline-none bg-gray-50" onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
+                                <select className="w-full border p-2 rounded-lg outline-none bg-gray-50" value={newUser.role} onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}>
                                     <option value="medecin">Docteur</option>
                                     <option value="admin">Administrateur</option>
                                 </select>
 
                                 {newUser.role === "medecin" && (
-                                    <input type="text" placeholder="Spécialité" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required onChange={(e) => setNewUser({ ...newUser, specialite: e.target.value })} />
+                                    <input type="text" placeholder="Spécialité (Ex: Cardiologue)" className="w-full border p-2 rounded-lg outline-none focus:border-[#00a5a8]" required value={newUser.specialite} onChange={(e) => setNewUser({ ...newUser, specialite: e.target.value })} />
                                 )}
 
-                                <Button type="submit" label="Créer et envoyer le mail" variant="login" fullWidth loading={submitting} />
+                                <Button type="submit" label="Créer et notifier par mail" variant="login" fullWidth loading={submitting} />
                             </form>
                         </div>
                     </div>
                 )}
 
                 <div className="bg-white rounded-xl shadow-sm border overflow-hidden">
-                    <table className="w-full text-left">
+                    <table className="w-full text-left border-collapse">
                         <thead className="bg-gray-50 border-b">
                             <tr>
                                 <th className="px-6 py-4 text-sm font-semibold text-gray-600">Utilisateur</th>
@@ -184,7 +195,9 @@ const Users = () => {
                         </thead>
                         <tbody className="divide-y">
                             {loading ? (
-                                <tr><td colSpan="3" className="text-center py-10 text-gray-400">Chargement...</td></tr>
+                                <tr><td colSpan="3" className="text-center py-10 text-gray-400 italic">Chargement des membres...</td></tr>
+                            ) : filteredUsers.length === 0 ? (
+                                <tr><td colSpan="3" className="text-center py-10 text-gray-400">Aucun utilisateur trouvé.</td></tr>
                             ) : (
                                 filteredUsers.map((u) => (
                                     <tr key={u.id} className="hover:bg-gray-50/80 transition-colors">

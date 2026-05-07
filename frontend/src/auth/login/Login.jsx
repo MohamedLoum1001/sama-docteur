@@ -8,9 +8,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
+// ✅ CORRECTION : L'URL de l'API doit pointer vers ton serveur Azure avec le port 8000
 const API_URL = window.location.hostname === "localhost"
-  ? "http://localhost:5000"
-  : "https://sama-docteur.vercel.app";
+  ? "http://localhost:8000"
+  : "http://4.233.208.186:8000";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -41,10 +42,7 @@ const Login = () => {
       if (response.ok) {
         // 🛑 VÉRIFICATION CRITIQUE DU STATUT
         if (data.user.status === 'blocked' || data.user.status === 'archived') {
-          // Déconnexion de Firebase par sécurité si nécessaire
           await signOut(auth);
-
-          // On s'assure que rien n'est stocké en local
           localStorage.removeItem("user");
 
           setLoading(false);
@@ -53,18 +51,13 @@ const Login = () => {
             : "Ce compte est archivé. Veuillez contacter le support.";
 
           setErrorMessage(msg);
-          return; // ⛔ ON ARRÊTE TOUT ICI
+          return;
         }
 
-        // ✅ LOGIQUE DE CONNEXION RÉUSSIE (Statut Actif)
-        if (data.user.role === "patient") {
-          console.log(`Connecté : ${data.user.prenom} ${data.user.nom}`);
-        }
-
-        // Stockage des infos utilisateur
+        // ✅ LOGIQUE DE CONNEXION RÉUSSIE
+        console.log(`Connecté sur Azure : ${data.user.prenom} ${data.user.nom}`);
         localStorage.setItem("user", JSON.stringify(data.user));
 
-        // Redirection immédiate basée sur le rôle
         if (data.user.role === "patient") navigate("/patient");
         else if (data.user.role === "medecin") navigate("/medecin");
         else if (data.user.role === "admin") navigate("/admin");
@@ -76,7 +69,8 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      setErrorMessage("Impossible de contacter le serveur.");
+      // ✅ Message plus précis si l'API est injoignable
+      setErrorMessage("Impossible de contacter le serveur (Azure API).");
       setLoading(false);
     }
   };
@@ -88,7 +82,7 @@ const Login = () => {
           <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
 
             <div className="text-center mb-4">
-              <h3 className="fw-bold login-title">Connexion</h3>
+              <h3 className="fw-bold login-title" style={{ color: "#00a5a8" }}>Connexion</h3>
               <p className="text-muted small">Espace de santé Sama Docteur</p>
             </div>
 
@@ -131,7 +125,7 @@ const Login = () => {
                   </div>
 
                   <div className="text-end mb-4">
-                    <span className="text-muted small pointer" onClick={() => navigate("/forget-password")}>
+                    <span className="text-muted small pointer" onClick={() => navigate("/forget-password")} style={{ cursor: "pointer" }}>
                       Mot de passe oublié ?
                     </span>
                   </div>

@@ -51,7 +51,7 @@ exports.createPaymentIntent = async (req, res) => {
 };
 
 /**
- * LOGIQUE D'INSCRIPTION (AVEC GÉNÉRATION DE MDP ET ENVOI DE MAIL COMPATIBLE OUTLOOK)
+ * LOGIQUE D'INSCRIPTION
  */
 exports.register = async (req, res) => {
     try {
@@ -60,10 +60,8 @@ exports.register = async (req, res) => {
             dateNaissance, role, specialite
         } = req.body;
 
-        // ✅ 1. Génération d'un mot de passe aléatoire de 10 caractères
         const generatedPassword = Math.random().toString(36).slice(-10);
 
-        // ✅ 2. Création du compte dans Firebase Auth
         const userRecord = await auth.createUser({
             email: email,
             password: generatedPassword,
@@ -71,7 +69,6 @@ exports.register = async (req, res) => {
             disabled: false,
         });
 
-        // ✅ 3. Préparation des données pour Firestore
         const userData = {
             uid: userRecord.uid,
             prenom,
@@ -84,13 +81,13 @@ exports.register = async (req, res) => {
             specialite: role === "medecin" ? specialite : "",
             createdAt: admin.firestore.FieldValue.serverTimestamp(),
             status: "actif",
-            mustChangePassword: true // Pour forcer le changement au premier login
+            mustChangePassword: true
         };
 
         await db.collection("users").doc(userRecord.uid).set(userData);
 
-        // ✅ 4. Configuration du mail COMPATIBLE OUTLOOK
-        const resetPasswordLink = "https://sama-docteur.vercel.app/forget-password";
+        // ✅ CORRECTION : Le lien doit pointer vers ton IP Azure et non Vercel
+        const resetPasswordLink = "http://4.233.208.186/forget-password";
 
         const mailOptions = {
             from: '"Sama Docteur" <no-reply@samadocteur.com>',
@@ -116,15 +113,9 @@ exports.register = async (req, res) => {
                             CHANGER MON MOT DE PASSE
                         </a>
                     </div>
-
-                    <p style="font-size: 12px; color: #888; text-align: center;">
-                        Si le bouton ne fonctionne pas, copiez ce lien dans votre navigateur :<br>
-                        ${resetPasswordLink}
-                    </p>
-
                     <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
                     <p style="font-size: 11px; color: #aaa; text-align: center;">
-                        &copy; 2026 Sama Docteur - Plateforme de santé
+                        &copy; 2026 Sama Docteur - Plateforme de santé sur Azure
                     </p>
                 </div>
             `
@@ -133,10 +124,8 @@ exports.register = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         console.log("============================================");
-        console.log("🆕 UTILISATEUR CRÉÉ PAR ADMIN");
+        console.log("🆕 UTILISATEUR CRÉÉ ET LIEN AZURE ENVOYÉ");
         console.log(`Email     : ${email}`);
-        console.log(`Rôle      : ${userData.role}`);
-        console.log(`Statut    : Mail compatible Outlook envoyé ✅`);
         console.log("============================================");
 
         res.status(201).json({
@@ -170,11 +159,6 @@ exports.login = async (req, res) => {
         const userData = userDoc.data();
 
         if (userData.status === 'archived' || userData.status === 'blocked') {
-            console.log("============================================");
-            console.log("🚫 ACCÈS REFUSÉ");
-            console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
-            console.log("============================================");
-
             return res.status(403).json({
                 error: "Votre compte est archivé ou bloqué.",
                 user: { id: userRecord.uid, status: userData.status, prenom: userData.prenom, nom: userData.nom }
@@ -182,8 +166,8 @@ exports.login = async (req, res) => {
         }
 
         console.log("============================================");
-        console.log("🔑 CONNEXION RÉUSSIE");
-        console.log(`Prénom    : ${userData.prenom}`);
+        console.log("🔑 CONNEXION RÉUSSIE SUR AZURE");
+        console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
         console.log("============================================");
 
         res.status(200).json({

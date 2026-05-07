@@ -6,10 +6,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
 
-// ✅ DÉTECTION AUTOMATIQUE DE L'URL DE L'API
+// ✅ CORRECTION : L'URL pointe vers Azure avec le port 8000 en production
 const API_URL = window.location.hostname === "localhost"
-  ? "http://localhost:5000"
-  : "https://sama-docteur.vercel.app";
+  ? "http://localhost:8000"
+  : "http://4.233.208.186:8000";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -72,7 +72,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // ✅ UTILISATION DE L'URL DYNAMIQUE API_URL
+      // ✅ APPEL VERS TON SERVEUR AZURE
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,14 +82,14 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMessage("Inscription réussie ✅");
+        setSuccessMessage("Inscription réussie ✅ Redirection...");
         setTimeout(() => navigate("/login"), 1500);
       } else {
         setErrors({ ...errors, server: data.error || "Erreur lors de l'inscription" });
       }
     } catch (error) {
       console.error("Erreur Inscription:", error);
-      setErrors({ ...errors, server: "Erreur de connexion au serveur. Vérifiez votre connexion." });
+      setErrors({ ...errors, server: "Impossible de joindre le serveur Azure." });
     } finally {
       setIsLoading(false);
     }
@@ -101,17 +101,16 @@ const Register = () => {
         <div className="row justify-content-center">
           <div className="col-12 col-lg-10 col-xl-8">
             <div className="text-center mb-4">
-              <h2 className="fw-bold title-color">Créer un compte</h2>
+              <h2 className="fw-bold" style={{ color: "#00a5a8" }}>Créer un compte</h2>
               <p className="text-muted">Rejoignez Sama Docteur dès aujourd'hui</p>
-              {successMessage && <div className="alert alert-success rounded-pill">{successMessage}</div>}
-              {errors.server && <div className="alert alert-danger rounded-pill">{errors.server}</div>}
+              {successMessage && <div className="alert alert-success rounded-pill shadow-sm">{successMessage}</div>}
+              {errors.server && <div className="alert alert-danger rounded-pill shadow-sm">{errors.server}</div>}
             </div>
 
             <div className="card shadow-lg border-0 rounded-4 overflow-hidden">
               <div className="card-body p-4 p-md-5">
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3">
-                    {/* Champs Prénom et Nom */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Prénom</label>
                       <div className={`input-group custom-input-group ${errors.prenom ? 'is-invalid-group' : ''}`}>
@@ -129,7 +128,6 @@ const Register = () => {
                       </div>
                     </div>
 
-                    {/* Autres champs identiques à ton code initial... */}
                     <div className="col-md-6">
                       <label className="form-label fw-bold small">Date de naissance</label>
                       <div className="input-group custom-input-group">
@@ -189,7 +187,7 @@ const Register = () => {
                       <label className="form-label fw-bold small">Mot de passe</label>
                       <div className="input-group custom-input-group overflow-hidden">
                         <input type={showPassword ? "text" : "password"} name="password" value={formData.password} onChange={handleChange} className="form-control border-0" placeholder="********" />
-                        <button type="button" className="btn bg-white border-0" onClick={() => setShowPassword(!showPassword)}>
+                        <button type="button" className="btn bg-white border-0 shadow-none" onClick={() => setShowPassword(!showPassword)}>
                           <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                         </button>
                       </div>
@@ -199,7 +197,7 @@ const Register = () => {
                       <label className="form-label fw-bold small">Confirmation</label>
                       <div className={`input-group custom-input-group overflow-hidden ${errors.confirmPassword ? 'is-invalid-group' : ''}`}>
                         <input type={showConfirmPassword ? "text" : "password"} name="confirmPassword" value={formData.confirmPassword} onChange={handleChange} className="form-control border-0" placeholder="********" />
-                        <button type="button" className="btn bg-white border-0" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
+                        <button type="button" className="btn bg-white border-0 shadow-none" onClick={() => setShowConfirmPassword(!showConfirmPassword)}>
                           <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
                         </button>
                       </div>
@@ -212,10 +210,10 @@ const Register = () => {
                       label="S'inscrire maintenant"
                       variant="register"
                       loading={isLoading}
-                      className="w-100 py-3"
+                      className="w-100 py-3 rounded-pill"
                     />
                     <p className="mt-4 text-muted">
-                      Déjà membre ? <span className="text-primary-custom fw-bold pointer" onClick={() => navigate('/login')}>Se connecter</span>
+                      Déjà membre ? <span className="fw-bold pointer" style={{ color: "#00a5a8" }} onClick={() => navigate('/login')}>Se connecter</span>
                     </p>
                   </div>
                 </form>

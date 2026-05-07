@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { auth } from "../../firebase";
 import { confirmPasswordReset } from "firebase/auth";
-import Button from "../../components/boutons/Button"; // Utilisation de ton composant Button
+import Button from "../../components/boutons/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./ResetPassword.css";
@@ -26,7 +26,7 @@ const ResetPassword = () => {
     if (!oobCode) {
       setStatus({
         type: "danger",
-        msg: "Lien de réinitialisation invalide. Veuillez recommencer la procédure."
+        msg: "Lien de réinitialisation invalide ou expiré. Veuillez recommencer la procédure."
       });
     }
   }, [oobCode]);
@@ -58,14 +58,14 @@ const ResetPassword = () => {
       // Envoyer le nouveau mot de passe à Firebase
       await confirmPasswordReset(auth, oobCode, formData.password);
 
-      setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! ✅" });
+      setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! ✅ Redirection..." });
 
-      // Redirection vers login après succès
+      // ✅ Redirection vers ton Login sur Azure après 2.5 secondes
       setTimeout(() => navigate("/login"), 2500);
     } catch (error) {
-      console.error(error);
-      let errorMsg = "Erreur : le lien a expiré ou a déjà été utilisé.";
-      if (error.code === "auth/weak-password") errorMsg = "Mot de passe trop faible.";
+      console.error("Erreur Reset:", error.code);
+      let errorMsg = "Le lien a expiré ou a déjà été utilisé.";
+      if (error.code === "auth/weak-password") errorMsg = "Le mot de passe est trop faible.";
 
       setStatus({ type: "danger", msg: errorMsg });
       setLoading(false);
@@ -79,14 +79,14 @@ const ResetPassword = () => {
           <div className="col-12 col-sm-10 col-md-8 col-lg-5 col-xl-4">
 
             <div className="text-center mb-4">
-              <h3 className="fw-bold login-title">Nouveau mot de passe</h3>
-              <p className="text-muted small">Sécurisez l'accès à votre compte</p>
+              <h3 className="fw-bold login-title" style={{ color: "#00a5a8" }}>Nouveau mot de passe</h3>
+              <p className="text-muted small">Sécurisez l'accès à votre compte Sama Docteur</p>
             </div>
 
             <div className="card login-card shadow-lg border-0 rounded-4">
               <div className="card-body p-4 p-md-5">
                 {status.msg && (
-                  <div className={`alert alert-${status.type} py-2 small text-center`}>
+                  <div className={`alert alert-${status.type} py-2 small text-center rounded-pill shadow-sm mb-4`}>
                     {status.msg}
                   </div>
                 )}
@@ -94,16 +94,16 @@ const ResetPassword = () => {
                 <form onSubmit={handleResetPassword}>
                   {/* Nouveau mot de passe */}
                   <div className="mb-3 text-start">
-                    <label className="form-label small fw-bold">Mot de passe</label>
+                    <label className="form-label small fw-bold ms-2">Mot de passe</label>
                     <div className={`input-group custom-input-group ${errors.password ? 'border-danger' : ''}`}>
-                      <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
+                      <span className="input-group-text bg-white border-0"><i className="fa fa-lock text-muted"></i></span>
                       <input
                         type={showPassword ? "text" : "password"}
                         name="password"
                         value={formData.password}
                         onChange={handleChange}
                         className="form-control border-0"
-                        placeholder="Nouveau mot de passe"
+                        placeholder="••••••••"
                         required
                         disabled={!oobCode || loading}
                       />
@@ -112,24 +112,24 @@ const ResetPassword = () => {
                         style={{ cursor: "pointer" }}
                         onClick={() => setShowPassword(!showPassword)}
                       >
-                        <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        <i className={`fa ${showPassword ? "fa-eye-slash" : "fa-eye"} text-muted`}></i>
                       </span>
                     </div>
-                    {errors.password && <small className="text-danger small d-block mt-1">{errors.password}</small>}
+                    {errors.password && <small className="text-danger small d-block mt-1 ms-2">{errors.password}</small>}
                   </div>
 
                   {/* Confirmation */}
                   <div className="mb-4 text-start">
-                    <label className="form-label small fw-bold">Confirmation</label>
+                    <label className="form-label small fw-bold ms-2">Confirmation</label>
                     <div className={`input-group custom-input-group ${errors.confirmPassword ? 'border-danger' : ''}`}>
-                      <span className="input-group-text bg-white border-0"><i className="fa fa-lock"></i></span>
+                      <span className="input-group-text bg-white border-0"><i className="fa fa-lock text-muted"></i></span>
                       <input
                         type={showConfirmPassword ? "text" : "password"}
                         name="confirmPassword"
                         value={formData.confirmPassword}
                         onChange={handleChange}
                         className="form-control border-0"
-                        placeholder="Confirmer le mot de passe"
+                        placeholder="••••••••"
                         required
                         disabled={!oobCode || loading}
                       />
@@ -138,10 +138,10 @@ const ResetPassword = () => {
                         style={{ cursor: "pointer" }}
                         onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       >
-                        <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"}`}></i>
+                        <i className={`fa ${showConfirmPassword ? "fa-eye-slash" : "fa-eye"} text-muted`}></i>
                       </span>
                     </div>
-                    {errors.confirmPassword && <small className="text-danger small d-block mt-1">{errors.confirmPassword}</small>}
+                    {errors.confirmPassword && <small className="text-danger small d-block mt-1 ms-2">{errors.confirmPassword}</small>}
                   </div>
 
                   <Button
@@ -150,7 +150,7 @@ const ResetPassword = () => {
                     variant="login"
                     loading={loading}
                     disabled={!oobCode}
-                    className="w-100"
+                    className="w-100 rounded-pill shadow-sm"
                   />
                 </form>
               </div>
