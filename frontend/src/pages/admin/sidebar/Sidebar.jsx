@@ -8,7 +8,7 @@ import {
 
 const Sidebar = () => {
     const [isCollapsed, setIsCollapsed] = useState(false);
-    const [isOpen, setIsOpen] = useState(false); // Pour le menu mobile
+    const [isOpen, setIsOpen] = useState(false);
 
     const menuItems = [
         { path: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard size={22} /> },
@@ -19,48 +19,77 @@ const Sidebar = () => {
         { path: '/notifications', label: 'Notifications', icon: <Bell size={22} /> },
     ];
 
+    // Styles en ligne pour garantir le fonctionnement sans dépendre de Tailwind
+    const sidebarStyle = {
+        position: window.innerWidth < 992 ? 'fixed' : 'relative',
+        left: 0,
+        top: 0,
+        height: '100vh',
+        backgroundColor: '#1a1c23',
+        zIndex: 1050,
+        transition: 'transform 0.3s ease, width 0.3s ease',
+        transform: (window.innerWidth < 992 && !isOpen) ? 'translateX(-100%)' : 'translateX(0)',
+        width: isCollapsed ? '80px' : '260px'
+    };
+
     return (
         <>
-            {/* Bouton Hamburger Mobile (visible uniquement sur mobile) */}
-            <div className="lg:hidden fixed top-4 left-4 z-50">
-                <button onClick={() => setIsOpen(!isOpen)} className="p-2 bg-[#1a1c23] text-white rounded-lg shadow-lg">
+            {/* BOUTON HAMBURGER (Visible uniquement sur Mobile/Tablette) */}
+            <div className="d-lg-none" style={{ position: 'fixed', top: '15px', left: '15px', zIndex: 1100 }}>
+                <button
+                    onClick={() => setIsOpen(!isOpen)}
+                    className="btn border-0 shadow-lg text-white"
+                    style={{ backgroundColor: '#1a1c23', padding: '10px' }}
+                >
                     {isOpen ? <X size={24} /> : <Menu size={24} />}
                 </button>
             </div>
 
-            {/* Overlay Mobile (cliquer à côté pour fermer) */}
+            {/* OVERLAY (Floute le fond sur mobile quand le menu est ouvert) */}
             {isOpen && (
-                <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setIsOpen(false)} />
+                <div
+                    onClick={() => setIsOpen(false)}
+                    style={{
+                        position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 1040
+                    }}
+                />
             )}
 
-            {/* Sidebar */}
-            <div className={`fixed lg:relative z-40 flex flex-col bg-[#1a1c23] text-gray-300 transition-all duration-300 min-h-screen shadow-xl 
-                ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'} 
-                ${isCollapsed ? 'lg:w-20' : 'lg:w-64'} w-64`}>
+            {/* SIDEBAR */}
+            <div style={sidebarStyle} className="shadow-xl flex flex-col">
 
-                <div className="hidden lg:flex items-center justify-between h-20 px-6 border-b border-gray-700">
-                    {!isCollapsed && <span className="font-bold text-[#00a5a8]">Sama Docteur</span>}
+                {/* Logo & Toggle (Desktop uniquement) */}
+                <div className="d-none d-lg-flex align-items-center justify-content-between border-bottom border-secondary px-4" style={{ height: '80px' }}>
+                    {!isCollapsed && <span className="fw-bold text-white" style={{ color: '#00a5a8' }}>Sama Docteur</span>}
                     <button
                         onClick={() => setIsCollapsed(!isCollapsed)}
-                        className="p-1.5 rounded-lg bg-gray-800 hover:bg-[#00a5a8] text-white transition-colors"
+                        className="btn btn-dark btn-sm text-info border-0"
                     >
                         {isCollapsed ? <Menu size={20} /> : <ChevronLeft size={20} />}
                     </button>
                 </div>
 
-                <nav className="flex-1 px-3 py-10 lg:py-6 overflow-y-auto mt-10 lg:mt-0">
-                    <ul className="list-none p-0 m-0">
+                {/* Navigation */}
+                <nav className="p-3 mt-5 mt-lg-0 overflow-auto flex-grow-1">
+                    <ul className="list-unstyled p-0 m-0">
                         {menuItems.map((item) => (
-                            <li key={item.path} className="mb-2 list-none">
+                            <li key={item.path} className="mb-2">
                                 <NavLink
                                     to={item.path}
-                                    onClick={() => setIsOpen(false)} // Ferme le menu au clic sur mobile
-                                    className={({ isActive }) => `flex items-center px-3 py-3 rounded-xl transition-all duration-200 ${isActive ? 'bg-[#00a5a8] text-white' : 'hover:bg-gray-800'}`}
+                                    onClick={() => setIsOpen(false)} // FERME LE MENU APRÈS CLIC SUR MOBILE
+                                    className={({ isActive }) =>
+                                        `d-flex align-items-center px-3 py-3 rounded-3 text-decoration-none transition-all ${isActive ? 'bg-info text-white' : 'text-secondary bg-transparent'
+                                        }`
+                                    }
+                                    style={({ isActive }) => ({
+                                        backgroundColor: isActive ? '#00a5a8' : 'transparent',
+                                        color: isActive ? '#ffffff' : '#a0aec0'
+                                    })}
                                 >
                                     <div className="flex-shrink-0">{item.icon}</div>
-                                    <span className={`${isCollapsed ? 'lg:hidden' : 'block'} ml-4 font-medium whitespace-nowrap`}>
-                                        {item.label}
-                                    </span>
+                                    {(!isCollapsed || window.innerWidth < 992) && (
+                                        <span className="ms-3 fw-medium">{item.label}</span>
+                                    )}
                                 </NavLink>
                             </li>
                         ))}
