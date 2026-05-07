@@ -19,17 +19,21 @@ const Sidebar = () => {
         { path: '/notifications', label: 'Notifications', icon: <Bell size={22} /> },
     ];
 
-    // Styles en ligne pour garantir le fonctionnement sans dépendre de Tailwind
+    // ✅ Styles mis à jour pour corriger la superposition avec la Navbar
     const sidebarStyle = {
         position: window.innerWidth < 992 ? 'fixed' : 'relative',
         left: 0,
-        top: 0,
-        height: '100vh',
+        // SUR ORDINATEUR : On descend le sidebar sous la navbar (80px)
+        // SUR MOBILE : On reste à 0 pour couvrir tout l'écran
+        top: window.innerWidth < 992 ? 0 : '80px',
+        height: window.innerWidth < 992 ? '100vh' : 'calc(100vh - 80px)',
         backgroundColor: '#1a1c23',
-        zIndex: 1050,
+        // ON DIMINUE LE Z-INDEX SUR PC : pour qu'il passe sous la navbar
+        zIndex: window.innerWidth < 992 ? 1050 : 900,
         transition: 'transform 0.3s ease, width 0.3s ease',
         transform: (window.innerWidth < 992 && !isOpen) ? 'translateX(-100%)' : 'translateX(0)',
-        width: isCollapsed ? '80px' : '260px'
+        width: isCollapsed ? '80px' : '260px',
+        overflow: 'hidden'
     };
 
     return (
