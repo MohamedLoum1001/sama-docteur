@@ -16,10 +16,10 @@ const ForgetPassword = () => {
         setLoading(true);
         setStatus({ type: "", msg: "" });
 
-        // ✅ CORRECTION : On redirige vers ton IP Azure au lieu de Vercel
+        // ✅ CONFIGURATION : Redirection vers ta page de réinitialisation sur Azure
         const actionCodeSettings = {
-            url: 'http://4.233.208.186/login',
-            handleCodeInApp: false,
+            url: 'http://4.233.208.186/reset-password',
+            handleCodeInApp: true,
         };
 
         try {
@@ -30,8 +30,8 @@ const ForgetPassword = () => {
                 msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception. ✅"
             });
 
-            // Redirection automatique vers le login après 4 secondes
-            setTimeout(() => navigate("/login"), 4000);
+            // On laisse l'utilisateur lire le message avant de le rediriger éventuellement
+            // ou on peut le laisser cliquer sur le lien dans son mail.
 
         } catch (error) {
             console.error("Erreur réinitialisation:", error.code);
