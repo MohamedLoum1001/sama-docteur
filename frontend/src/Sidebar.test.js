@@ -1,13 +1,18 @@
 import { render, screen } from '@testing-library/react';
-import { BrowserRouter } from 'react-router-dom';
-// ✅ Nouveau chemin vers le dossier pages/admin
+import { MemoryRouter } from 'react-router-dom';
 import Sidebar from './pages/admin/sidebar/Sidebar';
 
 test('Vérifie que le lien Dashboard est présent dans le Sidebar', () => {
     render(
-        <BrowserRouter>
+        <MemoryRouter
+            future={{
+                v7_startTransition: true,
+                v7_relativeSplatPath: true,
+            }}
+        >
             <Sidebar />
-        </BrowserRouter>
+        </MemoryRouter>
     );
+
     expect(screen.getByText(/Dashboard/i)).toBeInTheDocument();
 });

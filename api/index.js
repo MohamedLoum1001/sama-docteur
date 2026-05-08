@@ -42,11 +42,14 @@ app.use((req, res) => {
 });
 
 // --- LANCEMENT ---
-// ✅ Correction : On lance le serveur sur le port 8000 pour Docker/Azure
 const PORT = process.env.PORT || 8000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 SERVEUR LANCÉ : Port ${PORT}`);
-});
 
-// Export pour compatibilité éventuelle
+// ✅ On n'exécute le listen que si le fichier est lancé directement (pas via les tests)
+if (require.main === module) {
+    app.listen(PORT, '0.0.0.0', () => {
+        console.log(`🚀 SERVEUR LANCÉ : Port ${PORT}`);
+    });
+}
+
+// ✅ Export pour que Jest/Supertest puisse tester l'app
 module.exports = app;
