@@ -1,6 +1,9 @@
 // api/index.js
 require('dotenv').config();
 
+// 🔥 CORRECTION CRITIQUE : Initialiser Firebase en priorité absolue avant de charger les routes/contrôleurs
+require("./config/firebase"); 
+
 const express = require("express");
 const cors = require("cors");
 const authRoutes = require("./routes/authRoutes");
