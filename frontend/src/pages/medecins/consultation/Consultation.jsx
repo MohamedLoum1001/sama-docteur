@@ -14,10 +14,9 @@ import {
     FaArrowLeft, FaPaperPlane, FaMicrophone, FaStop, FaUserCircle, FaSearch
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-// import Button from "../../../components/boutons/Button";
-import "./Consultation.css"; // Assure-toi que le nom du fichier est EXACTEMENT Consultation.css
 
-// ✅ Correction : Renommer 'consultation' en 'Consultation' (Majuscule)
+import "./Consultation.css"; 
+
 const Consultation = () => {
     const navigate = useNavigate();
     const [patients, setPatients] = useState([]);
@@ -65,7 +64,7 @@ const Consultation = () => {
         return () => unsubscribe();
     }, [selectedPatient, medecinId]);
 
-    // ✅ LOGIQUE VOCALE
+    // LOGIQUE VOCALE
     const toggleListening = () => {
         const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
         if (!SpeechRecognition) return alert("Micro non supporté");
@@ -200,5 +199,4 @@ const Consultation = () => {
     );
 };
 
-// ✅ Correction : Export avec la Majuscule
 export default Consultation;

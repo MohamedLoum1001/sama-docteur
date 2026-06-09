@@ -46,7 +46,7 @@ const Pharmacie = () => {
             const querySnapshot = await getDocs(collection(db, "pharmacies"));
             const allPharmacies = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
-            // ✅ NOUVELLE LOGIQUE DE FILTRAGE : Majuscules et Accents ignorés
+            // NOUVELLE LOGIQUE DE FILTRAGE : Majuscules et Accents ignorés
             const filtered = allPharmacies
                 .filter(pharma =>
                     pharma.stock && pharma.stock.some(item => {
@@ -82,7 +82,7 @@ const Pharmacie = () => {
                     return { ...pharma, medPrice: medInfo ? medInfo.prix : 0, distance };
                 });
 
-            // ✅ TRI : On met la plus proche en haut de la liste
+            // TRI : On met la plus proche en haut de la liste
             const sorted = filtered.sort((a, b) => {
                 if (a.distance !== null && b.distance !== null) {
                     return a.distance - b.distance;

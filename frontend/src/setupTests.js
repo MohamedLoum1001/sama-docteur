@@ -10,7 +10,7 @@ afterEach(() => {
     jest.useRealTimers();
 });
 
-// ✅ Mock Agora (On mock l'objet par défaut ET les fonctions)
+// Mock Agora (On mock l'objet par défaut ET les fonctions)
 jest.mock('agora-rtc-react', () => ({
     __esModule: true,
     default: {

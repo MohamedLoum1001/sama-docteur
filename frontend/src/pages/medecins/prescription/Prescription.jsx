@@ -1,4 +1,3 @@
-// src/pages/Prescription.jsx
 import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
@@ -148,7 +147,7 @@ const Prescription = () => {
         isRead: false,
         createdAt: serverTimestamp(),
       });
-      alert("Ordonnance envoyée avec succès ! ✅");
+      alert("Ordonnance envoyée avec succès !");
       navigate("/medecin");
     } catch (error) {
       console.error(error);

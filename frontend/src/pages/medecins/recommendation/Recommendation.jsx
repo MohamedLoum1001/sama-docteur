@@ -41,7 +41,7 @@ const Recommandation = () => {
     fetchPatients();
   }, []);
 
-  // ✅ LOGIQUE VOCALE INSTANTANÉE
+  // LOGIQUE VOCALE INSTANTANÉE
   const toggleListening = () => {
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
@@ -85,7 +85,7 @@ const Recommandation = () => {
   const submitRecommandation = async (e) => {
     e.preventDefault();
     if (!selectedPatient || !recommandations.trim()) {
-      alert("⚠️ Veuillez sélectionner un patient et saisir un message.");
+      alert("Veuillez sélectionner un patient et saisir un message.");
       return;
     }
 
@@ -103,13 +103,13 @@ const Recommandation = () => {
       // Notification pour le patient
       await addDoc(collection(db, "notifications"), {
         userId: selectedPatient,
-        title: "Conseils médicaux 💡",
+        title: "Conseils médicaux",
         message: `Le Dr ${userMedecin?.nom} vous a envoyé de nouvelles recommandations.`,
         isRead: false,
         createdAt: serverTimestamp(),
       });
 
-      alert("✅ Recommandation envoyée !");
+      alert("Recommandation envoyée !");
       setRecommandations("");
       setSelectedPatient("");
     } catch (error) {

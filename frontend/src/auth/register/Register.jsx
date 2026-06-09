@@ -1,12 +1,11 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// ✅ Importation du composant réutilisable
 import Button from "../../components/boutons/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
 
-// ✅ CORRECTION : L'URL pointe vers Azure avec le port 8000 en production
+// CORRECTION : L'URL pointe vers Azure avec le port 8000 en production
 const API_URL = window.location.hostname === "localhost"
   ? "http://localhost:8000"
   : "http://4.233.208.186:8000";
@@ -72,7 +71,7 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      // ✅ APPEL VERS TON SERVEUR AZURE
+      // APPEL VERS TON SERVEUR AZURE
       const response = await fetch(`${API_URL}/api/auth/register`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,7 +81,7 @@ const Register = () => {
       const data = await response.json();
 
       if (response.ok) {
-        setSuccessMessage("Inscription réussie ✅ Redirection...");
+        setSuccessMessage("Inscription réussie Redirection...");
         setTimeout(() => navigate("/login"), 1500);
       } else {
         setErrors({ ...errors, server: data.error || "Erreur lors de l'inscription" });

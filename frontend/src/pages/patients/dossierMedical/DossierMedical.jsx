@@ -1,4 +1,3 @@
-// src/patients/dossier/DossierMedical.jsx
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db, auth } from "../../../firebase";
@@ -53,7 +52,6 @@ const DossierMedical = () => {
         }));
 
         // --- 2. RECHERCHE DANS LES SOUS-COLLECTIONS DU DOSSIER (Imbriquées) ---
-        // Chemin : users -> UID -> dossiersMedicaux -> dossierPrincipal -> [Sous-Collection]
         const subColPath = (name) => collection(db, "users", user.uid, "dossiersMedicaux", "dossierPrincipal", name);
 
         const [snapSubConsult, snapSubExam, snapSubOrd, snapSubRec] = await Promise.all([
@@ -160,7 +158,7 @@ const DossierMedical = () => {
             onClick={() => navigate("/home-patient")}
             className="btn-back"
           />
-          <h2 className="title-modern text-teal">📂 Mon Espace Santé</h2>
+          <h2 className="title-modern text-teal">Mon Espace Santé</h2>
           <div style={{ width: '100px' }} className="d-none d-md-block"></div>
         </div>
       </header>

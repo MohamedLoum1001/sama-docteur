@@ -4,7 +4,7 @@ import { QRCodeCanvas } from "qrcode.react";
 import { db, auth } from "../../../firebase";
 import { collection, query, getDocs } from "firebase/firestore";
 import { FaCalendarAlt, FaStethoscope, FaMapMarkerAlt, FaQrcode, FaArrowLeft } from "react-icons/fa";
-// ✅ Importation du composant réutilisable
+// Importation du composant réutilisable
 import Button from "../../../components/boutons/Button";
 import "./TicketAcheter.css";
 
@@ -85,7 +85,7 @@ const TicketAcheter = () => {
 
               <div className="ticket-info-main">
                 <div className="status-row">
-                  {/* ✅ Application de la couleur #00a5a8 sur le statut payé */}
+                  {/* Application de la couleur #00a5a8 sur le statut payé */}
                   <span
                     className={`status-badge ${ticket.statutPaiement === "payé" ? "paid" : "pending"}`}
                     style={ticket.statutPaiement === "payé" ? { backgroundColor: "#00a5a8", color: "#fff" } : {}}

@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-// ✅ Import useNavigate retiré car inutilisé
 import { doc, getDoc, updateDoc } from "firebase/firestore";
 import { db } from "../../firebase";
 import "./Profil.css";
 
 const Profil = () => {
-  // ✅ Initialisation de navigate retirée
   const [loading, setLoading] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [user, setUser] = useState({
@@ -35,7 +33,7 @@ const Profil = () => {
       }
     };
     fetchUser();
-    // ✅ Ajout de storedUser?.uid dans les dépendances
+    // Ajout de storedUser?.uid dans les dépendances
   }, [storedUser?.uid]);
 
   // 2. Gestion de l'upload de la photo sur Cloudinary + Mise à jour Firestore
@@ -99,7 +97,7 @@ const Profil = () => {
         telephone: user.telephone,
         adresse: user.adresse
       });
-      alert("Profil mis à jour ✅");
+      alert("Profil mis à jour");
     } catch (error) {
       console.error("Erreur update:", error);
       alert("Erreur lors de la mise à jour");

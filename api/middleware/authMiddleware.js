@@ -1,5 +1,4 @@
-// api/middleware/authMiddleware.js
-const admin = require("../config/firebase"); // Ton instance firebase-admin
+const admin = require("../config/firebase");
 
 const verifyToken = async (req, res, next) => {
     const token = req.headers.authorization?.split(" ")[1];

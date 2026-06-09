@@ -69,7 +69,7 @@ const AvisAdmin = () => {
             <div className="p-6 text-[#1a1c23]">
                 <h1 className="text-2xl font-bold mb-6">Avis & Retours Clients</h1>
 
-                {/* ✅ Dashboard de Statistiques Avis */}
+                {/* Dashboard de Statistiques Avis */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
                     <div className="bg-white p-6 rounded-2xl border shadow-sm flex items-center gap-4">
                         <div className="bg-yellow-100 p-4 rounded-full text-yellow-600">
@@ -91,7 +91,7 @@ const AvisAdmin = () => {
                     </div>
                 </div>
 
-                {/* ✅ Liste des avis */}
+                {/* Liste des avis */}
                 <div className="space-y-4">
                     {loading ? (
                         <div className="flex flex-col items-center py-20 text-gray-400">

@@ -29,12 +29,12 @@ const Navbar = () => {
   const msgRef = useRef(null);
   const navigate = useNavigate();
 
-  // ✅ URL de l'API Dynamique (Local vs Production)
+  // URL de l'API Dynamique (Local vs Production)
   const API_URL = window.location.hostname === "localhost"
     ? "http://localhost:5000"
     : "https://sama-docteur.vercel.app";
 
-  // ✅ Logique de déconnexion avec appel API
+  // Logique de déconnexion avec appel API
   const logout = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur Inconnu";
@@ -166,7 +166,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* 🔔 SECTION NOTIFICATIONS */}
+          {/* SECTION NOTIFICATIONS */}
           <div className="position-relative me-3" ref={notifRef}>
             <button className="btn btn-link position-relative p-0" onClick={() => setShowNotif(!showNotif)}>
               <i className="bi bi-bell fs-5 text-dark"></i>
@@ -187,7 +187,7 @@ const Navbar = () => {
             )}
           </div>
 
-          {/* 👤 PROFIL */}
+          {/* PROFIL */}
           <div className="d-flex align-items-center position-relative" ref={dropdownRef}>
             <img
               src={userInfo.photo || `https://ui-avatars.com/api/?name=${userInfo.prenom}+${userInfo.nom}&background=00a5a8&color=fff`}

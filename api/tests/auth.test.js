@@ -1,7 +1,6 @@
 const request = require('supertest');
 const app = require('../index');
 
-// ✅ Mock complet calqué sur ton authController.js
 // Ce bloc simule Firebase, Stripe et Nodemailer pour isoler le test
 jest.mock('../config/firebase', () => {
     const mockAuth = {
@@ -28,8 +27,8 @@ jest.mock('../config/firebase', () => {
     };
 
     return {
-        auth: mockAuth, // Utilisé pour { auth }
-        db: mockDb,     // Utilisé pour { db }
+        auth: mockAuth,
+        db: mockDb,
         admin: {
             firestore: {
                 FieldValue: {
@@ -40,14 +39,14 @@ jest.mock('../config/firebase', () => {
     };
 });
 
-// ✅ Mock pour Stripe (évite les appels API réels)
+// Mock pour Stripe (évite les appels API réels)
 jest.mock('stripe', () => () => ({
     paymentIntents: {
         create: jest.fn().mockResolvedValue({ client_secret: 'pi_test_secret' })
     }
 }));
 
-// ✅ Mock pour Nodemailer (évite l'envoi réel d'emails pendant les tests)
+// Mock pour Nodemailer (évite l'envoi réel d'emails pendant les tests)
 jest.mock('nodemailer', () => ({
     createTransport: jest.fn().mockReturnValue({
         sendMail: jest.fn().mockResolvedValue(true)

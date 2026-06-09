@@ -2,7 +2,7 @@
 export const toBase64 = (filePath) => {
     return new Promise((resolve, reject) => {
         const img = new Image();
-        img.crossOrigin = "Anonymous"; // pour éviter les problèmes de CORS
+        img.crossOrigin = "Anonymous";
         img.src = filePath;
         img.onload = () => {
             const canvas = document.createElement("canvas");

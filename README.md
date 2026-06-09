@@ -1,4 +1,4 @@
-# 🩺 Sama Docteur – Plateforme de Santé Connectée
+# Sama Docteur – Plateforme de Santé Connectée
 
 ![CI Status](https://github.com/MohamedLoum1001/sama-docteur/actions/workflows/deploy.yml/badge.svg)
 
@@ -6,7 +6,7 @@
 Le projet met en œuvre une architecture **Fullstack moderne**, avec intégration de services cloud, communication temps réel et une stratégie de tests automatisés.
 
 ---
-## 🚀 Fonctionnalités
+## Fonctionnalités
 ### Gestion des utilisateurs
 - Authentification sécurisée (Firebase Auth)
 - Gestion des rôles : Patient / Médecin / Administrateur

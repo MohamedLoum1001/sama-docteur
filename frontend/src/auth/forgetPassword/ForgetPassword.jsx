@@ -16,7 +16,7 @@ const ForgetPassword = () => {
         setLoading(true);
         setStatus({ type: "", msg: "" });
 
-        // ✅ CONFIGURATION : Redirection vers ta page de réinitialisation sur Azure
+        // CONFIGURATION : Redirection vers ta page de réinitialisation sur Azure
         const actionCodeSettings = {
             url: 'http://4.233.208.186/reset-password',
             handleCodeInApp: true,
@@ -27,7 +27,7 @@ const ForgetPassword = () => {
 
             setStatus({
                 type: "success",
-                msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception. ✅"
+                msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception."
             });
 
             // On laisse l'utilisateur lire le message avant de le rediriger éventuellement
@@ -38,11 +38,11 @@ const ForgetPassword = () => {
             let errorMsg = "Une erreur est survenue.";
 
             if (error.code === "auth/user-not-found") {
-                errorMsg = "Aucun compte n'est associé à cet email. ❌";
+                errorMsg = "Aucun compte n'est associé à cet email.";
             } else if (error.code === "auth/invalid-email") {
-                errorMsg = "L'adresse email n'est pas valide. ❌";
+                errorMsg = "L'adresse email n'est pas valide.";
             } else if (error.code === "auth/too-many-requests") {
-                errorMsg = "Trop de tentatives. Veuillez réessayer plus tard. ❌";
+                errorMsg = "Trop de tentatives. Veuillez réessayer plus tard.";
             }
 
             setStatus({ type: "danger", msg: errorMsg });

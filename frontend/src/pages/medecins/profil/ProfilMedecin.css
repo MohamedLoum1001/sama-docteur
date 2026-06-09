@@ -1,6 +1,5 @@
 .profil-container {
     background-color: #f8f9fa;
-    /* Gris très clair identique à tes screens */
     min-height: 100vh;
 }
 
@@ -10,7 +9,6 @@
 
 .text-primary {
     color: #0b89c4 !important;
-    /* Bleu Sama Docteur */
 }
 
 /* Style des inputs arrondi comme sur ton Login */

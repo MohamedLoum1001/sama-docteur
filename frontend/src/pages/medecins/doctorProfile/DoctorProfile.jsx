@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../../../firebase";
 import { FaPhone, FaStethoscope, FaArrowLeft, FaEnvelope } from "react-icons/fa";
-// ✅ Importation du composant réutilisable
 import Button from "../../../components/boutons/Button";
 
 const DoctorProfile = () => {
@@ -83,7 +82,7 @@ const DoctorProfile = () => {
                     </div>
 
                     <div className="mt-10 flex flex-col sm:flex-row gap-4">
-                        {/* ✅ Utilisation du composant Button pour Contacter */}
+                        {/* Utilisation du composant Button pour Contacter */}
                         <Button
                             variant="login"
                             className="flex-1 py-4"
@@ -95,9 +94,9 @@ const DoctorProfile = () => {
                             }
                         />
 
-                        {/* ✅ Utilisation du composant Button pour Prendre RDV */}
+                        {/* Utilisation du composant Button pour Prendre RDV */}
                         <Button
-                            variant="register" // Utilise le bleu pour différencier les deux actions
+                            variant="register"
                             className="flex-1 py-4"
                             onClick={() => navigate(`/rendez-vous/${id}`)}
                             label="Prendre RDV"

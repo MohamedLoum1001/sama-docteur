@@ -192,7 +192,7 @@
     color: white;
 }
 
-/* ✅ ÉTATS DES CRÉNEAUX */
+/* ÉTATS DES CRÉNEAUX */
 .slot-btn.full {
     background-color: #f8d7da !important;
     color: #721c24 !important;
@@ -208,7 +208,7 @@
     margin-top: 2px;
 }
 
-/* --- ✅ SECTION HISTORIQUE DES RENDEZ-VOUS DU PATIENT --- */
+/* --- SECTION HISTORIQUE DES RENDEZ-VOUS DU PATIENT --- */
 .patient-rdv-history {
     margin-top: 40px;
     background: #fff;

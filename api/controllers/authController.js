@@ -3,7 +3,7 @@ const { auth, db, admin } = require("../config/firebase");
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const nodemailer = require('nodemailer');
 
-// ✅ Configuration du transporteur Nodemailer (Gmail)
+// Configuration du transporteur Nodemailer (Gmail)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -20,7 +20,7 @@ exports.createPaymentIntent = async (req, res) => {
         const { amount, patientName, doctorName, date, time } = req.body;
 
         const paymentIntent = await stripe.paymentIntents.create({
-            amount: amount * 100, // Conversion en centimes
+            amount: amount * 100,
             currency: 'eur',
             payment_method_types: ['card'],
             metadata: {
@@ -32,17 +32,17 @@ exports.createPaymentIntent = async (req, res) => {
         });
 
         console.log("============================================");
-        console.log("💳 TENTATIVE DE PAIEMENT GÉNÉRÉE");
+        console.log("TENTATIVE DE PAIEMENT GÉNÉRÉE");
         console.log(`Patient   : ${patientName}`);
         console.log(`Montant   : ${amount} €`);
-        console.log(`Statut    : ClientSecret généré ✅`);
+        console.log(`Statut    : ClientSecret généré`);
         console.log("============================================");
 
         res.status(200).send({
             clientSecret: paymentIntent.client_secret,
         });
     } catch (error) {
-        console.error("❌ Crash createPaymentIntent:", error.message);
+        console.error("Crash createPaymentIntent:", error.message);
         res.status(500).json({
             error: "Erreur lors de l'initialisation du paiement.",
             details: error.message
@@ -86,7 +86,7 @@ exports.register = async (req, res) => {
 
         await db.collection("users").doc(userRecord.uid).set(userData);
 
-        // ✅ CORRECTION : Le lien doit pointer vers ton IP Azure et non Vercel
+        // Le lien doit pointer vers ton IP Azure et non Vercel
         const resetPasswordLink = "http://4.233.208.186/forget-password";
 
         const mailOptions = {
@@ -124,17 +124,17 @@ exports.register = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         console.log("============================================");
-        console.log("🆕 UTILISATEUR CRÉÉ ET LIEN AZURE ENVOYÉ");
+        console.log("UTILISATEUR CRÉÉ ET LIEN AZURE ENVOYÉ");
         console.log(`Email     : ${email}`);
         console.log("============================================");
 
         res.status(201).json({
-            message: "Utilisateur créé et identifiants envoyés par mail ✅",
+            message: "Utilisateur créé et identifiants envoyés par mail",
             uid: userRecord.uid
         });
 
     } catch (error) {
-        console.error("❌ Crash Register:", error.message);
+        console.error("Crash Register:", error.message);
         res.status(500).json({
             error: "Erreur lors de la création de l'utilisateur.",
             details: error.message
@@ -166,7 +166,7 @@ exports.login = async (req, res) => {
         }
 
         console.log("============================================");
-        console.log("🔑 CONNEXION RÉUSSIE SUR AZURE");
+        console.log("CONNEXION RÉUSSIE SUR AZURE");
         console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
         console.log("============================================");
 
@@ -182,7 +182,7 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("❌ Crash Login:", error.message);
+        console.error("Crash Login:", error.message);
         res.status(401).json({
             error: "Erreur de connexion.",
             details: error.message

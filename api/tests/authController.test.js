@@ -17,8 +17,8 @@ describe('Validation d\'Email', () => {
     });
 
     test('devrait rejeter un email avec des caractères invalides', () => {
-        expect(validateEmail('test@sama docteur.com')).toBe(false); // Espace
-        expect(validateEmail('test@samadocteur..com')).toBe(false); // Double point
+        expect(validateEmail('test@sama docteur.com')).toBe(false);
+        expect(validateEmail('test@samadocteur..com')).toBe(false);
     });
 
     test('devrait rejeter une chaîne vide', () => {

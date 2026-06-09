@@ -1,4 +1,4 @@
-import { db } from "./firebase"; // Vérifie bien le chemin vers ton fichier firebase.js
+import { db } from "./firebase";
 import { collection, addDoc, GeoPoint } from "firebase/firestore";
 
 const pharmaciesData = [
@@ -6,7 +6,6 @@ const pharmaciesData = [
     { nom: "Pharmacie Keur Gorgui", adresse: "Sacré Cœur 3", lat: 14.7111, lng: -17.4722 },
     { nom: "Pharmacie de la Corniche", adresse: "Fann Résidence", lat: 14.6944, lng: -17.4750 },
     { nom: "Pharmacie Serigne Fallou", adresse: "Touba Sandaga", lat: 14.6722, lng: -17.4389 },
-    // ... Imagine ici 50 entrées avec des coordonnées variées
 ];
 
 const medicamentsTest = [
@@ -18,7 +17,7 @@ const medicamentsTest = [
 ];
 
 export const seedPharmacies = async () => {
-    console.log("🚀 Début de l'injection nationale...");
+    console.log("Début de l'injection nationale...");
 
     for (let i = 1; i <= 50; i++) {
         // On génère des coordonnées légèrement aléatoires autour de Dakar pour simuler un réseau
@@ -35,10 +34,10 @@ export const seedPharmacies = async () => {
 
         try {
             await addDoc(collection(db, "pharmacies"), pharma);
-            console.log(`✅ ${pharma.nom} ajoutée !`);
+            console.log(`${pharma.nom} ajoutée !`);
         } catch (e) {
             console.error("Erreur : ", e);
         }
     }
-    console.log("✨ Injection terminée. Ton système national est prêt !");
+    console.log("Injection terminée. Ton système national est prêt !");
 };

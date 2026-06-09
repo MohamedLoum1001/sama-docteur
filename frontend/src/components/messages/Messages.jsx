@@ -163,7 +163,7 @@ const Messages = () => {
                         </div>
                     </div>
 
-                    {/* ✅ SECTION ACTIONS (Icône Vidéo) */}
+                    {/* SECTION ACTIONS (Icône Vidéo) */}
                     <div className="header-actions">
                         <button
                             className="btn-call-video"

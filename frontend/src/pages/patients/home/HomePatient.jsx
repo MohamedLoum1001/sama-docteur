@@ -1,4 +1,3 @@
-// src/patients/home/HomePatient.jsx
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
@@ -40,15 +39,15 @@ const HomePatient = () => {
     );
   }, [searchTerm, doctorsFromDB]);
 
-  // ✅ Liste des cartes mise à jour avec Pharmacie et Ordonnances
+  // Liste des cartes mise à jour avec Pharmacie et Ordonnances
   const cards = [
-    { emoji: "👤", title: "Gérer mon profil", description: "Mettez à jour vos informations et historique.", link: "/profil" },
-    { emoji: "📅", title: "Prendre RDV", description: "Choisissez un médecin et une date disponible.", action: () => navigate("/rendez-vous") },
-    { emoji: "💊", title: "Pharmacie", description: "Trouvez un médicament au meilleur prix près de chez vous.", link: "/pharmacie" },
-    { emoji: "🧾", title: "Mes Ordonnances", description: "Consultez et téléchargez vos prescriptions médicales.", link: "/ordonnances" },
-    { emoji: "🎟️", title: "Tickets", description: "Consultez vos tickets et historique d'achats.", link: "/ticket-acheter" },
-    { emoji: "🔔", title: "Notifications", description: "Recevez des rappels pour vos soins.", link: "/notifications" },
-    { emoji: "📁", title: "Mon dossier médical", description: "Accédez à vos examens et prescriptions.", link: "/dossier-medical" },
+    {title: "Gérer mon profil", description: "Mettez à jour vos informations et historique.", link: "/profil" },
+    {title: "Prendre RDV", description: "Choisissez un médecin et une date disponible.", action: () => navigate("/rendez-vous") },
+    {title: "Pharmacie", description: "Trouvez un médicament au meilleur prix près de chez vous.", link: "/pharmacie" },
+    {title: "Mes Ordonnances", description: "Consultez et téléchargez vos prescriptions médicales.", link: "/ordonnances" },
+    {title: "Tickets", description: "Consultez vos tickets et historique d'achats.", link: "/ticket-acheter" },
+    {title: "Notifications", description: "Recevez des rappels pour vos soins.", link: "/notifications" },
+    {title: "Mon dossier médical", description: "Accédez à vos examens et prescriptions.", link: "/dossier-medical" },
   ];
 
   return (
@@ -132,7 +131,6 @@ const HomePatient = () => {
           {cards.map((card, index) => (
             <div key={index} className="group p-8 bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-50 flex flex-col justify-between">
               <div>
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{card.emoji}</div>
                 <h3 className="text-xl font-bold text-gray-800 mb-3">{card.title}</h3>
                 <p className="text-gray-500 text-sm leading-relaxed mb-6">{card.description}</p>
               </div>

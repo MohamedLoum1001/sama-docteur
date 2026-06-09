@@ -14,7 +14,7 @@ const medicamentsTest = [
 const quartiers = ["Plateau", "Médina", "Ouakam", "Almadies", "Yoff", "Grand Yoff", "Pikine", "Guédiawaye", "Parcelles Assainies"];
 
 export const injectNationalData = async () => {
-    console.log("⏳ Initialisation du réseau national...");
+    console.log("Initialisation du réseau national...");
     const pharmaRef = collection(db, "pharmacies");
 
     for (let i = 1; i <= 50; i++) {
@@ -32,10 +32,10 @@ export const injectNationalData = async () => {
 
         try {
             await addDoc(pharmaRef, pharma);
-            console.log(`✅ [${i}/50] ${pharma.nom} ajoutée au système.`);
+            console.log(`[${i}/50] ${pharma.nom} ajoutée au système.`);
         } catch (error) {
-            console.error(`❌ Erreur pour ${pharma.nom}:`, error);
+            console.error(`Erreur pour ${pharma.nom}:`, error);
         }
     }
-    alert("🚀 Système National Injecté avec succès ! 50 pharmacies sont en ligne.");
+    alert("Système National Injecté avec succès ! 50 pharmacies sont en ligne.");
 };

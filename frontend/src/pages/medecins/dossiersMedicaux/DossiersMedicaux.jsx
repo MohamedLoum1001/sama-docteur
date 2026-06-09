@@ -14,7 +14,7 @@ import {
   FaEnvelope, FaFileMedical,
   FaSearch, FaClipboardList
 } from "react-icons/fa";
-import Button from "../../../components/boutons/Button"; // ✅ Import de ton composant Button
+import Button from "../../../components/boutons/Button";
 import "./DossiersMedicaux.css";
 
 const DossiersMedicaux = () => {
@@ -39,7 +39,7 @@ const DossiersMedicaux = () => {
     adresse: "",
   });
 
-  // ✅ Formate les dates Firebase pour éviter le crash "Objects are not valid as React child"
+  // Formate les dates Firebase pour éviter le crash "Objects are not valid as React child"
   const formatFirebaseDate = (dateObj) => {
     if (!dateObj) return "Date non disponible";
     if (dateObj.seconds) {
@@ -97,7 +97,7 @@ const DossiersMedicaux = () => {
         medecinId,
         createdAt: serverTimestamp(),
       });
-      alert("Dossier médical créé avec succès ! ✅");
+      alert("Dossier médical créé avec succès !");
       window.location.reload();
     } catch (err) {
       console.error("Erreur création:", err);
@@ -114,14 +114,14 @@ const DossiersMedicaux = () => {
     <div className="dm-container bg-light min-vh-100 p-4">
       <div className="max-w-7xl mx-auto">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          {/* ✅ Utilisation du composant Button pour le retour */}
+          {/* Utilisation du composant Button pour le retour */}
           <Button
             label={<><FaArrowLeft className="me-2" /> Retour</>}
             variant="register"
             onClick={() => navigate("/medecin")}
             className="px-4 fw-bold"
           />
-          <h2 className="fw-bold text-dark m-0">📂 Dossiers Médicaux</h2>
+          <h2 className="fw-bold text-dark m-0">Dossiers Médicaux</h2>
         </div>
 
         <div className="row g-4">
@@ -154,7 +154,6 @@ const DossiersMedicaux = () => {
                   <input type="text" className="form-control bg-light" value={formData.email} readOnly />
                 </div>
 
-                {/* ✅ Utilisation du composant Button pour la soumission */}
                 <Button
                   type="submit"
                   label={creating ? "Patientez..." : "Créer le dossier"}
@@ -204,7 +203,7 @@ const DossiersMedicaux = () => {
                         </div>
                       </div>
                       <div className="d-flex gap-2 mt-3">
-                        {/* ✅ Utilisation du composant Button pour les actions */}
+                        {/* Utilisation du composant Button pour les actions */}
                         <Button
                           label={<><FaFileMedical className="me-1" /> Ordonnances</>}
                           variant="register"

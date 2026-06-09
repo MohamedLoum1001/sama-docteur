@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
-// ✅ CORRECTION : L'URL de l'API doit pointer vers ton serveur Azure avec le port 8000
+// CORRECTION : L'URL de l'API doit pointer vers ton serveur Azure avec le port 8000
 const API_URL = window.location.hostname === "localhost"
   ? "http://localhost:8000"
   : "http://4.233.208.186:8000";
@@ -40,7 +40,7 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // 🛑 VÉRIFICATION CRITIQUE DU STATUT
+        // VÉRIFICATION CRITIQUE DU STATUT
         if (data.user.status === 'blocked' || data.user.status === 'archived') {
           await signOut(auth);
           localStorage.removeItem("user");
@@ -54,7 +54,7 @@ const Login = () => {
           return;
         }
 
-        // ✅ LOGIQUE DE CONNEXION RÉUSSIE
+        // LOGIQUE DE CONNEXION RÉUSSIE
         console.log(`Connecté sur Azure : ${data.user.prenom} ${data.user.nom}`);
         localStorage.setItem("user", JSON.stringify(data.user));
 
@@ -69,7 +69,7 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      // ✅ Message plus précis si l'API est injoignable
+      // Message plus précis si l'API est injoignable
       setErrorMessage("Impossible de contacter le serveur (Azure API).");
       setLoading(false);
     }

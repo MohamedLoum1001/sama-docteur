@@ -53,8 +53,6 @@ function Avis() {
     if (Object.keys(validationErrors).length === 0) {
       console.log("Avis soumis:", formData);
       setAvisSubmitted(true);
-
-      // 🔥 Ici tu peux envoyer les données au backend via Axios/Fetch
     }
   };
 
@@ -71,7 +69,7 @@ function Avis() {
       </div>
 
       <h2 className="text-center text-primary mb-4">
-        📝 Laisser un avis et une note sur le médecin
+        Laisser un avis et une note sur le médecin
       </h2>
 
       <form onSubmit={handleSubmit} className="shadow-sm p-4 rounded bg-white">
@@ -121,7 +119,7 @@ function Avis() {
       {/* Message succès */}
       {avisSubmitted && (
         <div className="alert alert-success mt-4 text-center">
-          ✅ Merci pour votre avis !
+          Merci pour votre avis !
         </div>
       )}
     </div>

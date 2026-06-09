@@ -1,5 +1,5 @@
 const request = require('supertest');
-const app = require('../index'); // L'app est importée grâce au module.exports qu'on a ajouté
+const app = require('../index');
 
 describe('Tests des routes API Sama Docteur', () => {
 
@@ -12,7 +12,6 @@ describe('Tests des routes API Sama Docteur', () => {
 
     // 2. Test de sécurité (Authentification)
     test('GET /api/auth/users devrait retourner 401 si non authentifié', async () => {
-        // ✅ Correction du chemin pour correspondre à : app.use("/api/auth", authRoutes)
         const res = await request(app).get('/api/auth/users');
 
         // On s'attend à 401 (Unauthorized) car aucun token n'est envoyé

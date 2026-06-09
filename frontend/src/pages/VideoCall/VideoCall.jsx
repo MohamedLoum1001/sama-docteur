@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react"; // Ajout de useCallback
-import { useParams, useNavigate } from "react-router-dom"; // Retrait de useLocation
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import AgoraRTC, {
     AgoraRTCProvider,
     useJoin,
@@ -20,7 +20,6 @@ const client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
 const VideoCallContent = () => {
     const { callId } = useParams();
     const navigate = useNavigate();
-    // ✅ Suppression de useLocation (warning Line 26:11)
 
     const [active, setActive] = useState(true);
     const [micOn, setMic] = useState(true);
@@ -28,18 +27,16 @@ const VideoCallContent = () => {
 
     useJoin({ appid: APP_ID, channel: callId, token: null }, active);
 
-    // ✅ Correction du warning Line 35:13 (Retrait de la variable inutilisée)
     useLocalMicrophoneTrack(micOn);
     const { localCameraTrack } = useLocalCameraTrack(videoOn);
     const remoteUsers = useRemoteUsers();
 
-    // ✅ Définition de handleCleanExit avec useCallback pour stabiliser la référence
+    // Définition de handleCleanExit avec useCallback pour stabiliser la référence
     const handleCleanExit = useCallback(() => {
         setActive(false);
         navigate(-1);
     }, [navigate]);
 
-    // ✅ Correction du warning Line 48:8 (Ajout de handleCleanExit dans les dépendances)
     useEffect(() => {
         if (!callId) return;
         const unsub = onSnapshot(doc(db, "calls", callId), (docSnap) => {

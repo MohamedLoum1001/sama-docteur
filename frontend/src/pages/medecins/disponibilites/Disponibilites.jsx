@@ -46,7 +46,7 @@ const Disponibilites = () => {
     return () => unsubscribeSnap();
   }, [userId, navigate, user.prenom, user.nom]);
 
-  // ✅ Fonction de sauvegarde réutilisable
+  // Fonction de sauvegarde réutilisable
   const saveToFirebase = async (newHoraires) => {
     if (!userId) return false;
     setIsSaving(true);
@@ -86,7 +86,7 @@ const Disponibilites = () => {
     return `${y}-${m}-${day}`;
   };
 
-  // ✅ Logique de Toggle (Ajout/Suppression)
+  // Logique de Toggle (Ajout/Suppression)
   const toggleCreneau = async (day, time) => {
     const dateStr = getLocalDateStr(day);
     const exists = horaires.find(h => h.date === dateStr && h.heureDebut === time);
@@ -99,7 +99,7 @@ const Disponibilites = () => {
         nouveauxHoraires = horaires.filter(h => !(h.date === dateStr && h.heureDebut === time));
         alert("Créneau supprimé avec succès !");
       } else {
-        return; // Annulation
+        return;
       }
     } else {
       // Cas d'ajout

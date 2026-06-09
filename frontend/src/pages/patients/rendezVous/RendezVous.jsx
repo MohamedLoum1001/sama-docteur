@@ -50,7 +50,7 @@ const RendezVous = () => {
           setMesRendezVous(docsTries);
         }
       } catch (error) {
-        console.error("❌ Erreur chargement données:", error);
+        console.error("Erreur chargement données:", error);
       } finally {
         setLoading(false);
       }
@@ -58,7 +58,7 @@ const RendezVous = () => {
     fetchData();
   }, [patientId]);
 
-  // ✅ Fonction pour gérer les couleurs dynamiques des statuts
+  // Fonction pour gérer les couleurs dynamiques des statuts
   const getStatusStyle = (statut) => {
     const s = statut?.toLowerCase();
     if (s === "annulé") return { backgroundColor: "#ff4d4d", color: "white" };
@@ -133,7 +133,7 @@ const RendezVous = () => {
         createdAt: serverTimestamp(),
       });
 
-      alert("Rendez-vous réservé avec succès ! ✅");
+      alert("Rendez-vous réservé avec succès !");
       navigate("/paiement-ticket", {
         state: {
           rendezvousId: docRef.id,
@@ -269,7 +269,7 @@ const RendezVous = () => {
                         <td>{new Date(rdv.date).toLocaleDateString('fr-FR')}</td>
                         <td className="text-teal">{rdv.time}</td>
                         <td>
-                          {/* ✅ Badge avec styles dynamiques */}
+                          {/* Badge avec styles dynamiques */}
                           <span
                             className="status-badge"
                             style={getStatusStyle(rdv.statut)}

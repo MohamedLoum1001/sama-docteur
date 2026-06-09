@@ -1,12 +1,11 @@
-// src/pages/RecommandationsPatient.jsx
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../../../firebase";
 import { collection, getDocs, orderBy, query } from "firebase/firestore";
-import "./RecommandationsPatient.css"; // même CSS que la page médecin
+import "./RecommandationsPatient.css";
 
 const RecommandationsPatient = () => {
-  const { id } = useParams(); // ID du patient
+  const { id } = useParams();
   const [recommandations, setRecommandations] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -47,13 +46,13 @@ const RecommandationsPatient = () => {
       {/* Titre */}
       <div className="container">
         <h4 className="text-center text-primary mb-4">
-          📋 Mes recommandations médicales
+          Mes recommandations médicales
         </h4>
 
         {/* Contenu */}
         {loading ? (
           <div className="alert alert-info text-center">
-            ⏳ Chargement des recommandations...
+            Chargement des recommandations...
           </div>
         ) : recommandations.length === 0 ? (
           <div className="alert alert-warning text-center">
@@ -69,7 +68,7 @@ const RecommandationsPatient = () => {
                 >
                   <p className="mb-1">{rec.message}</p>
                   <small className="text-muted">
-                    📅{" "}
+                    {" "}
                     {rec.createdAt?.toDate().toLocaleDateString("fr-FR", {
                       day: "2-digit",
                       month: "long",

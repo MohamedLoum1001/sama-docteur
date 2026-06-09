@@ -1,4 +1,3 @@
-// src/pages/OrdonnancesPatient.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../../../firebase";
@@ -41,7 +40,7 @@ const OrdonnancesPatient = () => {
         </Link>
       </div>
 
-      <h2 className="text-center mb-4">💊 Ordonnances du patient</h2>
+      <h2 className="text-center mb-4">Ordonnances du patient</h2>
 
       {loading ? (
         <p className="text-center">Chargement des ordonnances...</p>

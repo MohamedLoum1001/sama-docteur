@@ -2,7 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
-// ✅ Mock Firebase complet
+// Mock Firebase complet
 jest.mock('./firebase', () => ({
   auth: {
     onAuthStateChanged: jest.fn((cb) => {
@@ -34,7 +34,7 @@ test("Intégration : L'application affiche la navigation au démarrage", async (
     </MemoryRouter>
   );
 
-  // ✅ On attend jusqu'à 5 secondes que "SAMA" apparaisse
+  // On attend jusqu'à 5 secondes que "SAMA" apparaisse
   // Cela laisse le temps aux mocks Firebase et Agora de se stabiliser
   const brandElement = await screen.findByText(/SAMA/i, {}, { timeout: 5000 });
   expect(brandElement).toBeInTheDocument();

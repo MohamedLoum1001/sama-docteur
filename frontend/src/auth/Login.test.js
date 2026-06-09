@@ -5,17 +5,17 @@ import Login from './login/Login';
 describe('Tests Unitaires - Page Login', () => {
     let consoleSpy;
 
-    // ✅ On stocke le spy dans une variable pour pouvoir le restaurer proprement
+    // On stocke le spy dans une variable pour pouvoir le restaurer proprement
     beforeAll(() => {
         consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => { });
     });
 
-    // ✅ On utilise la variable stockée pour restaurer la console
+    // On utilise la variable stockée pour restaurer la console
     afterAll(() => {
         if (consoleSpy) consoleSpy.mockRestore();
     });
 
-    // ✅ Mock global de fetch avant chaque test
+    // Mock global de fetch avant chaque test
     beforeEach(() => {
         global.fetch = jest.fn(() =>
             Promise.resolve({
@@ -25,7 +25,7 @@ describe('Tests Unitaires - Page Login', () => {
         );
     });
 
-    // ✅ Nettoyage des mocks après chaque test pour éviter les fuites de mémoire
+    // Nettoyage des mocks après chaque test pour éviter les fuites de mémoire
     afterEach(() => {
         jest.restoreAllMocks();
     });
@@ -48,7 +48,7 @@ describe('Tests Unitaires - Page Login', () => {
         const submitButton = screen.getByRole('button', { name: /se connecter/i });
         fireEvent.click(submitButton);
 
-        // ✅ findByText est idéal ici car il attend l'apparition asynchrone du message
+        // findByText est idéal ici car il attend l'apparition asynchrone du message
         const errorMsg = await screen.findByText(
             /Impossible de contacter le serveur/i,
             {},

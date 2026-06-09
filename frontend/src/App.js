@@ -1,4 +1,3 @@
-// import { useEffect } from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import ProtectedRoute from "./auth/ProtectedRoute";
 import "./App.css";
@@ -114,8 +113,6 @@ function App() {
           <Route path="/specialites" element={<ProtectedRoute><Specialites /></ProtectedRoute>} />
           <Route path="/paiements" element={<ProtectedRoute><Paiements /></ProtectedRoute>} />
           <Route path="/rapports" element={<ProtectedRoute><Rapports /></ProtectedRoute>} />
-
-          {/* Les autres menus comme Avis ou Notifications Admin peuvent réutiliser les routes existantes ou être ajoutés ici */}
 
           {/* Messagerie */}
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

@@ -1,4 +1,3 @@
-// src/pages/Ordonnances.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { db } from "../../../firebase";
@@ -12,9 +11,8 @@ import {
 } from "firebase/firestore";
 import { jsPDF } from "jspdf";
 import { FaArrowLeft, FaFileDownload, FaFilePrescription, FaUserMd } from "react-icons/fa";
-import Button from "../../../components/boutons/Button"; // ✅ Importation du composant Button
+import Button from "../../../components/boutons/Button";
 import "./Ordonnance.css";
-
 import logoImage from "../../../assets/logo-sama-docteur.png";
 import cachetImage from "../../../assets/cachet.png";
 import { toBase64 } from "../../../utils/toBase64";
@@ -24,8 +22,7 @@ const Ordonnances = () => {
   const [ordonnances, setOrdonnances] = useState([]);
   const [loading, setLoading] = useState(true);
   const [doctorsData, setDoctorsData] = useState({});
-
-  // ✅ Récupération utilisateur pour ID et sécurité nom
+  // Récupération utilisateur pour ID et sécurité nom
   const userString = localStorage.getItem("user");
   const userProfil = userString ? JSON.parse(userString) : null;
   const patientId = userProfil?.uid || userProfil?.id || userProfil?._id;
@@ -139,11 +136,11 @@ const Ordonnances = () => {
 
   return (
     <div className="container mt-4 py-3">
-      {/* ✅ Utilisation du Button pour le retour */}
+      {/* Utilisation du Button pour le retour */}
       <div className="flex justify-start mb-4">
         <Button
           label={<><FaArrowLeft className="me-2" /> Retour à l'accueil</>}
-          variant="register" // Style plus léger (souvent blanc/bordure)
+          variant="register"
           onClick={() => navigate("/patient")}
           className="px-4"
         />
@@ -179,10 +176,10 @@ const Ordonnances = () => {
                       <p className="text-truncate mb-0">{ord.medicaments}</p>
                     </div>
 
-                    {/* ✅ Utilisation du Button pour le téléchargement PDF */}
+                    {/* Utilisation du Button pour le téléchargement PDF */}
                     <Button
                       label={<><FaFileDownload className="me-2" /> Télécharger en PDF</>}
-                      variant="login" // Style principal (teal/bleu)
+                      variant="login"
                       onClick={() => downloadPDF(ord)}
                       className="w-100 py-2 fw-bold"
                     />

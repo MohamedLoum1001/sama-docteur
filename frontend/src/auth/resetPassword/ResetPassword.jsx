@@ -58,9 +58,9 @@ const ResetPassword = () => {
       // Envoyer le nouveau mot de passe à Firebase
       await confirmPasswordReset(auth, oobCode, formData.password);
 
-      setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! ✅ Redirection..." });
+      setStatus({ type: "success", msg: "Mot de passe réinitialisé avec succès ! Redirection..." });
 
-      // ✅ Redirection vers ton Login sur Azure après 2.5 secondes
+      // Redirection vers ton Login sur Azure après 2.5 secondes
       setTimeout(() => navigate("/login"), 2500);
     } catch (error) {
       console.error("Erreur Reset:", error.code);

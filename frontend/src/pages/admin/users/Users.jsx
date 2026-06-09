@@ -57,7 +57,7 @@ const Users = () => {
                 body: JSON.stringify(newUser),
             });
             if (response.ok) {
-                alert("Compte créé ✅ Mail envoyé.");
+                alert("Compte créé Mail envoyé.");
                 setShowAddForm(false);
                 setNewUser({ prenom: "", nom: "", email: "", telephone: "", adresse: "", dateNaissance: "", role: "medecin", specialite: "" });
                 fetchUsers();
@@ -75,7 +75,7 @@ const Users = () => {
     };
 
     const handleDelete = async (user) => {
-        if (window.confirm(`⚠️ Supprimer ${user.prenom} ${user.nom} ?`)) {
+        if (window.confirm(`Supprimer ${user.prenom} ${user.nom} ?`)) {
             try {
                 await deleteDoc(doc(db, "users", user.id));
                 await logAdminAction(`${user.prenom} ${user.nom}`, "deleted");

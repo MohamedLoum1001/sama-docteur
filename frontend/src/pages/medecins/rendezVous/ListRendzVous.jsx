@@ -19,7 +19,7 @@ const ListeRendezVous = () => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // ✅ Récupération sécurisée du médecin depuis le localStorage
+  // Récupération sécurisée du médecin depuis le localStorage
   const userString = localStorage.getItem("user");
   const user = userString ? JSON.parse(userString) : null;
   const doctorId = user?.uid || user?.id || user?._id;
@@ -32,7 +32,7 @@ const ListeRendezVous = () => {
       }
 
       try {
-        // ✅ On récupère tous les RDV liés à ce doctorId
+        // On récupère tous les RDV liés à ce doctorId
         const q = query(
           collection(db, "rendezvous"),
           where("doctorId", "==", doctorId)
@@ -40,7 +40,7 @@ const ListeRendezVous = () => {
 
         const snapshot = await getDocs(q);
 
-        // ✅ Tri local (JavaScript) pour éviter les erreurs d'index Firestore
+        // Tri local (JavaScript) pour éviter les erreurs d'index Firestore
         const docs = snapshot.docs.map((docSnap) => ({
           id: docSnap.id,
           ...docSnap.data(),
@@ -50,9 +50,9 @@ const ListeRendezVous = () => {
         });
 
         setRendezVousList(docs);
-        console.log("✅ RDV récupérés pour le docteur :", docs.length);
+        console.log("RDV récupérés pour le docteur :", docs.length);
       } catch (error) {
-        console.error("❌ Erreur lors de la récupération :", error);
+        console.error("Erreur lors de la récupération :", error);
       } finally {
         setLoading(false);
       }
@@ -61,7 +61,7 @@ const ListeRendezVous = () => {
     fetchRendezVous();
   }, [doctorId]);
 
-  // ✅ Valider un rendez-vous
+  // Valider un rendez-vous
   const validerRdv = async (rdv) => {
     try {
       const rdvRef = doc(db, "rendezvous", rdv.id);
@@ -73,7 +73,7 @@ const ListeRendezVous = () => {
       // Notification au patient
       await addDoc(collection(db, "notifications"), {
         userId: rdv.patientId,
-        title: "Rendez-vous confirmé ✅",
+        title: "Rendez-vous confirmé",
         message: `Bonne nouvelle ! Dr ${user.nom} a confirmé votre rendez-vous du ${new Date(rdv.date).toLocaleDateString('fr-FR')} à ${rdv.time}.`,
         isRead: false,
         createdAt: serverTimestamp(),
@@ -86,7 +86,7 @@ const ListeRendezVous = () => {
     }
   };
 
-  // ✅ Annuler un rendez-vous
+  // Annuler un rendez-vous
   const annulerRdv = async (rdv) => {
     if (!window.confirm("Voulez-vous vraiment annuler ce rendez-vous ?")) return;
 
@@ -100,7 +100,7 @@ const ListeRendezVous = () => {
       // Notification au patient
       await addDoc(collection(db, "notifications"), {
         userId: rdv.patientId,
-        title: "Rendez-vous annulé ❌",
+        title: "Rendez-vous annulé",
         message: `Désolé, Dr ${user.nom} a dû annuler votre rendez-vous du ${new Date(rdv.date).toLocaleDateString('fr-FR')}.`,
         isRead: false,
         createdAt: serverTimestamp(),

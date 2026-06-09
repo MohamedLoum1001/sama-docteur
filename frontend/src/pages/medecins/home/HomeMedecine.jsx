@@ -50,20 +50,20 @@ const HomeMedecin = () => {
 
   const sendReminders = () => {
     NotificationService.sendNotification(
-      "📅 Rappel envoyé",
+      "Rappel envoyé",
       "Les rappels ont été envoyés aux patients pour leurs rendez-vous."
     );
   };
 
   const cards = [
-    { emoji: "👤", title: "Gérer mon profil", description: "Modifier vos informations personnelles.", link: "/profil-medecin" },
-    { emoji: "🗓️", title: "Disponibilités", description: "Définir ou modifier vos horaires de consultation.", link: "/disponibilites" },
-    { emoji: "📅", title: "Rendez-vous", description: "Consulter la liste de vos rendez-vous à venir.", link: "/liste-rendez-vous" },
-    { emoji: "📹", title: "Consultation", description: "Effectuer une consultation via un appel vidéo sécurisé.", link: "/consultation" },
-    { emoji: "📝", title: "Prescrire", description: "Créer une ordonnance électronique pour un patient.", link: "/prescription" },
-    { emoji: "📚", title: "Dossiers", description: "Accéder à l’historique des dossiers médicaux.", link: "/dossiers-medicaux" },
-    { emoji: "🔔", title: "Rappels", description: "Envoyer des rappels de RDV aux patients.", action: () => sendReminders() },
-    { emoji: "💡", title: "Conseils", description: "Fournir des recommandations post-consultation.", link: "/recommandation" },
+    { title: "Gérer mon profil", description: "Modifier vos informations personnelles.", link: "/profil-medecin" },
+    { title: "Disponibilités", description: "Définir ou modifier vos horaires de consultation.", link: "/disponibilites" },
+    { title: "Rendez-vous", description: "Consulter la liste de vos rendez-vous à venir.", link: "/liste-rendez-vous" },
+    { title: "Consultation", description: "Effectuer une consultation via un appel vidéo sécurisé.", link: "/consultation" },
+    { title: "Prescrire", description: "Créer une ordonnance électronique pour un patient.", link: "/prescription" },
+    { title: "Dossiers", description: "Accéder à l’historique des dossiers médicaux.", link: "/dossiers-medicaux" },
+    { title: "Rappels", description: "Envoyer des rappels de RDV aux patients.", action: () => sendReminders() },
+    { title: "Conseils", description: "Fournir des recommandations post-consultation.", link: "/recommandation" },
   ];
 
   return (
@@ -74,7 +74,7 @@ const HomeMedecin = () => {
         <div className="mt-5 flex flex-col items-center justify-center gap-2">
           <FaUserMd className="text-teal-600 text-5xl mb-2" />
           <h2 className="font-extrabold text-3xl text-gray-800 text-center">
-            Bienvenue sur votre espace médecin 👨‍⚕️
+            Bienvenue sur votre espace médecin
           </h2>
           <p className="text-gray-500">Recherchez un dossier patient ou gérez votre activité</p>
         </div>
@@ -106,7 +106,7 @@ const HomeMedecin = () => {
                         key={p.id}
                         className="p-4 hover:bg-teal-50 cursor-pointer flex justify-between items-center border-b last:border-b-0 transition"
                         onClick={() => {
-                          navigate(`/patient-profile/${p.id}`); // Ajuste le lien selon ta route
+                          navigate(`/patient-profile/${p.id}`);
                           setSearchTerm("");
                         }}
                       >
@@ -143,7 +143,6 @@ const HomeMedecin = () => {
           {cards.map((card, index) => (
             <div key={index} className="group p-6 bg-white rounded-3xl shadow-md hover:shadow-2xl transition-all duration-300 border border-gray-50 flex flex-col justify-between">
               <div>
-                <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">{card.emoji}</div>
                 <h3 className="text-lg font-bold text-gray-800 mb-2">{card.title}</h3>
                 <p className="text-gray-500 text-xs leading-relaxed mb-6">{card.description}</p>
               </div>

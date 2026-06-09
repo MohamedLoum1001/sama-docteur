@@ -1,4 +1,3 @@
-// src/pages/RecommandationsPatient.jsx
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import { db } from "../../../firebase";
@@ -41,7 +40,7 @@ const RecommandationsPatientById = () => {
         </Link>
       </div>
 
-      <h2 className="text-center mb-4">📋 Recommandations du patient</h2>
+      <h2 className="text-center mb-4">Recommandations du patient</h2>
 
       {loading ? (
         <p className="text-center">Chargement des recommandations...</p>

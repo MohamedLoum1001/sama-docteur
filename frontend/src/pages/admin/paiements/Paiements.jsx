@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../dashboard/DashboardLayout';
-import { db } from "../../../firebase"; // Ajuste le chemin selon ta structure
+import { db } from "../../../firebase";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { Download, CreditCard, Loader2 } from 'lucide-react';
 
@@ -12,7 +12,7 @@ const Paiements = () => {
     const fetchTransactions = async () => {
         setLoading(true);
         try {
-            // ✅ Récupération des paiements triés par date décroissante
+            // Récupération des paiements triés par date décroissante
             const q = query(collection(db, "payments"), orderBy("createdAt", "desc"));
             const querySnapshot = await getDocs(q);
 
@@ -21,7 +21,7 @@ const Paiements = () => {
                 ...doc.data()
             }));
 
-            // ✅ Calcul du chiffre d'affaires total (en supposant que tu stockes 'amount')
+            // Calcul du chiffre d'affaires total (en supposant que tu stockes 'amount')
             const total = data.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
 
             setTransactions(data);
@@ -55,7 +55,7 @@ const Paiements = () => {
             <div className="p-6 text-[#1a1c23]">
                 <h1 className="text-2xl font-bold mb-6">Transactions & Revenus</h1>
 
-                {/* ✅ Carte du Chiffre d'Affaires Dynamique */}
+                {/* Carte du Chiffre d'Affaires Dynamique */}
                 <div className="bg-white rounded-2xl border shadow-sm p-6 mb-8 flex justify-between items-center transition-all hover:shadow-md">
                     <div>
                         <p className="text-gray-500 text-sm font-medium">Chiffre d'affaires total</p>

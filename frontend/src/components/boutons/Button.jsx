@@ -4,7 +4,7 @@ const Button = ({
   label,
   onClick,
   type = "button",
-  variant = "login", // "login" (teal) ou "register" (bleu)
+  variant = "login",
   loading = false,
   disabled = false,
   className = ""
@@ -18,12 +18,12 @@ const Button = ({
       onClick={onClick}
       className={`btn ${variantClass} py-2 rounded-pill text-white shadow-sm ${className}`}
       disabled={loading || disabled}
-      // ✅ Ajout du style pour forcer l'alignement horizontal de l'icône et du texte
+      // Ajout du style pour forcer l'alignement horizontal de l'icône et du texte
       style={{
         display: 'inline-flex',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: '8px' // Espace constant entre l'icône et le texte
+        gap: '8px'
       }}
     >
       {loading ? (
