@@ -1,4 +1,41 @@
- ssh-keygen -t rsa -b 4096 -f ./id_rsa_github
+# Force le fuseau horaire de Paris
+sudo timedatectl set-timezone Europe/Paris
+# Synchronise immédiatement l'horloge avec les serveurs de temps d'Ubuntu
+sudo ntpdate ntp.ubuntu.com
+# Vérifie que l'heure affichée correspond bien à l'heure de ta montre (avec un +0200)
+date
+# 1. Supprime le conteneur actuel s'il existe
+sudo docker rm -f sama-api
+# 2. Relance le conteneur en montant tes fichiers sécurisés et ta clé Stripe
+sudo docker run -d -p 8000:8000 \
+  --restart always \
+  --name sama-api \
+  -e STRIPE_SECRET_KEY="sk_test_51TISLDGRUlCDn336vCsExQaCHA7lIdAIuvTTjUdIfr3umdHE3mfpVPSKmG551PsD6atuFABuZQFyopFiYvOA9c3s00oITfS2Yb" \
+  -v $(pwd)/serviceAccountKey.json:/app/serviceAccountKey.json \
+  -v $(pwd)/firebase.js:/app/config/firebase.js \
+  -v $(pwd)/index.js:/app/index.js \
+  mohamedloum1001/sama-docteur-api:latest
+# Redémarre proprement le conteneur Nginx qui sert ton application React
+sudo docker restart sama-frontend
+# Pour prouver que tes deux conteneurs tournent (Statut "Up") et voir les ports ouverts
+sudo docker ps
+# Pour surveiller les logs de ton API en direct (très utile si tu veux montrer la validation Firebase)
+sudo docker logs --tail 20 sama-api
+# Pour voir les logs du frontend
+sudo docker logs --tail 20 sama-frontend
+# Arrête proprement l'API backend et le Frontend
+sudo docker stop sama-api sama-frontend
+#synchronisation :
+sync
+#Pour éteindre complètement la VM :
+sudo shutdown -h now
+#Pour simplement redémarrer la VM :
+sudo reboot
+
+ssh-keygen -t rsa -b 4096 -f ./id_rsa_github
+#pour se connecter a la MV 
+ssh azureuser@4.233.208.186
+
 Generating public/private rsa key pair.
 Enter passphrase (empty for no passphrase):
 Enter same passphrase again:
@@ -79,6 +116,7 @@ docker run -d --name sama-api -p 8000:8000 \
   -e STRIPE_SECRET_KEY="sk_test_votre_cle_ici" \
   -e FIREBASE_PROJECT_ID="${{ secrets.FIREBASE_PROJECT_ID }}" \
   mohamedloum1001/sama-docteur-api:latest
+
 ssh azureuser@4.233.208.186
 sudo docker ps
 
