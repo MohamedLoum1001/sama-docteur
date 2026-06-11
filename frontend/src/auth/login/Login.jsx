@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// ✅ Importations Firebase pour la déconnexion forcée si besoin
+// Importations Firebase pour la déconnexion forcée si besoin
 import { signOut } from "firebase/auth";
 import { auth } from "../../firebase";
 import Button from "../../components/boutons/Button";
@@ -8,7 +8,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
-// CORRECTION : L'URL de l'API doit pointer vers ton serveur Azure avec le port 8000
+// URL de l'API pointant vers ton serveur Azure avec le port 8000
 const API_URL = window.location.hostname === "localhost"
   ? "http://localhost:8000"
   : "http://4.233.208.186:8000";
@@ -30,6 +30,10 @@ const Login = () => {
     setLoading(true);
     setErrorMessage("");
 
+    // 🔥 FIX SÉCURITÉ ORAL : On vide le cache local des anciennes sessions pour éviter les conflits 401
+    localStorage.removeItem("user");
+    sessionStorage.clear();
+
     try {
       const response = await fetch(`${API_URL}/api/auth/login`, {
         method: "POST",
@@ -40,12 +44,12 @@ const Login = () => {
       const data = await response.json();
 
       if (response.ok) {
-        // VÉRIFICATION CRITIQUE DU STATUT
-        if (data.user.status === 'blocked' || data.user.status === 'archived') {
+        // VÉRIFICATION CRITIQUE DU STATUT (blocked / archived)
+        if (data.user && (data.user.status === 'blocked' || data.user.status === 'archived')) {
           await signOut(auth);
           localStorage.removeItem("user");
-
           setLoading(false);
+
           const msg = data.user.status === 'blocked'
             ? "Votre compte a été suspendu par l'administrateur."
             : "Ce compte est archivé. Veuillez contacter le support.";
@@ -64,12 +68,12 @@ const Login = () => {
         else navigate("/");
 
       } else {
-        setErrorMessage(data.error || "Identifiants incorrects.");
+        // 🔥 Affiche l'erreur explicite retournée par ton contrôleur Node.js
+        setErrorMessage(data.error || "Identifiants ou rôle incorrects.");
         setLoading(false);
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      // Message plus précis si l'API est injoignable
       setErrorMessage("Impossible de contacter le serveur (Azure API).");
       setLoading(false);
     }
