@@ -29,10 +29,10 @@ const Navbar = () => {
   const msgRef = useRef(null);
   const navigate = useNavigate();
 
-  // URL de l'API Dynamique (Local vs Production)
+  // CORRECTION : Configuration des URLs pour pointer sur ton architecture Azure active
   const API_URL = window.location.hostname === "localhost"
-    ? "http://localhost:5000"
-    : "https://sama-docteur.vercel.app";
+    ? "http://localhost:8000"
+    : "http://4.233.208.186:8000";
 
   // Logique de déconnexion avec appel API
   const logout = async () => {
@@ -40,8 +40,8 @@ const Navbar = () => {
     const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur Inconnu";
 
     try {
-      // Appel au backend pour logguer la déconnexion
-      await fetch(`${API_URL}/api/auth/logout-log`, {
+      // 🔥 CORRECTION : Utilisation du bon endpoint avec l'underscore _
+      await fetch(`${API_URL}/api/auth/logout_log`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userName }),
@@ -49,7 +49,7 @@ const Navbar = () => {
     } catch (error) {
       console.error("Impossible d'envoyer le log de déconnexion", error);
     } finally {
-      // Dans tous les cas (succès ou échec de l'API), on nettoie le client
+      // Dans tous les cas (succès ou échec de l'API), on nettoie le client quoi qu'il arrive
       localStorage.removeItem("user");
       navigate("/login");
     }
@@ -198,7 +198,6 @@ const Navbar = () => {
             />
             {showDropdown && (
               <div className="dropdown-menu dropdown-menu-end show shadow border-0 mt-2 py-2 bg-white" style={{ minWidth: "200px", position: 'absolute', right: 0 }}>
-                {/* <button className="dropdown-item" onClick={() => navigate("/profil")}>Mon Profil</button> */}
                 <button className="dropdown-item text-danger" onClick={logout}>Déconnexion</button>
               </div>
             )}
