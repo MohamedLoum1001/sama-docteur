@@ -58,7 +58,7 @@ const Login = () => {
         }
 
         // LOGIQUE DE CONNEXION RÉUSSIE
-        console.log(`Connecté sur Azure : ${data.user.prenom} ${data.user.nom}`);
+        console.log(`👤 Connecté avec succès : ${data.user.prenom} ${data.user.nom}`);
         localStorage.setItem("user", JSON.stringify(data.user));
 
         if (data.user.role === "patient") navigate("/patient");
@@ -73,7 +73,8 @@ const Login = () => {
       }
     } catch (error) {
       console.error("Erreur de connexion:", error);
-      setErrorMessage("Impossible de contacter le serveur (Azure API).");
+      // ✅ CORRECTION : Message d'erreur neutre et pro, adapté à l'architecture découplée
+      setErrorMessage("Impossible de joindre l'API d'authentification. Vérifiez que le serveur Node.js est actif.");
       setLoading(false);
     }
   };
