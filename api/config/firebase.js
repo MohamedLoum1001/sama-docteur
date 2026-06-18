@@ -6,7 +6,7 @@ if (!admin.apps.length) {
         const fs = require('fs');
         const path = require('path');
 
-        // 🚀 FORCE le chemin absolu du conteneur Docker en priorité, sinon prend le chemin local relatif
+        // FORCE le chemin absolu du conteneur Docker en priorité, sinon prend le chemin local relatif
         const containerKeyPath = '/app/serviceAccountKey.json';
         const localKeyPath = path.join(__dirname, '../serviceAccountKey.json');
 
@@ -18,15 +18,15 @@ if (!admin.apps.length) {
             finalKeyPath = localKeyPath;
         }
 
-        // Si on a trouvé un vrai FICHIER clé json
+        // Cas A : Si on a trouvé un vrai FICHIER clé json (Local / Docker)
         if (finalKeyPath) {
             admin.initializeApp({
                 credential: admin.credential.cert(finalKeyPath),
                 databaseURL: process.env.FIREBASE_DATABASE_URL
             });
-            console.log(`🚀 Firebase Admin initialisé via le fichier : ${finalKeyPath}`);
+            console.log(`Firebase Admin initialisé via le fichier : ${finalKeyPath}`);
         }
-        // Mode Vercel / Variables d'environnement
+        // Cas B : Mode Vercel / Variables d'environnement
         else {
             const projectId = process.env.FIREBASE_PROJECT_ID;
             const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
@@ -37,7 +37,11 @@ if (!admin.apps.length) {
             }
 
             if (!projectId || !clientEmail || !privateKey) {
-                console.error("❌ Erreur : Fichier JSON introuvable ET variables d'environnement Firebase manquantes.");
+                // SÉCURITÉ GITHUB ACTIONS : Si aucun identifiant n'est présent, on initialise à blanc pour éviter le crash du build
+                console.warn("Mode CI/CD détecté (ou configuration absente). Initialisation par défaut pour éviter le crash.");
+                admin.initializeApp({
+                    projectId: "sama-docteur-placeholder" // Permet au SDK de créer l'instance db sans crasher au build
+                });
             } else {
                 admin.initializeApp({
                     credential: admin.credential.cert({
@@ -47,11 +51,11 @@ if (!admin.apps.length) {
                     }),
                     databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${projectId}.firebaseio.com`
                 });
-                console.log("🌐 Firebase Admin initialisé via les variables d'environnement (Vercel)");
+                console.log("Firebase Admin initialisé via les variables d'environnement (Vercel)");
             }
         }
     } catch (error) {
-        console.error("💥 Erreur critique d'initialisation Firebase:", error.message);
+        console.error("Erreur critique d'initialisation Firebase:", error.message);
     }
 }
 
