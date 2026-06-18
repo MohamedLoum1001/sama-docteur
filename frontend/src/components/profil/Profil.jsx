@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { doc, getDoc, updateDoc } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 import "./Profil.css";
 
 const Profil = () => {

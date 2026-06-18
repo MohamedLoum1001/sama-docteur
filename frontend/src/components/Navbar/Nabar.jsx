@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 import NotificationDropdown from "../NotificationDropdown/NotificationDropdown";
 import {
   doc,
@@ -29,19 +29,19 @@ const Navbar = () => {
   const msgRef = useRef(null);
   const navigate = useNavigate();
 
-  // CORRECTION : Configuration des URLs pour pointer sur ton architecture Azure active
+  // CONFIGURATION FLEXIBLE : S'adapte automatiquement à ton plan Vercel ou Localhost sur le port 5000
   const API_URL = window.location.hostname === "localhost"
-    ? "http://localhost:8000"
-    : "http://4.233.208.186:8000";
+    ? "http://localhost:5000"
+    : "https://sama-docteur.vercel.app";
 
-  // Logique de déconnexion avec appel API
+  // Logique de déconnexion avec appel API corrigé
   const logout = async () => {
     const user = JSON.parse(localStorage.getItem("user"));
     const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur Inconnu";
 
     try {
-      // 🔥 CORRECTION : Utilisation du bon endpoint avec l'underscore _
-      await fetch(`${API_URL}/api/auth/logout_log`, {
+      // ✅ CORRECTION : Appel fonctionnel au backend
+      await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: userName }),
@@ -49,8 +49,9 @@ const Navbar = () => {
     } catch (error) {
       console.error("Impossible d'envoyer le log de déconnexion", error);
     } finally {
-      // Dans tous les cas (succès ou échec de l'API), on nettoie le client quoi qu'il arrive
+      // SÉCURITÉ : Nettoyage impératif de la session locale quoi qu'il arrive
       localStorage.removeItem("user");
+      sessionStorage.clear();
       navigate("/login");
     }
   };
@@ -154,7 +155,7 @@ const Navbar = () => {
                         <div className="d-flex justify-content-between">
                           <span className="small text-dark text-truncate">{msg.senderName}</span>
                           <span style={{ fontSize: '0.6rem' }} className="text-muted">{formatDateTime(msg.createdAt)}</span>
-                        </div>
+                        </div> {/* ✅ CORRECTION ICI : Balise de fermeture et accolades alignées */}
                         <div className="small text-muted text-truncate" style={{ fontSize: '0.75rem' }}>
                           {msg.type === "audio" ? "🎤 Message vocal" : msg.content}
                         </div>

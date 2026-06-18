@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, query, where, onSnapshot } from "firebase/firestore";
 import {
   FaUserInjured,

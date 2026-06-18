@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { QRCodeCanvas } from "qrcode.react";
-import { db, auth } from "../../../firebase";
+import { db, auth } from "../../../configuration/firebase";
 import { collection, query, getDocs } from "firebase/firestore";
 import { FaCalendarAlt, FaStethoscope, FaMapMarkerAlt, FaQrcode, FaArrowLeft } from "react-icons/fa";
 // Importation du composant réutilisable

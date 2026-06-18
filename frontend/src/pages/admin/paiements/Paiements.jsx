@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../dashboard/DashboardLayout';
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, query, orderBy, getDocs } from "firebase/firestore";
 import { Download, CreditCard, Loader2 } from 'lucide-react';
 

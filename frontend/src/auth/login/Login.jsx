@@ -2,16 +2,15 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Importations Firebase pour la déconnexion forcée si besoin
 import { signOut } from "firebase/auth";
-import { auth } from "../../firebase";
+import { auth } from "../../configuration/firebase";
 import Button from "../../components/boutons/Button";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Login.css";
 
-// URL de l'API pointant vers ton serveur Azure avec le port 8000
 const API_URL = window.location.hostname === "localhost"
-  ? "http://localhost:8000"
-  : "http://4.233.208.186:8000";
+  ? "http://localhost:5000"
+  : "https://sama-docteur.vercel.app";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -30,7 +29,7 @@ const Login = () => {
     setLoading(true);
     setErrorMessage("");
 
-    // 🔥 FIX SÉCURITÉ ORAL : On vide le cache local des anciennes sessions pour éviter les conflits 401
+    // FIX SÉCURITÉ ORAL : On vide le cache local des anciennes sessions pour éviter les conflits 401
     localStorage.removeItem("user");
     sessionStorage.clear();
 
@@ -68,7 +67,7 @@ const Login = () => {
         else navigate("/");
 
       } else {
-        // 🔥 Affiche l'erreur explicite retournée par ton contrôleur Node.js
+        // Affiche l'erreur explicite retournée par ton contrôleur Node.js
         setErrorMessage(data.error || "Identifiants ou rôle incorrects.");
         setLoading(false);
       }

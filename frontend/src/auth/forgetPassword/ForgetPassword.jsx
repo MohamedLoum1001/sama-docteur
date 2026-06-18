@@ -1,9 +1,14 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { auth } from "../../firebase";
+import { auth } from "../../configuration/firebase";
 import { sendPasswordResetEmail } from "firebase/auth";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
+
+// CONFIGURATION DYNAMIQUE : S'aligne sur l'adresse courante (Localhost, Azure ou Vercel)
+const RESET_URL = window.location.hostname === "localhost"
+    ? "http://localhost:3000/reset-password"
+    : `${window.location.protocol}//${window.location.hostname}/reset-password`;
 
 const ForgetPassword = () => {
     const [email, setEmail] = useState("");
@@ -16,9 +21,9 @@ const ForgetPassword = () => {
         setLoading(true);
         setStatus({ type: "", msg: "" });
 
-        // CONFIGURATION : Redirection vers ta page de réinitialisation sur Azure
+        // URL dynamique transmise à Firebase pour le retour sur l'application
         const actionCodeSettings = {
-            url: 'http://4.233.208.186/reset-password',
+            url: RESET_URL,
             handleCodeInApp: true,
         };
 
@@ -29,20 +34,17 @@ const ForgetPassword = () => {
                 type: "success",
                 msg: "Un lien de réinitialisation a été envoyé ! Vérifiez votre boîte de réception."
             });
-
-            // On laisse l'utilisateur lire le message avant de le rediriger éventuellement
-            // ou on peut le laisser cliquer sur le lien dans son mail.
-
         } catch (error) {
             console.error("Erreur réinitialisation:", error.code);
             let errorMsg = "Une erreur est survenue.";
 
-            if (error.code === "auth/user-not-found") {
+            // Firebase v10+ gère parfois les erreurs de manière générique pour des raisons de sécurité
+            if (error.code === "auth/user-not-found" || error.code === "auth/invalid-credential") {
                 errorMsg = "Aucun compte n'est associé à cet email.";
             } else if (error.code === "auth/invalid-email") {
                 errorMsg = "L'adresse email n'est pas valide.";
             } else if (error.code === "auth/too-many-requests") {
-                errorMsg = "Trop de tentatives. Veuillez réessayer plus tard.";
+                errorMsg = "Trop de tentative. Veuillez réessayer plus tard.";
             }
 
             setStatus({ type: "danger", msg: errorMsg });

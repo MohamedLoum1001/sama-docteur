@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 const RecommandationsPatientById = () => {

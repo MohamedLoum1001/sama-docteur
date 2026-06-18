@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { db, auth } from "../../../firebase";
+import { db, auth } from "../../../configuration/firebase";
 import { collection, getDocs, query, where } from "firebase/firestore";
 import { FaStethoscope, FaFlask, FaPills, FaClipboardList, FaArrowLeft, FaDownload, FaExclamationCircle } from "react-icons/fa";
 import Button from "../../../components/boutons/Button";

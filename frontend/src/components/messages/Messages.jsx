@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 import {
     collection, query, onSnapshot, orderBy,
     addDoc, serverTimestamp, doc

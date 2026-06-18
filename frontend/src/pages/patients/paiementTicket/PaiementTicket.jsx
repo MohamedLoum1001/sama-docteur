@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { loadStripe } from "@stripe/stripe-js";
 import { Elements, CardElement, useStripe, useElements } from "@stripe/react-stripe-js";
 import { useNavigate, useLocation } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, addDoc, serverTimestamp, setDoc, doc } from "firebase/firestore";
 import { FaArrowLeft, FaLock, FaCalendarCheck } from "react-icons/fa";
 import { QRCodeCanvas } from "qrcode.react";

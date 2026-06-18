@@ -5,10 +5,10 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "font-awesome/css/font-awesome.min.css";
 import "./Register.css";
 
-// CORRECTION : L'URL pointe vers Azure avec le port 8000 en production
+
 const API_URL = window.location.hostname === "localhost"
-  ? "http://localhost:8000"
-  : "http://4.233.208.186:8000";
+  ? "http://localhost:5000"
+  : "https://sama-docteur.vercel.app";
 
 const Register = () => {
   const [formData, setFormData] = useState({

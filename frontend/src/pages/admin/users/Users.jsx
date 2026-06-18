@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../dashboard/DashboardLayout';
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firestore";
 import { Search, Archive, Ban, Trash2, RotateCcw, UserPlus, X } from 'lucide-react';
 import Button from "../../../components/boutons/Button";

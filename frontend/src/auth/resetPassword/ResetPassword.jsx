@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { auth } from "../../firebase";
+import { auth } from "../../configuration/firebase";
 import { confirmPasswordReset } from "firebase/auth";
 import Button from "../../components/boutons/Button";
 import "bootstrap/dist/css/bootstrap.min.css";

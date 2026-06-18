@@ -1,8 +1,8 @@
 // api/index.js
 require('dotenv').config();
 
-// 🔥 CORRECTION CRITIQUE : Initialiser Firebase en priorité absolue avant de charger les routes/contrôleurs
-require("./config/firebase"); 
+// ✅ INITIALISATION PRIORITAIRE : Firebase avant les routes
+require("./config/firebase");
 
 const express = require("express");
 const cors = require("cors");
@@ -12,12 +12,11 @@ const app = express();
 
 // --- MIDDLEWARES ---
 
-// 1. Configuration CORS mise à jour pour Azure
+// ✅ CORS ULTRA-STRICT : Uniquement ton React local (3000) et ton plan Vercel
 app.use(cors({
     origin: [
-        'http://localhost:3000',
-        'http://4.233.208.186',         
-        'https://sama-docteur.vercel.app'
+        'http://localhost:3000',          // Ton application React standard
+        'https://sama-docteur.vercel.app' // Ton éventuel déploiement frontend Vercel
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -28,31 +27,30 @@ app.use(express.json());
 
 // --- ROUTES ---
 
-// Route de santé pour vérifier que l'API répond
+// Route de santé locale
 app.get("/api/health", (req, res) => {
     res.json({
         status: "ok",
-        message: "Serveur Sama Docteur opérationnel sur Azure !",
-        env: process.env.NODE_ENV
+        message: "Serveur Sama Docteur opérationnel en local !",
+        hostname: req.headers.host,
+        env: process.env.NODE_ENV || "development"
     });
 });
 
 app.use("/api/auth", authRoutes);
 
-// Gestion 404 propre
+// Gestion 404
 app.use((req, res) => {
-    res.status(404).json({ error: "Route non trouvée sur le serveur." });
+    res.status(404).json({ error: "Route non trouvée sur le serveur backend." });
 });
 
-// --- LANCEMENT ---
+// --- LANCEMENT LOCAL ---
 const PORT = process.env.PORT || 8000;
 
-// On n'exécute le listen que si le fichier est lancé directement (pas via les tests)
 if (require.main === module) {
     app.listen(PORT, '0.0.0.0', () => {
-        console.log(`🚀 SERVEUR LANCÉ : Port ${PORT}`);
+        console.log(`🚀 SERVEUR BACKEND LOCAL LANCÉ : Port ${PORT}`);
     });
 }
 
-// Export pour que Jest/Supertest puisse tester l'app
 module.exports = app;

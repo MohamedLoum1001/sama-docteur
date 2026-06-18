@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { doc, getDoc } from "firebase/firestore";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { FaPhone, FaStethoscope, FaArrowLeft, FaEnvelope } from "react-icons/fa";
 import Button from "../../../components/boutons/Button";
 

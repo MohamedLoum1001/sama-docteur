@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, getDocs, } from "firebase/firestore";
 import DashboardLayout from "../dashboard/DashboardLayout";
 import {

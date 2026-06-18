@@ -1,5 +1,5 @@
 import { addDoc, collection, serverTimestamp } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 
 const createNotification = async (userId, message) => {
   try {

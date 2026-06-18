@@ -1,4 +1,4 @@
-import { db } from "../firebase";
+import { db } from "../configuration/firebase";
 import { collection, addDoc, GeoPoint } from "firebase/firestore";
 
 const medicamentsTest = [

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { doc, setDoc, onSnapshot, serverTimestamp } from "firebase/firestore";
 import { FaChevronLeft, FaChevronRight, FaTrash, FaArrowLeft } from "react-icons/fa";
 import Button from "../../../components/boutons/Button";

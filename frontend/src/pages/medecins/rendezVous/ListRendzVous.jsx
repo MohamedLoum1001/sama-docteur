@@ -10,7 +10,7 @@ import {
   addDoc,
   serverTimestamp
 } from "firebase/firestore";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { FaArrowLeft, FaCheck, FaTimes, FaCalendarCheck, FaUser } from "react-icons/fa";
 import "./ListRendezVous.css";
 

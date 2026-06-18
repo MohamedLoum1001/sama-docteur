@@ -1,6 +1,6 @@
 // src/patients/rendezVous/RendezVous.jsx
 import React, { useState, useEffect, useMemo } from "react";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import {
   collection,
   query,

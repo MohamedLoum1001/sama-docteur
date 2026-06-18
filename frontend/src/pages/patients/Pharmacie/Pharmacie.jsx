@@ -1,6 +1,6 @@
 // src/patients/pharmacie/Pharmacie.jsx
 import React, { useState, useEffect } from "react";
-import { db } from "../../../firebase";
+import { db } from "../../../configuration/firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { FaSearch, FaMapMarkerAlt, FaPills, FaStar } from "react-icons/fa";
 import Button from "../../../components/boutons/Button";

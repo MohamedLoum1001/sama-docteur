@@ -11,7 +11,7 @@ import AgoraRTC, {
 } from "agora-rtc-react";
 import { FaMicrophone, FaMicrophoneSlash, FaVideo, FaVideoSlash, FaPhoneSlash } from "react-icons/fa";
 import { doc, updateDoc, onSnapshot } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 import "./VideoCall.css";
 
 const APP_ID = process.env.REACT_APP_AGORA_APP_ID;

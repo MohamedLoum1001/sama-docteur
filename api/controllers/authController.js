@@ -86,8 +86,8 @@ exports.register = async (req, res) => {
 
         await db.collection("users").doc(userRecord.uid).set(userData);
 
-        // Le lien doit pointer vers ton IP Azure et non Vercel
-        const resetPasswordLink = "http://4.233.208.186/forget-password";
+        const frontendOrigin = req.get('origin') || "https://sama-docteur.vercel.app";
+        const resetPasswordLink = `${frontendOrigin}/forget-password`;
 
         const mailOptions = {
             from: '"Sama Docteur" <no-reply@samadocteur.com>',
@@ -115,7 +115,7 @@ exports.register = async (req, res) => {
                     </div>
                     <hr style="border: none; border-top: 1px solid #eee; margin-top: 20px;">
                     <p style="font-size: 11px; color: #aaa; text-align: center;">
-                        &copy; 2026 Sama Docteur - Plateforme de santé sur Azure
+                        &copy; 2026 Sama Docteur - Plateforme de santé de confiance
                     </p>
                 </div>
             `
@@ -124,8 +124,9 @@ exports.register = async (req, res) => {
         await transporter.sendMail(mailOptions);
 
         console.log("============================================");
-        console.log("UTILISATEUR CRÉÉ ET LIEN AZURE ENVOYÉ");
+        console.log("UTILISATEUR CRÉÉ ET LIEN D'ACCÈS ENVOYÉ");
         console.log(`Email     : ${email}`);
+        console.log(`Origine   : ${frontendOrigin}`);
         console.log("============================================");
 
         res.status(201).json({
@@ -149,15 +150,23 @@ exports.login = async (req, res) => {
     try {
         const { email } = req.body;
 
+        if (!email) {
+            return res.status(400).json({ error: "L'adresse email est requise." });
+        }
+
+        // 1. Récupération de l'utilisateur via le SDK Firebase Admin
         const userRecord = await auth.getUserByEmail(email);
+
+        // 2. Recherche du profil étendu dans Firestore
         const userDoc = await db.collection("users").doc(userRecord.uid).get();
 
         if (!userDoc.exists) {
-            return res.status(404).json({ error: "Utilisateur non trouvé." });
+            return res.status(404).json({ error: "Utilisateur non trouvé dans l'application." });
         }
 
         const userData = userDoc.data();
 
+        // 3. Validation du statut d'accès
         if (userData.status === 'archived' || userData.status === 'blocked') {
             return res.status(403).json({
                 error: "Votre compte est archivé ou bloqué.",
@@ -166,11 +175,11 @@ exports.login = async (req, res) => {
         }
 
         console.log("============================================");
-        console.log("CONNEXION RÉUSSIE SUR AZURE");
-        console.log(`Utilisateur : ${userData.prenom} ${userData.nom}`);
+        console.log("🚀 DÉMO LOCAL : CONNEXION RÉUSSIE");
+        console.log(`Utilisateur : ${userData.prenom} ${userData.nom} (${userData.role})`);
         console.log("============================================");
 
-        res.status(200).json({
+        return res.status(200).json({
             user: {
                 id: userRecord.uid,
                 uid: userRecord.uid,
@@ -182,10 +191,32 @@ exports.login = async (req, res) => {
             }
         });
     } catch (error) {
-        console.error("Crash Login:", error.message);
-        res.status(401).json({
-            error: "Erreur de connexion.",
+        console.error("Crash Login API:", error.code, error.message);
+
+        // GESTION DES CODES ERREURS SÉCURISÉE
+        if (error.code === 'auth/user-not-found') {
+            return res.status(404).json({ error: "Aucun compte n'est associé à cette adresse email." });
+        }
+
+        if (error.code === 'auth/invalid-email') {
+            return res.status(400).json({ error: "Le format de l'adresse email est invalide." });
+        }
+
+        return res.status(500).json({
+            error: "Une erreur interne est survenue lors de l'authentification.",
             details: error.message
         });
+    }
+};
+/**
+ * LOGIQUE DE DÉCONNEXION (LOGOUT)
+ */
+exports.logout = async (req, res) => {
+    try {
+        const { name } = req.body;
+        console.log(`👤 Déconnexion enregistrée : ${name || "Utilisateur"}`);
+        return res.status(200).json({ message: "Déconnexion réussie côté serveur." });
+    } catch (error) {
+        return res.status(500).json({ error: error.message });
     }
 };

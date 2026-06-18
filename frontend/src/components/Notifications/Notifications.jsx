@@ -10,7 +10,7 @@ import {
   doc,
   orderBy,
 } from "firebase/firestore";
-import { auth, db } from "../../firebase";
+import { auth, db } from "../../configuration/firebase";
 import "bootstrap/dist/css/bootstrap.min.css";
 import "bootstrap-icons/font/bootstrap-icons.css";
 

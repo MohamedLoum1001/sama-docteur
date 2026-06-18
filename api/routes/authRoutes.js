@@ -1,13 +1,13 @@
-
 const express = require("express");
 const router = express.Router();
 const authController = require("../controllers/authController");
 // Import du middleware de sécurité
-const verifyToken = require("../middleware/authMiddleware"); 
+const verifyToken = require("../middleware/authMiddleware");
 
 // --- ROUTES AUTHENTIFICATION ---
 router.post("/register", authController.register);
 router.post("/login", authController.login);
+router.post("/logout", authController.logout); // ✅ NOUVELLE ROUTE : Liée au contrôleur pour la déconnexion
 
 // --- ROUTE PAIEMENT STRIPE ---
 router.post("/create-payment-intent", authController.createPaymentIntent);

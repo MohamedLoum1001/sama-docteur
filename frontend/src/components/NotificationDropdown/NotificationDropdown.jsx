@@ -1,6 +1,6 @@
 import React from "react";
 import { doc, updateDoc, collection, query, where, getDocs, writeBatch } from "firebase/firestore";
-import { db } from "../../firebase";
+import { db } from "../../configuration/firebase";
 
 const NotificationDropdown = ({ notifications, unreadNotifs, formatDateTime }) => {
 

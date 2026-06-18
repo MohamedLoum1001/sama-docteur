@@ -3,34 +3,55 @@ require('dotenv').config();
 
 if (!admin.apps.length) {
     try {
-        const projectId = process.env.FIREBASE_PROJECT_ID;
-        const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
-        let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+        const fs = require('fs');
+        const path = require('path');
 
-        if (privateKey) {
-            // Cette ligne traite tous les formats de sauts de ligne possibles (\n textuel ou réel)
-            privateKey = privateKey.replace(/\\n/g, '\n');
+        // 🚀 FORCE le chemin absolu du conteneur Docker en priorité, sinon prend le chemin local relatif
+        const containerKeyPath = '/app/serviceAccountKey.json';
+        const localKeyPath = path.join(__dirname, '../serviceAccountKey.json');
+
+        let finalKeyPath = null;
+
+        if (fs.existsSync(containerKeyPath) && !fs.lstatSync(containerKeyPath).isDirectory()) {
+            finalKeyPath = containerKeyPath;
+        } else if (fs.existsSync(localKeyPath) && !fs.lstatSync(localKeyPath).isDirectory()) {
+            finalKeyPath = localKeyPath;
         }
 
-        // Vérification de sécurité pour le debug sur Vercel
-        if (!projectId || !clientEmail || !privateKey) {
-            console.error("Variables Firebase Admin manquantes sur Vercel. Vérifiez votre Dashboard.");
-            if (!projectId) console.error("-> FIREBASE_PROJECT_ID est indéfini");
-            if (!clientEmail) console.error("-> FIREBASE_CLIENT_EMAIL est indéfini");
-            if (!privateKey) console.error("-> FIREBASE_PRIVATE_KEY est indéfini");
-        } else {
+        // Si on a trouvé un vrai FICHIER clé json
+        if (finalKeyPath) {
             admin.initializeApp({
-                credential: admin.credential.cert({
-                    projectId,
-                    clientEmail,
-                    privateKey,
-                }),
-                databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${projectId}.firebaseio.com`
+                credential: admin.credential.cert(finalKeyPath),
+                databaseURL: process.env.FIREBASE_DATABASE_URL
             });
-            console.log("Firebase Admin initialisé");
+            console.log(`🚀 Firebase Admin initialisé via le fichier : ${finalKeyPath}`);
+        }
+        // Mode Vercel / Variables d'environnement
+        else {
+            const projectId = process.env.FIREBASE_PROJECT_ID;
+            const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+            let privateKey = process.env.FIREBASE_PRIVATE_KEY;
+
+            if (privateKey) {
+                privateKey = privateKey.replace(/\\n/g, '\n');
+            }
+
+            if (!projectId || !clientEmail || !privateKey) {
+                console.error("❌ Erreur : Fichier JSON introuvable ET variables d'environnement Firebase manquantes.");
+            } else {
+                admin.initializeApp({
+                    credential: admin.credential.cert({
+                        projectId,
+                        clientEmail,
+                        privateKey,
+                    }),
+                    databaseURL: process.env.FIREBASE_DATABASE_URL || `https://${projectId}.firebaseio.com`
+                });
+                console.log("🌐 Firebase Admin initialisé via les variables d'environnement (Vercel)");
+            }
         }
     } catch (error) {
-        console.error("Erreur d'initialisation Firebase:", error.message);
+        console.error("💥 Erreur critique d'initialisation Firebase:", error.message);
     }
 }
 

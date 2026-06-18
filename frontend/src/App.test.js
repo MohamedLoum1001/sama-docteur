@@ -3,7 +3,7 @@ import { MemoryRouter } from 'react-router-dom';
 import App from './App';
 
 // Mock Firebase complet
-jest.mock('./firebase', () => ({
+jest.mock('./configuration/firebase', () => ({
   auth: {
     onAuthStateChanged: jest.fn((cb) => {
       // On simule une réponse immédiate d'utilisateur connecté
