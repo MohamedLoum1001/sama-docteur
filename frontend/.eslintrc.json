@@ -1,0 +1,73 @@
+{
+  // Définition des environnements dans lesquels le projet s'exécute
+  "env": {
+    // Autorise les variables globales du navigateur (window, document...)
+    "browser": true,
+    // Active les fonctionnalités d'ECMAScript 2021
+    "es2021": true,
+    // Autorise les variables propres à Node.js (process, module...)
+    "node": true
+  },
+
+  // Hérite des règles recommandées d'ESLint et des plugins React
+  "extends": [
+    // Règles recommandées pour JavaScript
+    "eslint:recommended",
+    // Bonnes pratiques pour React
+    "plugin:react/recommended",
+    // Vérification des règles d'utilisation des Hooks
+    "plugin:react-hooks/recommended"
+  ],
+
+  // Configuration du parser JavaScript
+  "parserOptions": {
+    "ecmaFeatures": {
+      // Autorise la syntaxe JSX utilisée par React
+      "jsx": true
+    },
+    // Utilise la dernière version d'ECMAScript
+    "ecmaVersion": "latest",
+    // Autorise les imports et exports ES Modules
+    "sourceType": "module"
+  },
+
+  // Chargement du plugin React
+  "plugins": ["react"],
+
+  // Personnalisation des règles ESLint
+  "rules": {
+    // Désactive l'obligation d'importer React dans les fichiers JSX
+    // (inutile depuis React 17)
+    "react/react-in-jsx-scope": "off",
+
+    // Interdit l'utilisation de console.log()
+    // mais autorise console.warn() et console.error()
+    "no-console": [
+      "warn",
+      {
+        "allow": ["warn", "error"]
+      }
+    ],
+
+    // Génère une erreur si une variable n'est jamais utilisée.
+    // Les paramètres commençant par "_" sont ignorés.
+    "no-unused-vars": [
+      "error",
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+
+    // Oblige l'utilisation de === et !==
+    // afin d'éviter les conversions implicites de type
+    "eqeqeq": ["error", "always"]
+  },
+
+  // Configuration spécifique au plugin React
+  "settings": {
+    "react": {
+      // Détecte automatiquement la version de React installée
+      "version": "detect"
+    }
+  }
+}

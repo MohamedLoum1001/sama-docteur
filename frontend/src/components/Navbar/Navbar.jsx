@@ -40,7 +40,7 @@ const Navbar = () => {
     const userName = user ? `${user.prenom} ${user.nom}` : "Utilisateur Inconnu";
 
     try {
-      // ✅ CORRECTION : Appel fonctionnel au backend
+      // Appel fonctionnel au backend
       await fetch(`${API_URL}/api/auth/logout`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -109,6 +109,7 @@ const Navbar = () => {
   };
 
   return (
+    // Balise sémantique Landmark HTML5
     <nav className="navbar navbar-expand-lg navbar-light bg-white border-bottom shadow-sm px-4 py-2 fixed-top">
       <div className="container-fluid">
         <Link className="navbar-brand d-flex align-items-center" to="/">
@@ -118,7 +119,7 @@ const Navbar = () => {
 
         <div className="ms-auto d-flex align-items-center">
 
-          {/* ✉️ SECTION MESSAGES */}
+          {/* SECTION MESSAGES */}
           <div className="position-relative me-3" ref={msgRef}>
             <button className="btn btn-link position-relative" onClick={() => setShowMessages(!showMessages)}>
               <i className="bi bi-chat-dots fs-5 text-dark"></i>

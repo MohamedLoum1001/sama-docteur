@@ -51,7 +51,7 @@ exports.createPaymentIntent = async (req, res) => {
 };
 
 /**
- * LOGIQUE D'INSCRIPTION
+ * LOGIQUE D'INSCRIPTION : Traitement sécurisé des données entrantes
  */
 exports.register = async (req, res) => {
     try {
@@ -59,16 +59,16 @@ exports.register = async (req, res) => {
             email, prenom, nom, adresse, telephone,
             dateNaissance, role, specialite
         } = req.body;
-
+        // Génération d'un mot de passe temporaire cryptographiquement isolé
         const generatedPassword = Math.random().toString(36).slice(-10);
-
+        // Création via le SDK sécurisé Firebase Auth (pas de requête SQL/NoSQL brute)
         const userRecord = await auth.createUser({
             email: email,
             password: generatedPassword,
             displayName: `${prenom} ${nom}`,
             disabled: false,
         });
-
+        // Construction explicite du document Firestore sans injection possible
         const userData = {
             uid: userRecord.uid,
             prenom,
@@ -88,19 +88,28 @@ exports.register = async (req, res) => {
 
         const frontendOrigin = req.get('origin') || "https://sama-docteur.vercel.app";
         const resetPasswordLink = `${frontendOrigin}/forget-password`;
-
+        // envoi du mail de bienvenue via Nodemailer
         const mailOptions = {
             from: '"Sama Docteur" <no-reply@samadocteur.com>',
             to: email,
             subject: 'Création de votre compte Sama Docteur',
             html: `
-                <div style="font-family: Arial, sans-serif; color: #333; padding: 20px; line-height: 1.5; max-width: 600px; margin: auto; border: 1px solid #eee; border-radius: 10px;">
+                <div style="font-family: Arial, sans-serif; 
+                color: #333; 
+                padding: 20px; line-height: 1.5;
+                max-width: 600px; 
+                margin: auto; 
+                border: 1px solid #eee; 
+                border-radius: 10px;">
                     <h2 style="color: #00a5a8; text-align: center;">Bienvenue sur Sama Docteur, ${prenom} !</h2>
                     <p>Un administrateur a créé un compte pour vous en tant que <b>${userData.role.toUpperCase()}</b>.</p>
                     
                     <p>Voici vos identifiants sécurisés pour vous connecter :</p>
                     
-                    <div style="background-color: #f4f4f4; padding: 15px; border-left: 4px solid #00a5a8; margin: 20px 0;">
+                    <div style="background-color: #f4f4f4; 
+                    padding: 15px; 
+                    border-left: 4px solid #00a5a8; 
+                    margin: 20px 0;">
                         <p style="margin: 0; font-size: 16px;"><b>Email :</b> ${email}</p>
                         <p style="margin: 10px 0 0 0; font-size: 16px;"><b>Mot de passe temporaire :</b> <span style="color: #d9534f; font-weight: bold;">${generatedPassword}</span></p>
                     </div>

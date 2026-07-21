@@ -1,7 +1,7 @@
 // api/index.js
 require('dotenv').config();
 
-// ✅ INITIALISATION PRIORITAIRE : Firebase avant les routes
+// INITIALISATION PRIORITAIRE : Firebase avant les routes
 require("./config/firebase");
 
 const express = require("express");
@@ -12,7 +12,7 @@ const app = express();
 
 // --- MIDDLEWARES ---
 
-// ✅ CORS ULTRA-STRICT : Uniquement ton React local (3000) et ton plan Vercel
+// CORS ULTRA-STRICT : Uniquement ton React local (3000) et ton plan Vercel
 app.use(cors({
     origin: [
         'http://localhost:3000',          // Ton application React standard
