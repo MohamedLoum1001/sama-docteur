@@ -15,7 +15,8 @@ const TicketAcheter = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged((user) => {
+    // Correctif 1 : Suppression du paramètre 'user' non utilisé (no-unused-vars)
+    const unsubscribe = auth.onAuthStateChanged(() => {
       fetchTickets();
     });
 
@@ -120,7 +121,8 @@ const TicketAcheter = () => {
         ) : (
           <div className="empty-state">
             <FaCalendarAlt size={50} color="#ccc" />
-            <p>La collection "tickets" semble vide dans Firestore.</p>
+            {/* Correctif 2 : Échappement propre des guillemets pour ESLint / Vercel */}
+            <p>La collection &quot;tickets&quot; semble vide dans Firestore.</p>
           </div>
         )}
       </div>

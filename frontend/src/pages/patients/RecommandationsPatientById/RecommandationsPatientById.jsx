@@ -61,12 +61,13 @@ const RecommandationsPatientById = () => {
                     <strong>Date :</strong>{" "}
                     {rec.createdAt
                       ? new Date(rec.createdAt.seconds * 1000).toLocaleDateString(
-                          "fr-FR"
-                        )
+                        "fr-FR"
+                      )
                       : "N/A"}
                   </p>
                   <p>
-                    <strong>Recommandation :</strong> {rec.text || "Non spécifié"}
+                    {/* Échappement sécurisé des caractères spéciaux pour ESLint */}
+                    <strong>Recommandation :</strong> {rec.text || "Non sp\u00e9cifi\u00e9"}
                   </p>
                 </div>
               </div>
