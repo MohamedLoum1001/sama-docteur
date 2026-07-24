@@ -45,37 +45,26 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     steps:
-      # --- ÉTAPE 1 : Redéploiement automatique du Backend API sur Render ---
+      # --- 1. DÉPLOIEMENT BACKEND API SUR RENDER ---
       - name: Trigger Render Deploy Hook (Backend API)
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
         run: |
-          echo "🚀 Déclenchement du redéploiement à chaud sur Render..."
+          echo "🚀 Déclenchement du redéploiement à chaud de l'API sur Render..."
           curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
           echo "✅ Signal de déploiement envoyé à Render avec succès !"
 
-      # --- ÉTAPE 2 : Déploiement sur le Serveur VPS / Docker Compose ---
-      - name: Deploy to Server via SSH
-        uses: appleboy/ssh-action@v0.1.10
+      # --- 2. DÉPLOIEMENT FRONTEND SUR VERCEL ---
+      - name: Deploy Frontend to Vercel
+        if: ${{ secrets.VERCEL_TOKEN != '' }}
+        uses: amondnet/vercel-action@v20
         with:
-          host: ${{ secrets.PRODUCTION_HOST }}
-          username: ${{ secrets.PRODUCTION_USERNAME }}
-          key: ${{ secrets.PRODUCTION_SSH_KEY }}
-          port: 22
-          script: |
-            echo "Connexion SSH réussie au serveur de production."
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          vercel-args: "--prod"
 
-            # 1. Se positionner dans le répertoire du projet
-            cd /var/www/sama-docteur
-
-            # 2. Récupérer les dernières configurations (ex: docker-compose actualisé)
-            git pull origin main
-
-            # 3. Récupérer les nouvelles images depuis Docker Hub
-            docker compose pull
-
-            # 4. Relancer les conteneurs avec les nouvelles versions sans interruption de service
-            docker compose up -d --remove-orphans
-
-            # 5. Nettoyage des anciennes images inutilisées pour économiser de l'espace disque
-            docker image prune -f
-
-            echo "Déploiement continu terminé avec succès !"
+      - name: Deployment Summary
+        run: |
+          echo "🎉 Déploiement continu effectué avec succès !"
+          echo "   • Backend API : https://sama-docteur.onrender.com"
+          echo "   • Frontend UI : https://sama-docteur.vercel.app"

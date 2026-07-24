@@ -15,7 +15,8 @@ const app = express();
 // Configuration CORS flexible pour dev, production Vercel et outils de test (Postman/Render)
 const allowedOrigins = [
     'http://localhost:3000',
-    'https://sama-docteur.vercel.app'
+    'https://sama-docteur.vercel.app',
+    'https://sama-docteur.onrender.com'
 ];
 
 app.use(cors({
