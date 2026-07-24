@@ -25,7 +25,7 @@ const CheckoutForm = ({ doctorData, storedUser, displayDate, setPaymentSuccess, 
     setErrorMsg("");
 
     try {
-      const response = await fetch("http://localhost:5000/api/auth/create-payment-intent", {
+      const response = await fetch("https://sama-docteur.onrender.com/api/auth/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

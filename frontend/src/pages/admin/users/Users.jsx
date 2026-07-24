@@ -5,9 +5,10 @@ import { collection, getDocs, doc, deleteDoc, updateDoc } from "firebase/firesto
 import { Search, Archive, Ban, Trash2, RotateCcw, UserPlus, X } from 'lucide-react';
 import Button from "../../../components/boutons/Button";
 
+// URL dynamique : Render en production Vercel, localhost en dev local
 const API_URL = window.location.hostname === "localhost"
     ? "http://localhost:8000"
-    : "http://4.233.208.186:8000";
+    : "https://sama-docteur.onrender.com";
 
 const Users = () => {
     const [users, setUsers] = useState([]);
@@ -57,12 +58,15 @@ const Users = () => {
                 body: JSON.stringify(newUser),
             });
             if (response.ok) {
-                alert("Compte créé Mail envoyé.");
+                alert("Compte créé. Un e-mail a été envoyé à l'utilisateur.");
                 setShowAddForm(false);
                 setNewUser({ prenom: "", nom: "", email: "", telephone: "", adresse: "", dateNaissance: "", role: "medecin", specialite: "" });
                 fetchUsers();
+            } else {
+                const errData = await response.json();
+                alert(`Erreur : ${errData.message || "Échec de la création du compte."}`);
             }
-        } catch (error) { alert("Erreur de connexion Azure."); }
+        } catch (error) { alert("Erreur de connexion avec le serveur."); }
         finally { setSubmitting(false); }
     };
 
