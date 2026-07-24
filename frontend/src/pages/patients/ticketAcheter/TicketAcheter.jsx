@@ -119,6 +119,9 @@ const TicketAcheter = () => {
             </div>
           ))
         ) : (
+          // ====================================================================
+          // APRÈS (Code corrigé et conforme Vercel / ESLint)
+          // ====================================================================
           <div className="empty-state">
             <FaCalendarAlt size={50} color="#ccc" />
             {/* Correctif 2 : Échappement propre des guillemets pour ESLint / Vercel */}
