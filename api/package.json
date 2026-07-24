@@ -1,7 +1,7 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "API Backend pour la plateforme de santé Sama Docteur",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

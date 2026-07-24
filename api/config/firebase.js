@@ -40,7 +40,8 @@ if (!admin.apps.length) {
                 // SÉCURITÉ GITHUB ACTIONS : Si aucun identifiant n'est présent, on initialise à blanc pour éviter le crash du build
                 console.warn("Mode CI/CD détecté (ou configuration absente). Initialisation par défaut pour éviter le crash.");
                 admin.initializeApp({
-                    projectId: "sama-docteur-placeholder" // Permet au SDK de créer l'instance db sans crasher au build
+                     // Permet au SDK de créer l'instance db sans crasher au build
+                    projectId: "sama-docteur-placeholder"
                 });
             } else {
                 admin.initializeApp({

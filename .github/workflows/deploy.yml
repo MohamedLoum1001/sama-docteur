@@ -40,34 +40,42 @@ jobs:
             REACT_APP_FIREBASE_APP_ID=${{ secrets.REACT_APP_FIREBASE_APP_ID }}
             REACT_APP_STRIPE_PUBLISHABLE_KEY=${{ secrets.REACT_APP_STRIPE_PUBLISHABLE_KEY }}
 
-  # deploy:
-  #   name: Continuous Deployment to Production
-  #   needs: build-and-push
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Deploy to Server via SSH
-  #       uses: appleboy/ssh-action@v0.1.10
-  #       with:
-  #         host: ${{ secrets.PRODUCTION_HOST }}
-  #         username: ${{ secrets.PRODUCTION_USERNAME }}
-  #         key: ${{ secrets.PRODUCTION_SSH_KEY }}
-  #         port: 22
-  #         script: |
-  #           echo "Connexion SSH réussie au serveur de production."
+  deploy:
+    name: Continuous Deployment to Production
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      # --- ÉTAPE 1 : Redéploiement automatique du Backend API sur Render ---
+      - name: Trigger Render Deploy Hook (Backend API)
+        run: |
+          echo "🚀 Déclenchement du redéploiement à chaud sur Render..."
+          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
+          echo "✅ Signal de déploiement envoyé à Render avec succès !"
+
+      # --- ÉTAPE 2 : Déploiement sur le Serveur VPS / Docker Compose ---
+      - name: Deploy to Server via SSH
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USERNAME }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: 22
+          script: |
+            echo "Connexion SSH réussie au serveur de production."
 
             # 1. Se positionner dans le répertoire du projet
-            # cd /var/www/sama-docteur
+            cd /var/www/sama-docteur
 
-            # # 2. Récupérer les dernières configurations (ex: docker-compose actualisé)
-            # git pull origin main
+            # 2. Récupérer les dernières configurations (ex: docker-compose actualisé)
+            git pull origin main
 
-            # # 3. Récupérer les nouvelles images depuis Docker Hub
-            # docker compose pull
+            # 3. Récupérer les nouvelles images depuis Docker Hub
+            docker compose pull
 
-            # # 4. Relancer les conteneurs avec les nouvelles versions sans interruption de service
-            # docker compose up -d --remove-orphans
+            # 4. Relancer les conteneurs avec les nouvelles versions sans interruption de service
+            docker compose up -d --remove-orphans
 
-            # # 5. Nettoyage des anciennes images inutilisées pour économiser de l'espace disque
-            # docker image prune -f
+            # 5. Nettoyage des anciennes images inutilisées pour économiser de l'espace disque
+            docker image prune -f
 
-            # echo "Déploiement continu terminé avec succès !"
+            echo "Déploiement continu terminé avec succès !"
