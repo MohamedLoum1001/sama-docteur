@@ -8,7 +8,7 @@ import "./Register.css";
 
 const API_URL = window.location.hostname === "localhost"
   ? "http://localhost:5000"
-  : "https://sama-docteur.vercel.app";
+  : "https://sama-docteur.onrender.com"
 
 const Register = () => {
   const [formData, setFormData] = useState({

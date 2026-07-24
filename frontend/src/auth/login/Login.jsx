@@ -10,7 +10,7 @@ import "./Login.css";
 
 const API_URL = window.location.hostname === "localhost"
   ? "http://localhost:5000"
-  : "https://sama-docteur.vercel.app";
+  : "https://sama-docteur.onrender.com"
 
 const Login = () => {
   const navigate = useNavigate();
