@@ -47,24 +47,20 @@ jobs:
     steps:
       # --- 1. DÉPLOIEMENT BACKEND API SUR RENDER ---
       - name: Trigger Render Deploy Hook (Backend API)
-        if: ${{ secrets.RENDER_DEPLOY_HOOK_URL != '' }}
+        env:
+          RENDER_HOOK: ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
         run: |
-          echo "🚀 Déclenchement du redéploiement à chaud de l'API sur Render..."
-          curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK_URL }}"
-          echo "✅ Signal de déploiement envoyé à Render avec succès !"
+          if [ -n "$RENDER_HOOK" ]; then
+            echo "🚀 Déclenchement du redéploiement à chaud de l'API sur Render..."
+            curl -X POST "$RENDER_HOOK"
+            echo "✅ Signal de déploiement envoyé à Render avec succès !"
+          else
+            echo "⚠️ Secret RENDER_DEPLOY_HOOK_URL non configuré. Étape ignorée."
+          fi
 
-      # --- 2. DÉPLOIEMENT FRONTEND SUR VERCEL ---
-      - name: Deploy Frontend to Vercel
-        if: ${{ secrets.VERCEL_TOKEN != '' }}
-        uses: amondnet/vercel-action@v20
-        with:
-          vercel-token: ${{ secrets.VERCEL_TOKEN }}
-          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
-          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
-          vercel-args: "--prod"
-
+      # --- 2. BILAN DU DÉPLOIEMENT ---
       - name: Deployment Summary
         run: |
           echo "🎉 Déploiement continu effectué avec succès !"
           echo "   • Backend API : https://sama-docteur.onrender.com"
-          echo "   • Frontend UI : https://sama-docteur.vercel.app"
+          echo "   • Frontend UI : https://sama-docteur.vercel.app (Automatique via Vercel)"
